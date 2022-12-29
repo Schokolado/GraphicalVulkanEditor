@@ -6,6 +6,9 @@
 
 #include <stdexcept>
 
+enum GPUType { integrated, dedicated, not_specified };
+
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 const char* APPLICATION_NAME = "Vulkano";
+const GPUType GPU_TYPE = dedicated;
