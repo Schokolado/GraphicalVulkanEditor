@@ -138,6 +138,10 @@
     <ClCompile Include="28_model_loading.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="VulkanProject.h" />
+    <ClInclude Include="VulkanProjectVariables.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

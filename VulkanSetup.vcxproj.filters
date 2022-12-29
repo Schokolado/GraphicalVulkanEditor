@@ -22,4 +22,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="VulkanProject.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanProjectVariables.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>
