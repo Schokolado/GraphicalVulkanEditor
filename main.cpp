@@ -1,7 +1,7 @@
 #include "VulkanProject.h"
 
 int main() {
-    HelloTriangleApplication app;
+    VulkanApplication app;
 
     try {
         app.run();
