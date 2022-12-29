@@ -22,11 +22,69 @@ const bool enableValidationLayers = true;
 #endif
 
 // Creator class to initialize and setup Vulkan specific objects related to Instances
+class VulkanPresentationInitializer {
+    friend class VulkanApplication;
+public:
+
+private:
+
+    ///////////////////////////////////////
+    /*      Section for Window Surfaces  */
+    ///////////////////////////////////////
+};
+
+// Creator class to initialize and setup Vulkan specific objects related to physical and logical devices
 class VulkanDevicesInitializer {
     friend class VulkanApplication;
 public:
 
 private:
+
+    ///////////////////////////////////////
+    /* Section for Logical Devices and Queues */
+    ///////////////////////////////////////
+
+    void populateQueueCreateInfo(VkDeviceQueueCreateInfo& queueCreateInfo, VkPhysicalDevice* physicalDevice) {
+        QueueFamilyIndices indices = findQueueFamilies(*physicalDevice);
+
+        float queuePriority = 1.0f;
+       
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+        queueCreateInfo.queueCount = 1;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+    }
+
+    void createLogicalDevice(VkQueue* graphicsQueue, VkDevice* device, VkPhysicalDevice* physicalDevice) {
+
+        VkDeviceQueueCreateInfo queueCreateInfo{};
+        populateQueueCreateInfo(queueCreateInfo, physicalDevice);
+
+        VkPhysicalDeviceFeatures deviceFeatures{};
+
+        VkDeviceCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        createInfo.pQueueCreateInfos = &queueCreateInfo;
+        createInfo.queueCreateInfoCount = 1;
+
+        createInfo.pEnabledFeatures = &deviceFeatures;
+        createInfo.enabledExtensionCount = 0;
+
+        // distinct between instance and device specific validation layers, used for legacy compliance
+        if (enableValidationLayers) {
+            createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+            createInfo.ppEnabledLayerNames = validationLayers.data();
+        }
+        else {
+            createInfo.enabledLayerCount = 0;
+        }
+
+        if (vkCreateDevice(*physicalDevice, &createInfo, nullptr, device) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create logical device!");
+        }
+
+        vkGetDeviceQueue(*device, queueCreateInfo.queueFamilyIndex, 0, graphicsQueue);
+    }
 
     ///////////////////////////////////////
     /*      Section for Queue Families   */
@@ -69,8 +127,6 @@ private:
     ///////////////////////////////////////
     /*      Section for Physical Devices */
     ///////////////////////////////////////
-
-
 
     // Simple device chooser, unused if device rate suitability is used instead.
     bool isDeviceSuitable(VkPhysicalDevice device) {
@@ -298,7 +354,6 @@ private:
 };
 
 class VulkanApplication {
-    friend class VulkanInstanceInitializer;
 public:
     void run() {
         initWindow();
@@ -308,14 +363,17 @@ public:
     }
 
 private:
-    VulkanDevicesInitializer* devicesCreator;
+    VulkanDevicesInitializer* deviceCreator;
     VulkanInstanceInitializer* instanceCreator;
+    VulkanPresentationInitializer* presentrationCreator;
 
     GLFWwindow* window;
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
 
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    VkDevice device;
+    VkQueue graphicsQueue;
 
 
 
@@ -331,7 +389,9 @@ private:
     void initVulkan() {
         instanceCreator->createInstance(&instance);
         instanceCreator->setupDebugMessenger(&debugMessenger, &instance);
-        devicesCreator->pickPhysicalDevice(&physicalDevice, &instance);
+        deviceCreator->pickPhysicalDevice(&physicalDevice, &instance);
+        deviceCreator->createLogicalDevice(&graphicsQueue, &device, &physicalDevice);
+        presentrationCreator->
     }
 
     void mainLoop() {
@@ -355,13 +415,17 @@ private:
         }
     }
 
-    void cleanupPhysicalDevice() {
-        // Nothing to do for Physical Devices. 
+    void cleanupDevices() {
+        // Nothing to do for physical devices. 
         // Will be destroyed on instance destruction
+        // 
+        // Nothing to do for device queues. 
+        // Will be destroyed on logical device destruction
+        vkDestroyDevice(device, nullptr);
     }
 
     void cleanup() {
-        cleanupPhysicalDevice();
+        cleanupDevices();
         cleanupDebugMessenger();
         cleanupInstance();
         cleanupGlfw();
