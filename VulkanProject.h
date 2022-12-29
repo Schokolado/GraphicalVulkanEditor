@@ -5,6 +5,9 @@
 #include <iostream>
 #include <cstdlib>
 #include <vector>
+#include <map>
+#include <optional>
+
 
 #include "VulkanProjectVariables.h"
 
@@ -24,10 +27,52 @@ class VulkanDevicesInitializer {
 public:
 
 private:
+
+    ///////////////////////////////////////
+    /*      Section for Queue Families   */
+    ///////////////////////////////////////
+
+    struct QueueFamilyIndices {
+        std::optional<uint32_t> graphicsFamily;
+
+        bool isComplete() {
+            return graphicsFamily.has_value();
+        }
+    };
+
+    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
+        QueueFamilyIndices indices;
+
+        // Logic to find queue family indices to populate struct with
+        uint32_t queueFamilyCount = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+        int i = 0;
+        for (const auto& queueFamily : queueFamilies) {
+            if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                indices.graphicsFamily = i;
+            }
+
+            if (indices.isComplete()) {
+                break;
+            }
+
+            i++;
+        }
+
+        return indices;
+    }
+
     ///////////////////////////////////////
     /*      Section for Physical Devices */
     ///////////////////////////////////////
 
+
+
+    // Simple device chooser, unused if device rate suitability is used instead.
     bool isDeviceSuitable(VkPhysicalDevice device) {
 
         VkPhysicalDeviceProperties deviceProperties;
@@ -36,18 +81,39 @@ private:
         VkPhysicalDeviceFeatures deviceFeatures;
         vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 
-        if (GPU_TYPE == dedicated) {
-            return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
-                deviceFeatures.geometryShader;
+        QueueFamilyIndices indices = findQueueFamilies(device);
+
+        return indices.isComplete() &&
+            deviceProperties.deviceType == deviceFeatures.geometryShader;
+    }
+
+    // Choose Device by suitability, dedicated graphics gain higher scores than integrated and are favored.
+    int rateDeviceSuitability(VkPhysicalDevice device) {
+
+        VkPhysicalDeviceProperties deviceProperties;
+        vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+        VkPhysicalDeviceFeatures deviceFeatures;
+        vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+        QueueFamilyIndices indices = findQueueFamilies(device);
+
+        int score = 0;
+
+        // Discrete GPUs have a significant performance advantage
+        if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && indices.isComplete()) {
+            score += 1000;
         }
 
-        if (GPU_TYPE == integrated) {
-            return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU &&
-                deviceFeatures.geometryShader;
+        // Maximum possible size of textures affects graphics quality
+        score += deviceProperties.limits.maxImageDimension2D;
+
+        // Application can't function without geometry shaders
+        if (!deviceFeatures.geometryShader || !indices.isComplete()) {
+            return 0;
         }
 
-        return deviceProperties.deviceType == 
-            deviceFeatures.geometryShader;
+        return score;
     }
 
     void pickPhysicalDevice(VkPhysicalDevice* physicalDevice, VkInstance* instance) {
@@ -62,14 +128,19 @@ private:
         std::vector<VkPhysicalDevice> devices(deviceCount);
         vkEnumeratePhysicalDevices(*instance, &deviceCount, devices.data());
 
+        // Use an ordered map to automatically sort candidates by increasing score
+        std::multimap<int, VkPhysicalDevice> candidates;
+
         for (const auto& device : devices) {
-            if (isDeviceSuitable(device)) {
-                *physicalDevice = device;
-                break;
-            }
+            int score = rateDeviceSuitability(device);
+            candidates.insert(std::make_pair(score, device));
         }
 
-        if (physicalDevice == VK_NULL_HANDLE) {
+        // Check if the best candidate is suitable at all
+        if (candidates.rbegin()->first > 0) {
+            *physicalDevice = candidates.rbegin()->second;
+        }
+        else {
             throw std::runtime_error("failed to find a suitable GPU!");
         }
     }
@@ -284,7 +355,13 @@ private:
         }
     }
 
+    void cleanupPhysicalDevice() {
+        // Nothing to do for Physical Devices. 
+        // Will be destroyed on instance destruction
+    }
+
     void cleanup() {
+        cleanupPhysicalDevice();
         cleanupDebugMessenger();
         cleanupInstance();
         cleanupGlfw();
