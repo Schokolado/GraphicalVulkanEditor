@@ -101,7 +101,7 @@ private:
         std::optional<uint32_t> graphicsFamily;
         std::optional<uint32_t> presentationFamily;
 
-
+        //return true if graphics family and presentation family is set.
         bool isComplete() {
             return graphicsFamily.has_value() && presentationFamily.has_value();
         }
@@ -300,6 +300,9 @@ private:
         if (enableValidationLayers) {
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         }
+        if (RUN_ON_MACOS) {
+            extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+        }
 
         return extensions;
     }
@@ -349,6 +352,8 @@ private:
         auto extensions = getRequiredExtensions();
         createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
         createInfo.ppEnabledExtensionNames = extensions.data();
+
+        if(RUN_ON_MACOS) createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
         
         // this debug messenger will be used only for creation and desctruction of Instance and cleaned up afterwards
         VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};

@@ -9,3 +9,4 @@
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 const char* APPLICATION_NAME = "Vulkan Application";
+const bool RUN_ON_MACOS = false;
