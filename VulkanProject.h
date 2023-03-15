@@ -297,6 +297,10 @@ private:
 
         std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
+        if (!checkRequiredGlfwExtensionsSupport(extensions)) {
+            throw std::runtime_error("extensions requested for glfw, but not available!");
+        };
+
         if (enableValidationLayers) {
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         }
@@ -305,6 +309,31 @@ private:
         }
 
         return extensions;
+    }
+
+    bool checkRequiredGlfwExtensionsSupport(std::vector<const char*> extensions) {
+        uint32_t extensionCount = 0;
+        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+
+        std::vector<VkExtensionProperties> foundExtensions(extensionCount);
+        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, foundExtensions.data());
+        std::cout << "required instance extensions by glfw:\n";
+
+        for (const auto& extension : extensions) {
+
+           auto found = std::find_if(foundExtensions.begin(), foundExtensions.end(), [extension](const auto& foundExtension) {
+               return strcmp(extension, foundExtension.extensionName) == 0;
+                });
+
+            if (found != foundExtensions.end()) {
+                std::cout << "\tExtension " << extension << " found" << std::endl;
+            }
+            else {
+                std::cout << "\tExtension " << extension << " not found" << std::endl;
+            }
+        }
+
+        return true;
     }
 
     bool checkValidationLayerSupport() {
