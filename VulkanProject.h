@@ -8,6 +8,7 @@
 #include <map>
 #include <set>
 #include <optional>
+#include <string>
 
 
 #include "VulkanProjectVariables.h"
@@ -145,6 +146,58 @@ private:
     /*      Section for Physical Devices */
     ///////////////////////////////////////
 
+    bool chooseStartUpGPU(VkSurfaceKHR surface, VkPhysicalDevice* physicalDevice, std::vector<VkPhysicalDevice> devices) {
+        
+        std::cout << "Select GPU to run the application" << std::endl;
+
+        //remove unusable devices from list
+        devices.erase(std::remove_if(
+            devices.begin(), devices.end(),
+            [surface, this](const auto &device) {
+                return !isDeviceSuitable(surface, device);
+            }), devices.end());
+
+        if (devices.empty()) {
+            throw std::runtime_error("failed to find a suitable GPU!");
+        }
+
+        //list all usable GPUs on console
+        size_t count = 0;
+        for (const auto& device : devices) {
+            VkPhysicalDeviceProperties deviceProperties;
+            vkGetPhysicalDeviceProperties(device, &deviceProperties);
+            std::cout << "(" << count << ") " << deviceProperties.deviceName << std::endl;
+            count++;
+        }
+
+        std::string selected;
+        std::cin >> selected;
+
+        //validate input as a number
+        size_t inputIndex = -1;
+        try {
+            inputIndex = std::stoi(selected); //unsafe conversion if input starts with a number and continues with letters output will be the leading number.
+        }
+        catch (const std::exception& e) {
+            std::cerr << "Input was not a number." << std::endl;
+            std::cerr << "Fallback to automatic GPU selection." << std::endl;
+            return false;
+        }
+
+        if (inputIndex >= 0 && inputIndex < devices.size()) {
+            VkPhysicalDeviceProperties deviceProperties;
+            vkGetPhysicalDeviceProperties(devices.at(inputIndex), &deviceProperties);
+            std::cout << "Proceed with GPU: " << deviceProperties.deviceName << std::endl;
+            *physicalDevice = devices.at(inputIndex);
+            return true;
+        }
+        else {
+            std::cerr << "Selected GPU number was out of bounds!" << std::endl;
+            std::cerr << "Fallback to automatic GPU selection." << std::endl;
+            return false;
+        }
+    }
+
     // Simple device chooser, unused if device rate suitability is used instead.
     bool isDeviceSuitable(VkSurfaceKHR surface, VkPhysicalDevice device) {
 
@@ -156,8 +209,25 @@ private:
 
         QueueFamilyIndices indices = findQueueFamilies(surface, device);
 
-        return indices.isComplete() &&
-            deviceProperties.deviceType == deviceFeatures.geometryShader;
+        return indices.isComplete() && deviceFeatures.geometryShader;
+    }
+
+    void findBestCandidate(VkSurfaceKHR* surface, VkPhysicalDevice* physicalDevice, std::vector<VkPhysicalDevice> devices) {
+        // Use an ordered map to automatically sort candidates by increasing score
+        std::multimap<int, VkPhysicalDevice> candidates;
+
+        for (const auto& device : devices) {
+            int score = rateDeviceSuitability(*surface, device);
+            candidates.insert(std::make_pair(score, device));
+        }
+
+        // Check if the best candidate is suitable at all
+        if (candidates.rbegin()->first > 0) {
+            *physicalDevice = candidates.rbegin()->second;
+        }
+        else {
+            throw std::runtime_error("failed to find a suitable GPU!");
+        }
     }
 
     // Choose Device by suitability, dedicated graphics gain higher scores than integrated and are favored.
@@ -201,21 +271,17 @@ private:
         std::vector<VkPhysicalDevice> devices(deviceCount);
         vkEnumeratePhysicalDevices(*instance, &deviceCount, devices.data());
 
-        // Use an ordered map to automatically sort candidates by increasing score
-        std::multimap<int, VkPhysicalDevice> candidates;
-
-        for (const auto& device : devices) {
-            int score = rateDeviceSuitability(*surface, device);
-            candidates.insert(std::make_pair(score, device));
+        if (CHOOSE_GPU_ON_STARTUP) {
+            if (!chooseStartUpGPU(*surface, physicalDevice, devices)) {
+                findBestCandidate(surface, physicalDevice, devices);
+                return;
+            }
+            else {
+                return;
+            };
         }
 
-        // Check if the best candidate is suitable at all
-        if (candidates.rbegin()->first > 0) {
-            *physicalDevice = candidates.rbegin()->second;
-        }
-        else {
-            throw std::runtime_error("failed to find a suitable GPU!");
-        }
+        findBestCandidate(surface, physicalDevice, devices);
     }
 };
 
@@ -229,6 +295,7 @@ private:
     /*      Section for Debug Messenger  */
     ///////////////////////////////////////
     void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
+        //extension functions are not loaded automatically and need to be called via vkGetInstanceProcAddr
         auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
         if (func != nullptr) {
             func(instance, debugMessenger, pAllocator);
@@ -236,6 +303,7 @@ private:
     }
     
     VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
+        //extension functions are not loaded automatically and need to be called via vkGetInstanceProcAddr
         auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
         if (func != nullptr) {
             return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
@@ -244,6 +312,7 @@ private:
             return VK_ERROR_EXTENSION_NOT_PRESENT;
         }
     }
+
     // Populate DebugMessengerInfo to get debug messages even after messenger is destroyed before instance
     void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
         createInfo = {};
@@ -269,6 +338,7 @@ private:
         }
     }
 
+    //Callback returns boolean to indicate if a Vulkan call that triggered a validation layer message should be aborted. Should only trturn true for validation Layer testing.
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
         VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -280,8 +350,10 @@ private:
             // Message is important enough to show
         }
         */
-
-        std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+        
+        if (SHOW_VALIDATION_LAYER_DEBUG_INFO) {
+            std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+        }
 
         return VK_FALSE;
     }
