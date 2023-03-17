@@ -17,6 +17,10 @@ const std::vector<const char*> validationLayers = {
     "VK_LAYER_KHRONOS_validation"
 };
 
+const std::vector<const char*> deviceExtensions = {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME
+};
+
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
 #else
@@ -31,8 +35,61 @@ public:
 private:
 
     ///////////////////////////////////////
-    /*      Section for Window Surfaces  */
+    /*      Section for Window Surfaces, Swap Chains and Image Views  */
     ///////////////////////////////////////
+
+    struct SwapChainSupportDetails {
+        VkSurfaceCapabilitiesKHR capabilities; //min/max number of images in swap chain, min/max width and height of images
+        std::vector<VkSurfaceFormatKHR> formats; //pixel format, color space
+        std::vector<VkPresentModeKHR> presentationModes; //e.g. FIFO, IMMEDIATE
+    };
+
+    bool checkSwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device) {
+        SwapChainSupportDetails swapChainSupport = querySwapChainSupport(surface, device);
+        //For simplicity it is sufficient for now to have at least one supported image format and one supported presentation mode.
+            //add sophisticated swap chain selector here.
+        return !swapChainSupport.formats.empty() && !swapChainSupport.presentationModes.empty();
+    }
+
+    SwapChainSupportDetails querySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device) {
+        SwapChainSupportDetails details;
+
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
+
+        uint32_t formatCount;
+        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+        if (formatCount != 0) {
+            details.formats.resize(formatCount); //resize vector to hold all formats
+            vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
+        }
+
+        uint32_t presentationModeCount;
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentationModeCount, nullptr);
+        if (presentationModeCount != 0) {
+            details.presentationModes.resize(presentationModeCount);
+            vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentationModeCount, details.presentationModes.data());
+        }
+
+        return details;
+    }
+
+    //Querying for swap chain support can actually be omitted, because having a presentation queue implies the presence of a swap chain extension
+    bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
+        uint32_t extensionCount;
+        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+
+        std::vector<VkExtensionProperties>availableExtensions(extensionCount);
+        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+
+        std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+
+        //check for all device extensions can also be performed like checking for validation layers using a nested for loop.
+        for (const auto& extension : availableExtensions) {
+            requiredExtensions.erase(extension.extensionName);
+        }
+
+        return requiredExtensions.empty();
+    }
 
     void createSurface(VkSurfaceKHR* surface, GLFWwindow* window, VkInstance* instance) {
         if (glfwCreateWindowSurface(*instance, window, nullptr, surface) != VK_SUCCESS) {
@@ -75,7 +132,8 @@ private:
         createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
 
         createInfo.pEnabledFeatures = &deviceFeatures;
-        createInfo.enabledExtensionCount = 0;
+        createInfo.enabledExtensionCount = deviceExtensions.size();
+        createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
         // distinct between instance and device specific validation layers, used for legacy compliance
         if (enableValidationLayers) {
@@ -209,7 +267,14 @@ private:
 
         QueueFamilyIndices indices = findQueueFamilies(surface, device);
 
-        return indices.isComplete() && deviceFeatures.geometryShader;
+        bool extensionsSupported = checkDeviceExtensionSupport(device);
+        bool swapChainAdequate = false;
+        
+        if (extensionsSupported) {
+            swapChainAdequate = checkSwapChainSupport(surface, device);
+        }
+
+        return indices.isComplete() && deviceFeatures.geometryShader && extensionsSupported && swapChainAdequate;
     }
 
     void findBestCandidate(VkSurfaceKHR* surface, VkPhysicalDevice* physicalDevice, std::vector<VkPhysicalDevice> devices) {
@@ -251,8 +316,15 @@ private:
         // Maximum possible size of textures affects graphics quality
         score += deviceProperties.limits.maxImageDimension2D;
 
-        // Application can't function without geometry shaders
-        if (!deviceFeatures.geometryShader || !indices.isComplete()) {
+        bool extensionsSupported = checkDeviceExtensionSupport(device);
+        bool swapChainAdequate = false;
+
+        if (extensionsSupported) {
+            swapChainAdequate = checkSwapChainSupport(surface, device);
+        }
+
+        // Application can't function without geometry shaders or necessary extensions (for e.g. swapchains to present images) or inadequate swapchains
+        if (!deviceFeatures.geometryShader || !extensionsSupported || !swapChainAdequate || !indices.isComplete()) {
             return 0;
         }
 
@@ -390,6 +462,7 @@ private:
         std::vector<VkExtensionProperties> foundExtensions(extensionCount);
         vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, foundExtensions.data());
         std::cout << "required instance extensions by glfw:\n";
+        bool foundAllRequiredExtensions = false;
 
         for (const auto& extension : extensions) {
 
@@ -399,13 +472,15 @@ private:
 
             if (found != foundExtensions.end()) {
                 std::cout << "\tExtension " << extension << " found" << std::endl;
+                foundAllRequiredExtensions = true;
             }
             else {
                 std::cout << "\tExtension " << extension << " not found" << std::endl;
+                return false;
             }
         }
 
-        return true;
+        return foundAllRequiredExtensions;
     }
 
     bool checkValidationLayerSupport() {
