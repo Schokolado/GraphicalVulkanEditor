@@ -45,7 +45,7 @@ private:
         std::vector<VkPresentModeKHR> presentationModes; //conditions for "swapping" images to the screen. e.g. FIFO, IMMEDIATE
     };
 
-    void createSwapChain(VkSwapchainKHR* swapchain, VkSurfaceKHR* surface, VkDevice* device, VkPhysicalDevice* physicalDevice, GLFWwindow* window) {
+    void createSwapChain(VkExtent2D* swapChainExtent, VkFormat* swapChainImageFormat,  std::vector<VkImage>* swapChainImages, VkSwapchainKHR* swapchain, VkSurfaceKHR* surface, VkDevice* device, VkPhysicalDevice* physicalDevice, GLFWwindow* window) {
         SwapChainSupportDetails swapChainSupport = querySwapChainSupport(*surface, *physicalDevice);
 
         VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
@@ -95,6 +95,14 @@ private:
         if (vkCreateSwapchainKHR(*device, &createInfo, nullptr, swapchain) != VK_SUCCESS) {
             throw std::runtime_error("failed to create swap chain!");
         }
+
+        //potential to put this code into separate function or method and call with struct instead of such many parameters
+        vkGetSwapchainImagesKHR(*device, *swapchain, &imageCount, nullptr);
+        swapChainImages->resize(imageCount);
+        vkGetSwapchainImagesKHR(*device, *swapchain, &imageCount, swapChainImages->data());
+
+        *swapChainImageFormat = surfaceFormat.format;
+        *swapChainExtent = extent;
     }
 
     //The swap extent is the resolution of the swap chain images and it's almost always exactly equal to the resolution of the window that we're drawing to in pixels (more on that in a moment).
@@ -678,7 +686,11 @@ private:
 
     VkSurfaceKHR surface;
     VkQueue presentQueue;
+
     VkSwapchainKHR swapchain;
+    std::vector<VkImage> swapChainImages;
+    VkFormat swapChainImageFormat;
+    VkExtent2D swapChainExtent;
 
 
 
@@ -699,7 +711,7 @@ private:
         presentationDeviceCreator->createSurface(&surface, window, &instance);
         presentationDeviceCreator->pickPhysicalDevice(&surface, &physicalDevice, &instance);
         presentationDeviceCreator->createLogicalDevice(&surface, &presentQueue, &graphicsQueue, &device, &physicalDevice);
-        presentationDeviceCreator->createSwapChain(&swapchain, &surface, &device, &physicalDevice, window);
+        presentationDeviceCreator->createSwapChain(&swapChainExtent, &swapChainImageFormat ,&swapChainImages, &swapchain, &surface, &device, &physicalDevice, window);
     }
 
     void mainLoop() {
