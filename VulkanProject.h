@@ -9,6 +9,7 @@
 #include <set>
 #include <optional>
 #include <string>
+#include <algorithm>
 
 
 #include "VulkanProjectVariables.h"
@@ -41,8 +42,111 @@ private:
     struct SwapChainSupportDetails {
         VkSurfaceCapabilitiesKHR capabilities; //min/max number of images in swap chain, min/max width and height of images
         std::vector<VkSurfaceFormatKHR> formats; //pixel format, color space
-        std::vector<VkPresentModeKHR> presentationModes; //e.g. FIFO, IMMEDIATE
+        std::vector<VkPresentModeKHR> presentationModes; //conditions for "swapping" images to the screen. e.g. FIFO, IMMEDIATE
     };
+
+    void createSwapChain(VkSwapchainKHR* swapchain, VkSurfaceKHR* surface, VkDevice* device, VkPhysicalDevice* physicalDevice, GLFWwindow* window) {
+        SwapChainSupportDetails swapChainSupport = querySwapChainSupport(*surface, *physicalDevice);
+
+        VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
+        VkPresentModeKHR presentationMode = chooseSwapPresentMode(swapChainSupport.presentationModes);
+        VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities, window);
+
+        uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
+        //make sure to not exceed the maximum number of images while doing this, where 0 is a special value that means that there is no maximum
+        if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
+            imageCount = swapChainSupport.capabilities.maxImageCount;
+        }
+
+        VkSwapchainCreateInfoKHR createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+        createInfo.surface = *surface;
+
+        createInfo.minImageCount = imageCount;
+        createInfo.imageFormat = surfaceFormat.format;
+        createInfo.imageColorSpace = surfaceFormat.colorSpace;
+        createInfo.imageExtent = extent;
+        createInfo.imageArrayLayers = 1; //specifies the amount of layers each image consists of, always 1 for 2D Applications. Increase if using 3D stereoscopic images.
+        createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT; //specifies what kind of operations we'll use the images in the swap chain for.
+                                                                    //VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT specifies to render directly into images
+                                                                    //VK_IMAGE_USAGE_TRANSFER_DST_BIT may be used to render into separate image and perform post processing. Perform memory operation then to transport image to swap chain.
+        QueueFamilyIndices indices = findQueueFamilies(*surface, *physicalDevice);
+        uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentationFamily.value()};
+
+        if (indices.graphicsFamily != indices.presentationFamily) {
+            //drawing on the images in the swap chain from the graphics queue and then submitting them on the presentation queue if they are not the same
+            // --> Avoid ownership management.
+            createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT; //Images can be used across multiple queue families without explicit ownership transfers.
+            createInfo.queueFamilyIndexCount = 2;
+            createInfo.pQueueFamilyIndices = queueFamilyIndices;
+        }
+        else {
+            createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE; //image is owned by one queue family at a time and ownership must be explicitly transferred before using it in another queue family. --> Best performance
+            createInfo.queueFamilyIndexCount = 0; //Optional
+            createInfo.pQueueFamilyIndices = nullptr; //Optional
+        }
+
+        createInfo.preTransform = swapChainSupport.capabilities.currentTransform; //change this to apply transformations to each image e.g. 90 degree rotations.
+        createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR; //use to blend in with other images on window - change if opacity of alpha channel is relevant.
+        createInfo.presentMode = presentationMode;
+        createInfo.clipped = VK_TRUE; //enable clipping if hidden pixels are not relevant or should not be read.
+        createInfo.oldSwapchain = VK_NULL_HANDLE; //leave for now - resizing windows will create new swapchains based on old ones --> later topic.
+
+        if (vkCreateSwapchainKHR(*device, &createInfo, nullptr, swapchain) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create swap chain!");
+        }
+    }
+
+    //The swap extent is the resolution of the swap chain images and it's almost always exactly equal to the resolution of the window that we're drawing to in pixels (more on that in a moment).
+    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* window) {
+        if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
+            return capabilities.currentExtent;
+        }
+        else {
+            //Vulkan works with pixels instead of screen coordinates.
+            //But the conversion for high-DPI screens such as Apple Retina Displays does not match a 1:1 conversion --> use glfwFrameBufferSize
+            int width, height;
+            glfwGetFramebufferSize(window, &width, &height);
+
+            VkExtent2D actualExtent = {
+                static_cast<uint32_t>(width),
+                static_cast<uint32_t>(height)
+            };
+
+            actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+            actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+
+            return actualExtent;
+        }
+    }
+
+    // presentation modes:
+    // VK_PRESENT_MODE_IMMEDIATE_KHR: created images will be transferred immediately to the screen, may cause tearing
+    // VK_PRESENT_MODE_FIFO_KHR: created images will be stored in queue, first in first out principle, if queue is full program stops to create new images - guaranteed to be available
+    // VK_PRESENT_MODE_FIFO_RELAXED_KHR: same as FIFO but if queue is empty, application transfers image to screen without waiting for display refresh/vertical blank
+    // VK_PRESENT_MODE_MAILBOX_KHR: new created images replace already present images in the queue if its full, instead of stopping the program to create frames. Reduces latency issues but consumes a lot of energy - don't use on mobile devices.
+    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentationModes) {
+        for (const auto& availablePresentationMode : availablePresentationModes) {
+            if (!SAVE_ENERGY_FOR_MOBILE) {
+                if (availablePresentationMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+                    return availablePresentationMode;
+                }
+            }
+        }
+        
+        return VK_PRESENT_MODE_FIFO_KHR;
+    }
+
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
+        for (const auto& availableFormat : availableFormats) {
+            //prefer 32 Bit srgb color cormat (8 bit per channel) and srgb color space for more accurate colors
+            if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLORSPACE_SRGB_NONLINEAR_KHR) {
+                return availableFormat;
+            }
+        }
+
+        return availableFormats[0];
+    }
 
     bool checkSwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device) {
         SwapChainSupportDetails swapChainSupport = querySwapChainSupport(surface, device);
@@ -574,6 +678,7 @@ private:
 
     VkSurfaceKHR surface;
     VkQueue presentQueue;
+    VkSwapchainKHR swapchain;
 
 
 
@@ -594,6 +699,7 @@ private:
         presentationDeviceCreator->createSurface(&surface, window, &instance);
         presentationDeviceCreator->pickPhysicalDevice(&surface, &physicalDevice, &instance);
         presentationDeviceCreator->createLogicalDevice(&surface, &presentQueue, &graphicsQueue, &device, &physicalDevice);
+        presentationDeviceCreator->createSwapChain(&swapchain, &surface, &device, &physicalDevice, window);
     }
 
     void mainLoop() {
@@ -630,9 +736,14 @@ private:
         vkDestroyDevice(device, nullptr);
     }
 
+    void cleanupSwapchain() {
+        vkDestroySwapchainKHR(device, swapchain, nullptr);
+    }
+
 
 
     void cleanup() {
+        cleanupSwapchain();
         cleanupDevices();
         cleanupSurfaces();
         cleanupDebugMessengers();

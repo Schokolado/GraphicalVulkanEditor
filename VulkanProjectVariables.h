@@ -12,3 +12,4 @@ const char* APPLICATION_NAME = "Vulkan Application";
 const bool RUN_ON_MACOS = false;
 const bool CHOOSE_GPU_ON_STARTUP = false;
 const bool SHOW_VALIDATION_LAYER_DEBUG_INFO = true;
+const bool SAVE_ENERGY_FOR_MOBILE = false;
