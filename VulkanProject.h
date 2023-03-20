@@ -39,6 +39,35 @@ private:
     /*      Section for Window Surfaces, Swap Chains and Image Views  */
     ///////////////////////////////////////
 
+    void createImageViews(std::vector<VkImageView>* swapChainImageViews, VkFormat* swapChainImageFormat, std::vector<VkImage>* swapChainImages, VkDevice* device) {
+        swapChainImageViews->resize(swapChainImages->size());
+        for (size_t i = 0; i < swapChainImages->size(); i++) {
+            VkImageViewCreateInfo createInfo{};
+           
+            createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            createInfo.image = swapChainImages->at(i); //color/render target
+            createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D; //treat images as 1D textures, 2D textures, 3D textures and cube maps.
+            createInfo.format = *swapChainImageFormat; //pixel format, color space
+           
+            //Shift color channels to prefered likings e.g. map all channels to red to get monochrome textures etc.
+            createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+            
+            //subresource describes what the image's purpose is and which part of the image should be accessed.
+            createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; //Use color information
+            createInfo.subresourceRange.baseMipLevel = MIPMAP_LEVEL; //choose mipmap level for image views
+            createInfo.subresourceRange.levelCount = 1; //no multilayered images
+            createInfo.subresourceRange.baseArrayLayer = 0;
+            createInfo.subresourceRange.layerCount = 1; //for stereoscopic 3D applications, use multiple layers to access views for left and right eye
+
+            if (vkCreateImageView(*device, &createInfo, nullptr, &swapChainImageViews->at(i)) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create image views!");
+            }
+        }
+    }
+
     struct SwapChainSupportDetails {
         VkSurfaceCapabilitiesKHR capabilities; //min/max number of images in swap chain, min/max width and height of images
         std::vector<VkSurfaceFormatKHR> formats; //pixel format, color space
@@ -691,6 +720,7 @@ private:
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
+    std::vector<VkImageView> swapChainImageViews;
 
 
 
@@ -711,7 +741,8 @@ private:
         presentationDeviceCreator->createSurface(&surface, window, &instance);
         presentationDeviceCreator->pickPhysicalDevice(&surface, &physicalDevice, &instance);
         presentationDeviceCreator->createLogicalDevice(&surface, &presentQueue, &graphicsQueue, &device, &physicalDevice);
-        presentationDeviceCreator->createSwapChain(&swapChainExtent, &swapChainImageFormat ,&swapChainImages, &swapchain, &surface, &device, &physicalDevice, window);
+        presentationDeviceCreator->createSwapChain(&swapChainExtent, &swapChainImageFormat, &swapChainImages, &swapchain, &surface, &device, &physicalDevice, window);
+        presentationDeviceCreator->createImageViews(&swapChainImageViews, &swapChainImageFormat, &swapChainImages, &device);
     }
 
     void mainLoop() {
@@ -752,9 +783,15 @@ private:
         vkDestroySwapchainKHR(device, swapchain, nullptr);
     }
 
+    void cleanupImageViews() {
+        for (auto imageView : swapChainImageViews) {
+            vkDestroyImageView(device, imageView, nullptr);
+        }
+    }
 
 
     void cleanup() {
+        cleanupImageViews();
         cleanupSwapchain();
         cleanupDevices();
         cleanupSurfaces();
