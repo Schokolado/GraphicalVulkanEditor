@@ -9,9 +9,10 @@
 #include <set>
 #include <optional>
 #include <string>
+#include <fstream>
 #include <algorithm>
 
-
+#include <shaderc/shaderc.hpp>
 #include "VulkanProjectVariables.h"
 
 const std::vector<const char*> validationLayers = {
@@ -27,6 +28,90 @@ const bool enableValidationLayers = false;
 #else
 const bool enableValidationLayers = true;
 #endif
+
+// Creator class to initialize and setup Vulkan specific objects related to graphics pipeline
+class VulkanGraphicsPipelineInitializer {
+    friend class VulkanApplication;
+public:
+
+private:
+
+    /////////////////////////////////////////////////
+    /*    Section for Graphics Pipeline Objects    */
+    /////////////////////////////////////////////////
+
+
+    //read compiled spv file
+    static std::vector<char> readSPVFile(const std::string& filename) {
+        std::ifstream file(filename, std::ios::ate | std::ios::binary);
+
+        if (!file.is_open()) {
+            throw std::runtime_error("failed to open file!");
+        }
+        //start reading from end to determine the size of the file and allocate a buffer
+        size_t fileSize = (size_t)file.tellg();
+        std::vector<char> buffer(fileSize);
+        file.seekg(0); //go back to start and read all data at once.
+        file.read(buffer.data(), fileSize);
+        file.close();
+
+        return buffer;
+    }
+
+    //read shader file for compiling to spv inside the app
+    static std::string readShaderFile(const std::string& filename) {
+        std::ifstream file(filename);
+
+        if (!file.is_open()) {
+            throw std::runtime_error("failed to open!" + filename);
+        }
+
+        std::string shaderText((std::istreambuf_iterator<char>(file)),
+            std::istreambuf_iterator<char>());
+
+        return shaderText;
+
+    }
+    //FIXME: remember to add information to use shaderc_combinedd.lib for debug and shaderc_combinedd.lib for release in the linker Input @properties of VS!!
+    shaderc::SpvCompilationResult compileShader(std::string source_text, const char* shader_type){
+
+        shaderc_shader_kind shader_kind;
+        if (strcmp(shader_type, "vertex") == 0) {
+            shader_kind = shaderc_glsl_vertex_shader;
+        } else if (strcmp(shader_type, "fragment") == 0) {
+            shader_kind = shaderc_glsl_fragment_shader;
+        }
+        else {
+            throw std::runtime_error("provided shader type not usable:" + (std::string)shader_type);
+        }
+
+        shaderc::Compiler compiler;
+        shaderc::CompileOptions options;
+        if (REDUCE_SPIRV_CODE_SIZE) {
+            options.SetOptimizationLevel(shaderc_optimization_level_size);
+        }
+        shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(source_text, shader_kind, shader_type, options);
+
+        if (result.GetCompilationStatus() != shaderc_compilation_status_success) {
+            throw std::runtime_error(result.GetErrorMessage());
+        }
+
+        return result ;
+    }
+
+    void createGraphicsPipeline() {
+        auto vertShaderCode = readSPVFile("shaders/not_needed/compiled_shaders/vert.spv");
+        auto fragShaderCode = readSPVFile("shaders/not_needed/compiled_shaders/frag.spv");
+
+        std::string vertexShaderText = readShaderFile(VERTEX_SHADER_FILE);
+        std::string fragmentShaderText = readShaderFile(FRAGMENT_SHADER_FILE);
+
+        auto vertexShaderCode = compileShader(vertexShaderText,"vertex");
+        auto fragmentShaderCode = compileShader(fragmentShaderText, "fragment");
+
+        //assign pCode of createInfo using this:  std::vector<uint32_t> spirv = {vertexShaderCode.cbegin(),vertexShaderCode.cend()};
+    };
+};
 
 // Creator class to initialize and setup Vulkan specific objects related to physical and logical devices, window surfaces, swap chains and image views
 class VulkanPresentationDevicesInitializer {
@@ -702,6 +787,7 @@ public:
     }
 
 private:
+    VulkanGraphicsPipelineInitializer* graphicsPipelineCreator;
     VulkanPresentationDevicesInitializer* presentationDeviceCreator;
     VulkanInstanceInitializer* instanceCreator;
 
@@ -743,6 +829,8 @@ private:
         presentationDeviceCreator->createLogicalDevice(&surface, &presentQueue, &graphicsQueue, &device, &physicalDevice);
         presentationDeviceCreator->createSwapChain(&swapChainExtent, &swapChainImageFormat, &swapChainImages, &swapchain, &surface, &device, &physicalDevice, window);
         presentationDeviceCreator->createImageViews(&swapChainImageViews, &swapChainImageFormat, &swapChainImages, &device);
+
+        graphicsPipelineCreator->createGraphicsPipeline();
     }
 
     void mainLoop() {

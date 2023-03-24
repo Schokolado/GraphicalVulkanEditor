@@ -14,3 +14,6 @@ const bool CHOOSE_GPU_ON_STARTUP = false;
 const bool SHOW_VALIDATION_LAYER_DEBUG_INFO = true;
 const bool SAVE_ENERGY_FOR_MOBILE = false;
 const bool MIPMAP_LEVEL = 0;
+const std::string VERTEX_SHADER_FILE = "shaders/raw_shaders/shader.vert";
+const std::string FRAGMENT_SHADER_FILE = "shaders/raw_shaders/shader.frag";
+const bool REDUCE_SPIRV_CODE_SIZE = false;

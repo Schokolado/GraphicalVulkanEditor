@@ -30,4 +30,12 @@
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="shaders\shader.vert">
+      <Filter>Source Files</Filter>
+    </Text>
+    <Text Include="shaders\shader.frag">
+      <Filter>Source Files</Filter>
+    </Text>
+  </ItemGroup>
 </Project>
