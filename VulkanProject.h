@@ -40,6 +40,66 @@ private:
     /*    Section for Graphics Pipeline Objects    */
     /////////////////////////////////////////////////
 
+    // Render pass: the attachments referenced by the pipeline stages and their usage
+    void createRenderPass(VkRenderPass* renderPass, VkFormat* swapChainImageFormat, VkDevice* device) {
+        // single color buffer attachment by one ima from swapchain
+        VkAttachmentDescription colorAttachment{};
+        colorAttachment.format = *swapChainImageFormat; //format should match swap chain image format
+        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT; //no multisampling for now
+
+        // loading operation before rendering
+        // VK_ATTACHMENT_LOAD_OP_LOAD: Preserve the existing contents of the attachment
+        // VK_ATTACHMENT_LOAD_OP_CLEAR : Clear the values to a constant at the start
+        // VK_ATTACHMENT_LOAD_OP_DONT_CARE : Existing contents are undefined; we don't care about them
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; //clear contents of image
+
+        // storing operation after rendering
+        // VK_ATTACHMENT_STORE_OP_STORE: Rendered contents will be stored in memory and can be read later
+        // VK_ATTACHMENT_STORE_OP_DONT_CARE : Contents of the framebuffer will be undefined after the rendering operation
+        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE; //store to show on screen 
+
+        // stencil buffer is not in use at the moment
+        colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+        // define pixel layout
+        // VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: Images used as color attachment
+        // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR: Images to be presented in the swap chain
+        // VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL : Images to be used as destination for a memory copy operation
+        // VK_IMAGE_LAYOUT_UNDEFINED : Do not care about layout of image (that e.g. previous image was in)
+        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; // specify format before render pass begins, undefined if load op is clear
+        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; // layout transition to when renderpass finishes
+
+        // Render subpasses
+        // subpasses reference one or more attachments
+        VkAttachmentReference colorAttachmentReference{};
+        colorAttachmentReference.attachment = 0; // reference to the color attachment-array index, see fragment shader layout(location = 0)
+        colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; //specifies which layout we would like the attachment to have during a subpass that uses this reference
+
+        // Subpasses can these attachments attached
+        // pColorAttachments
+        // pInputAttachments: Attachments that are read from a shader
+        // pResolveAttachments: Attachments used for multisampling color attachments
+        // pDepthStencilAttachment : Attachment for depth and stencil data
+        // pPreserveAttachments : Attachments that are not used by this subpass, but for which the data must be preserved
+        VkSubpassDescription subpass{};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &colorAttachmentReference;
+
+        VkRenderPassCreateInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        renderPassInfo.attachmentCount = 1;
+        renderPassInfo.pAttachments = &colorAttachment;
+        renderPassInfo.subpassCount = 1;
+        renderPassInfo.pSubpasses = &subpass;
+
+        if (vkCreateRenderPass(*device, &renderPassInfo, nullptr, renderPass) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create render pass!");
+        }
+    }
+
+    // Thin wrapper for the actual SPIRV code of a shader
     VkShaderModule createShaderModule(const std::vector<uint32_t>& code, VkDevice device) {
         VkShaderModuleCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -54,7 +114,7 @@ private:
         return shaderModule;
     }
 
-    // read shader file for compiling to spv inside the app
+    // Read shader file to compile within the program itself
     static std::string readShaderFile(const std::string& filename) {
         std::ifstream file(filename);
 
@@ -69,6 +129,7 @@ private:
 
     }
     // FIXME: remember to add information to use shaderc_combinedd.lib for debug and shaderc_combinedd.lib for release in the linker Input @properties of VS!!
+    // compile shader text into spirv code format
     shaderc::SpvCompilationResult compileShader(std::string source_text, const char* shader_type){
 
         shaderc_shader_kind shader_kind;
@@ -99,8 +160,9 @@ private:
         return result ;
     }
 
-    void createGraphicsPipeline(VkPipelineLayout* pipelineLayout, VkExtent2D* swapChainExtent, VkDevice* device) {
-       
+    // Setup grapics pipeline stages such as shader stage, fixed function stage, pipeline layout and renderpasses
+    void createGraphicsPipeline(VkPipeline* graphicsPipeline, VkRenderPass* renderPass, VkPipelineLayout* pipelineLayout, VkExtent2D* swapChainExtent, VkDevice* device) {
+        // Shader stages : the shader modules that define the functionality of the programmable stages of the graphics pipeline
         ////////////////////////// SHADER STAGE
         std::string vertexShaderText = readShaderFile(VERTEX_SHADER_FILE);
         std::string fragmentShaderText = readShaderFile(FRAGMENT_SHADER_FILE);
@@ -134,6 +196,7 @@ private:
         vertexInputInfo.vertexAttributeDescriptionCount = 0;
         vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Attribute descriptions: type of the attributes passed to the vertex shader, which binding to load them from and at which offset
 
+        //Fixed - function state : all of the structures that define the fixed - function stages of the pipeline, like input assembly, rasterizer, viewport and color blending
         //////////////////////////// INPUT ASSEMBLY
 
         // specify geometry topology and primitive reuse
@@ -260,7 +323,7 @@ private:
         colorBlendingInfo.blendConstants[2] = 0.0f; // Optional
         colorBlendingInfo.blendConstants[3] = 0.0f; // Optional
 
-
+        // Pipeline layout : the uniform and push values referenced by the shader that can be updated at draw time
         ///////////////////////////////// PIPELINE LAYOUT
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
@@ -274,6 +337,29 @@ private:
             throw std::runtime_error("failed to create pipeline layout!");
         }
 
+        /////////////////////////////////// PIPELINE CREATION
+
+        VkGraphicsPipelineCreateInfo pipelineInfo{};
+        pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+        pipelineInfo.stageCount = 2;
+        pipelineInfo.pStages = shaderStages;
+        pipelineInfo.pVertexInputState = &vertexInputInfo;
+        pipelineInfo.pInputAssemblyState = &inputAssemblyInfo;
+        pipelineInfo.pViewportState = &viewportState;
+        pipelineInfo.pRasterizationState = &rasterizerInfo;
+        pipelineInfo.pMultisampleState = &multisamplingInfo;
+        pipelineInfo.pDepthStencilState = nullptr; // Optional
+        pipelineInfo.pColorBlendState = &colorBlendingInfo;
+        pipelineInfo.pDynamicState = &dynamicStateInfo;
+        pipelineInfo.layout = *pipelineLayout;
+        pipelineInfo.renderPass = *renderPass;
+        pipelineInfo.subpass = 0; // index of the sub pass where this graphics pipeline will be used
+        pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional, specify the handle of an existing pipeline with basePipelineHandle or reference another pipeline that is about to be created by index with basePipelineIndex
+        pipelineInfo.basePipelineIndex = -1; // Optional, Right now there is only a single pipeline, so we'll simply specify a null handle and an invalid index. These values are only used if the VK_PIPELINE_CREATE_DERIVATIVE_BIT flag is also specified in the flags field of VkGraphicsPipelineCreateInfo.
+
+        if (vkCreateGraphicsPipelines(*device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, graphicsPipeline) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create graphics pipeline!");
+        }
         //////////////////////////////// END OF FUNCTION; DESTRUCTION AHEAD
 
         // end of function, destroy shader modules after pipeline is created.
@@ -977,7 +1063,10 @@ private:
     VkExtent2D swapChainExtent;
     std::vector<VkImageView> swapChainImageViews;
 
+    VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
+    VkPipeline graphicsPipeline;
+
 
 
 
@@ -1001,7 +1090,8 @@ private:
         presentationDeviceCreator->createSwapChain(&swapChainExtent, &swapChainImageFormat, &swapChainImages, &swapchain, &surface, &device, &physicalDevice, window);
         presentationDeviceCreator->createImageViews(&swapChainImageViews, &swapChainImageFormat, &swapChainImages, &device);
 
-        graphicsPipelineCreator->createGraphicsPipeline(&pipelineLayout, &swapChainExtent, &device);
+        graphicsPipelineCreator->createRenderPass(&renderPass, &swapChainImageFormat, &device);
+        graphicsPipelineCreator->createGraphicsPipeline(&graphicsPipeline , &renderPass, &pipelineLayout, &swapChainExtent, &device);
     }
 
     void mainLoop() {
@@ -1048,13 +1138,15 @@ private:
         }
     }
 
-    void cleanupPipelineLayout() {
+    void cleanupGraphicsPipeline() {
+        vkDestroyPipeline(device, graphicsPipeline, nullptr);
         vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+        vkDestroyRenderPass(device, renderPass, nullptr);
     }
 
 
     void cleanup() {
-        cleanupPipelineLayout();
+        cleanupGraphicsPipeline();
         cleanupImageViews();
         cleanupSwapchain();
         cleanupDevices();
