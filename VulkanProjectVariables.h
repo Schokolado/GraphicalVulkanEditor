@@ -17,3 +17,4 @@ const bool MIPMAP_LEVEL = 0;
 const std::string VERTEX_SHADER_FILE = "shaders/raw_shaders/shader.vert";
 const std::string FRAGMENT_SHADER_FILE = "shaders/raw_shaders/shader.frag";
 const bool REDUCE_SPIRV_CODE_SIZE = false;
+const VkCullModeFlagBits CULL_MODE = VK_CULL_MODE_BACK_BIT;
