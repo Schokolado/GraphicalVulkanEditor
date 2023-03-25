@@ -29,6 +29,40 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = true;
 #endif
 
+// Creator class to initialize and setup Vulkan specific objects related to drawing, such as framebuffers and command buffers/pools
+class VulkanDrawingInitializer {
+    friend class VulkanApplication;
+public:
+
+private:
+
+    /////////////////////////////////////////////////
+    /*         Section for Drawing Objects         */
+    /////////////////////////////////////////////////
+
+    void createFramebuffers(std::vector<VkFramebuffer>* swapChainFramebuffers, VkExtent2D* swapChainExtent, std::vector<VkImageView>* swapChainImageViews, VkRenderPass* renderPass, VkDevice* device) {
+        swapChainFramebuffers->resize(swapChainImageViews->size());
+        for (size_t i = 0; i < swapChainImageViews->size(); i++) {
+            VkImageView attachments[] = {
+                swapChainImageViews->at(i)
+            };
+
+            VkFramebufferCreateInfo framebufferInfo{};
+            framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            framebufferInfo.renderPass = *renderPass;
+            framebufferInfo.attachmentCount = 1;
+            framebufferInfo.pAttachments = attachments;
+            framebufferInfo.width = swapChainExtent->width;
+            framebufferInfo.height = swapChainExtent->height;
+            framebufferInfo.layers = 1;
+
+            if (vkCreateFramebuffer(*device, &framebufferInfo, nullptr, &swapChainFramebuffers->at(i)) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create framebuffer!");
+            }
+        }
+    }
+};
+
 // Creator class to initialize and setup Vulkan specific objects related to graphics pipeline
 class VulkanGraphicsPipelineInitializer {
     friend class VulkanApplication;
@@ -1064,6 +1098,7 @@ public:
     }
 
 private:
+    VulkanDrawingInitializer* drawingCreator;
     VulkanGraphicsPipelineInitializer* graphicsPipelineCreator;
     VulkanPresentationDevicesInitializer* presentationDeviceCreator;
     VulkanInstanceInitializer* instanceCreator;
@@ -1089,6 +1124,7 @@ private:
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
 
+    std::vector<VkFramebuffer> swapChainFramebuffers;
 
 
 
@@ -1114,6 +1150,8 @@ private:
 
         graphicsPipelineCreator->createRenderPass(&renderPass, &swapChainImageFormat, &device);
         graphicsPipelineCreator->createGraphicsPipeline(&graphicsPipeline , &renderPass, &pipelineLayout, &swapChainExtent, &device);
+        
+        drawingCreator->createFramebuffers(&swapChainFramebuffers, &swapChainExtent, &swapChainImageViews, &renderPass, &device);
     }
 
     void mainLoop() {
@@ -1166,8 +1204,14 @@ private:
         vkDestroyRenderPass(device, renderPass, nullptr);
     }
 
+    void cleanupFramebuffers() {
+        for (auto framebuffer : swapChainFramebuffers) {
+            vkDestroyFramebuffer(device, framebuffer, nullptr);
+        }
+    }
 
     void cleanup() {
+        cleanupFramebuffers();
         cleanupGraphicsPipeline();
         cleanupImageViews();
         cleanupSwapchain();
