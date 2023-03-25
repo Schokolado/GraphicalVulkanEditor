@@ -40,7 +40,21 @@ private:
     /*    Section for Graphics Pipeline Objects    */
     /////////////////////////////////////////////////
 
+    VkShaderModule createShaderModule(const std::vector<uint32_t>& code, VkDevice device) {
+        VkShaderModuleCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        createInfo.codeSize = code.size() * sizeof(uint32_t); //get correct codelength
+        createInfo.pCode = code.data();
 
+        VkShaderModule shaderModule;
+        if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create shader module!");
+        }
+        
+        return shaderModule;
+    }
+
+    //FIXME: remove precompiled spv code
     //read compiled spv file
     static std::vector<char> readSPVFile(const std::string& filename) {
         std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -90,18 +104,24 @@ private:
         if (REDUCE_SPIRV_CODE_SIZE) {
             options.SetOptimizationLevel(shaderc_optimization_level_size);
         }
+
+        std::cout << "Compiling Shader: " << shader_type << std::endl;
         shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(source_text, shader_kind, shader_type, options);
 
         if (result.GetCompilationStatus() != shaderc_compilation_status_success) {
             throw std::runtime_error(result.GetErrorMessage());
         }
+        std::cout << "Shader compiled: " << shader_type << std::endl;
+
 
         return result ;
     }
 
-    void createGraphicsPipeline() {
-        auto vertShaderCode = readSPVFile("shaders/not_needed/compiled_shaders/vert.spv");
-        auto fragShaderCode = readSPVFile("shaders/not_needed/compiled_shaders/frag.spv");
+    void createGraphicsPipeline(VkDevice* device) {
+        //FIXME: remove unused precompiled shader code
+        //precompiled shaders
+        //auto vertShaderCode = readSPVFile("shaders/not_needed/compiled_shaders/vert.spv");
+        //auto fragShaderCode = readSPVFile("shaders/not_needed/compiled_shaders/frag.spv");
 
         std::string vertexShaderText = readShaderFile(VERTEX_SHADER_FILE);
         std::string fragmentShaderText = readShaderFile(FRAGMENT_SHADER_FILE);
@@ -109,7 +129,29 @@ private:
         auto vertexShaderCode = compileShader(vertexShaderText,"vertex");
         auto fragmentShaderCode = compileShader(fragmentShaderText, "fragment");
 
-        //assign pCode of createInfo using this:  std::vector<uint32_t> spirv = {vertexShaderCode.cbegin(),vertexShaderCode.cend()};
+        VkShaderModule vertexShaderModule = createShaderModule({ vertexShaderCode.cbegin(),vertexShaderCode.cend() }, *device);
+        VkShaderModule fragmentShaderModule = createShaderModule({ fragmentShaderCode.cbegin(),fragmentShaderCode.cend() }, *device);
+
+        VkPipelineShaderStageCreateInfo vertexShaderStageInfo{};
+        vertexShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        vertexShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+        vertexShaderStageInfo.module = vertexShaderModule;
+        vertexShaderStageInfo.pName = "main"; //choose entry point function within shader
+        vertexShaderStageInfo.pSpecializationInfo = nullptr; //add shader constants if used, to get optimization features by compiler
+
+        VkPipelineShaderStageCreateInfo fragmentShaderStageInfo{};
+        fragmentShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        fragmentShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        fragmentShaderStageInfo.module = fragmentShaderModule;
+        fragmentShaderStageInfo.pName = "main";
+        vertexShaderStageInfo.pSpecializationInfo = nullptr; //add shader constants if used, to get optimization features by compiler
+
+        VkPipelineShaderStageCreateInfo shaderStages[] = { vertexShaderStageInfo, fragmentShaderStageInfo };
+
+
+        //end of function, destroy shader modules after pipeline is created.
+        vkDestroyShaderModule(*device, fragmentShaderModule, nullptr);
+        vkDestroyShaderModule(*device, vertexShaderModule, nullptr);
     };
 };
 
@@ -830,7 +872,7 @@ private:
         presentationDeviceCreator->createSwapChain(&swapChainExtent, &swapChainImageFormat, &swapChainImages, &swapchain, &surface, &device, &physicalDevice, window);
         presentationDeviceCreator->createImageViews(&swapChainImageViews, &swapChainImageFormat, &swapChainImages, &device);
 
-        graphicsPipelineCreator->createGraphicsPipeline();
+        graphicsPipelineCreator->createGraphicsPipeline(&device);
     }
 
     void mainLoop() {
