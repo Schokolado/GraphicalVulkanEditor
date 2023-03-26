@@ -133,7 +133,7 @@ private:
         }
     }
     // Fixed-function stage : all of the structures that define the fixed - function stages of the pipeline, like input assembly, rasterizer, viewport and color blending
-    void setupFixedFunctionStage(VkPipelineInputAssemblyStateCreateInfo& inputAssemblyInfo,
+    void setupFixedFunctionStage(std::vector<VkDynamicState>& dynamicStates, VkViewport& viewport, VkRect2D& scissor, VkPipelineInputAssemblyStateCreateInfo& inputAssemblyInfo,
         VkPipelineDynamicStateCreateInfo& dynamicStateInfo,
         VkPipelineViewportStateCreateInfo& viewportState,
         VkPipelineRasterizationStateCreateInfo& rasterizerInfo,
@@ -156,7 +156,7 @@ private:
         //////////////////////// DYNAMIC STATES
         //
         // create dynamic state to dynamically change viewport and scissor without recreating the whole pipeline at drawing time
-        std::vector<VkDynamicState> dynamicStates = {
+        dynamicStates = {
             VK_DYNAMIC_STATE_VIEWPORT,
             VK_DYNAMIC_STATE_SCISSOR
         };
@@ -170,7 +170,6 @@ private:
         // specify the rendered region of the framebuffer
         // set width to swapchain extent to fill the whole window
         // "squash the whole image into a region"
-        VkViewport viewport{};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
         viewport.width = (float)swapChainExtent->width;
@@ -181,7 +180,6 @@ private:
         //////////////////////// SCISSOR
         // 
         // cut the visible region of the framebuffer
-        VkRect2D scissor{};
         scissor.offset = { 0, 0 };
         scissor.extent = *swapChainExtent; //draw entire framebuffer without cutting
 
@@ -371,13 +369,14 @@ private:
         //////////////////////// FIXED FUNCTION STAGE
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
         VkPipelineDynamicStateCreateInfo dynamicStateInfo{};
+        VkViewport viewport{}; VkRect2D scissor{}; std::vector<VkDynamicState> dynamicStates;
         VkPipelineViewportStateCreateInfo viewportState{};
         VkPipelineRasterizationStateCreateInfo rasterizerInfo{};
         VkPipelineMultisampleStateCreateInfo multisamplingInfo{};
         VkPipelineColorBlendAttachmentState colorBlendAttachment{};
         VkPipelineColorBlendStateCreateInfo colorBlendingInfo{};
 
-        setupFixedFunctionStage(inputAssemblyInfo, dynamicStateInfo, viewportState, rasterizerInfo, multisamplingInfo, colorBlendAttachment, colorBlendingInfo, swapChainExtent);
+        setupFixedFunctionStage(dynamicStates, viewport, scissor, inputAssemblyInfo, dynamicStateInfo, viewportState, rasterizerInfo, multisamplingInfo, colorBlendAttachment, colorBlendingInfo, swapChainExtent);
 
         //////////////////////// PIPELINE LAYOUT
         // Pipeline layout : the uniform and push values referenced by the shader that can be updated at draw time
