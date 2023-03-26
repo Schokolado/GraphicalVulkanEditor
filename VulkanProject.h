@@ -40,9 +40,87 @@ private:
     /*         Section for Drawing Objects         */
     /////////////////////////////////////////////////
 
+    void createCommandBuffer(VkCommandBuffer* commandBuffer, VkCommandPool* commandPool, VkDevice* device) {
+        // The level parameter specifies if the allocated command buffers are primary or secondary command buffers.
+        // VK_COMMAND_BUFFER_LEVEL_PRIMARY: Can be submitted to a queue for execution, but cannot be called from other command buffers.
+        // VK_COMMAND_BUFFER_LEVEL_SECONDARY : Cannot be submitted directly, but can be called from primary command buffers.
+        VkCommandBufferAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.commandPool = *commandPool;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY; //use secondary to e.g. reuse common opertations from primary command buffers
+        allocInfo.commandBufferCount = 1;
+
+        if (vkAllocateCommandBuffers(*device, &allocInfo, commandBuffer) != VK_SUCCESS) {
+            throw std::runtime_error("failed to allocate command buffers!");
+        }
+
+
+    }
+
+    void recordCommandBuffer(uint32_t imageIndex, VkCommandBuffer* commandBuffer, VkCommandPool* commandPool, VkPipeline* graphicsPipeline, VkRenderPass* renderPass, std::vector<VkFramebuffer>* swapChainFramebuffers, VkExtent2D* swapChainExtent, VkDevice* device) {
+        // The flags parameter specifies how the command buffer is used:
+        // VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT: The command buffer will be rerecorded right after executing it once.
+        // VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT : This is a secondary command buffer that will be entirely within a single render pass.
+        // VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT : The command buffer can be resubmitted while it is also already pending execution
+        VkCommandBufferBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = 0; // Optional
+        beginInfo.pInheritanceInfo = nullptr; // Optional, relevant only for secondary cmd buffers, specifies which state to inherit from the calling primary command buffers.
+
+        if (vkBeginCommandBuffer(*commandBuffer, &beginInfo) != VK_SUCCESS) {
+            throw std::runtime_error("failed to begin recording command buffer!");
+        }
+
+        VkRenderPassBeginInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassInfo.renderPass = *renderPass;
+        renderPassInfo.framebuffer = swapChainFramebuffers->at(imageIndex);
+        renderPassInfo.renderArea.offset = { 0, 0 }; // render area should match the size of the attachments for best performance.
+        renderPassInfo.renderArea.extent = *swapChainExtent; // The pixels outside render area will have undefined values.
+        VkClearValue clearColor = CLEAR_COLOR;
+        renderPassInfo.clearValueCount = 1;
+        renderPassInfo.pClearValues = &clearColor;
+
+        // Subpass contents parameter controls how the drawing commands within the render pass will be provided.
+        // VK_SUBPASS_CONTENTS_INLINE: The render pass commands will be embedded in the primary command buffer itself and no secondary command buffers will be executed.
+        // VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS : The render pass commands will be executed from secondary command buffers.
+        vkCmdBeginRenderPass(*commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        vkCmdBindPipeline(*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *graphicsPipeline);
+
+        // define dynamic states
+        VkViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = static_cast<float>(swapChainExtent->width);
+        viewport.height = static_cast<float>(swapChainExtent->height);
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(*commandBuffer, 0, 1, &viewport);
+
+        VkRect2D scissor{};
+        scissor.offset = { 0, 0 };
+        scissor.extent = *swapChainExtent;
+        vkCmdSetScissor(*commandBuffer, 0, 1, &scissor);
+
+        //actual draw command
+        // vertexCount
+        // instanceCount : Used for instanced rendering, use 1 if you're not doing that.
+        // firstVertex : Used as an offset into the vertex buffer, defines the lowest value of gl_VertexIndex.
+        // firstInstance : Used as an offset for instanced rendering, defines the lowest value of gl_InstanceIndex.
+        vkCmdDraw(*commandBuffer, 3, 1, 0, 0);
+
+        vkCmdEndRenderPass(*commandBuffer);
+
+        if (vkEndCommandBuffer(*commandBuffer) != VK_SUCCESS) {
+            throw std::runtime_error("failed to record command buffer!");
+        }
+    }
+
+
     void createFramebuffers(std::vector<VkFramebuffer>* swapChainFramebuffers, VkExtent2D* swapChainExtent, std::vector<VkImageView>* swapChainImageViews, VkRenderPass* renderPass, VkDevice* device) {
         swapChainFramebuffers->resize(swapChainImageViews->size());
-        for (size_t i = 0; i < swapChainImageViews->size(); i++) {
+        for (size_t i = 0; i < swapChainImageViews->size(); i++) {//create framebuffer for each image view
             VkImageView attachments[] = {
                 swapChainImageViews->at(i)
             };
@@ -133,7 +211,8 @@ private:
         }
     }
     // Fixed-function stage : all of the structures that define the fixed - function stages of the pipeline, like input assembly, rasterizer, viewport and color blending
-    void setupFixedFunctionStage(std::vector<VkDynamicState>& dynamicStates, VkViewport& viewport, VkRect2D& scissor, VkPipelineInputAssemblyStateCreateInfo& inputAssemblyInfo,
+    void setupFixedFunctionStage(std::vector<VkDynamicState>& dynamicStates,
+        VkPipelineInputAssemblyStateCreateInfo& inputAssemblyInfo,
         VkPipelineDynamicStateCreateInfo& dynamicStateInfo,
         VkPipelineViewportStateCreateInfo& viewportState,
         VkPipelineRasterizationStateCreateInfo& rasterizerInfo,
@@ -165,36 +244,37 @@ private:
         dynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
         dynamicStateInfo.pDynamicStates = dynamicStates.data();
 
-        //////////////////////// VIEWPORT
-        // 
-        // specify the rendered region of the framebuffer
-        // set width to swapchain extent to fill the whole window
-        // "squash the whole image into a region"
-        viewport.x = 0.0f;
-        viewport.y = 0.0f;
-        viewport.width = (float)swapChainExtent->width;
-        viewport.height = (float)swapChainExtent->height;
-        viewport.minDepth = 0.0f;
-        viewport.maxDepth = 1.0f;
-
-        //////////////////////// SCISSOR
-        // 
-        // cut the visible region of the framebuffer
-        scissor.offset = { 0, 0 };
-        scissor.extent = *swapChainExtent; //draw entire framebuffer without cutting
+        ////////////////////////// VIEWPORT
+        //// 
+        //// specify the rendered region of the framebuffer
+        //// set width to swapchain extent to fill the whole window
+        //// "squash the whole image into a region"
 
         // dynamically load viewport and scissor
-        //VkPipelineViewportStateCreateInfo viewportState{};
-        //viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-        //viewportState.viewportCount = 1;
-        //viewportState.scissorCount = 1;
-
-        // statically load viewporrt and scissor - needs pipeline recreation on change
         viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
         viewportState.viewportCount = 1;
-        viewportState.pViewports = &viewport;
         viewportState.scissorCount = 1;
-        viewportState.pScissors = &scissor;
+
+        //// statically load viewport and scissor - needs pipeline recreation on change
+        //// 
+        ////viewport.x = 0.0f;
+        ////viewport.y = 0.0f;
+        ////viewport.width = (float)swapChainExtent->width;
+        ////viewport.height = (float)swapChainExtent->height;
+        ////viewport.minDepth = 0.0f;
+        ////viewport.maxDepth = 1.0f;
+
+        //////////////////////////// SCISSOR
+        ////// 
+        ////// cut the visible region of the framebuffer
+        ////scissor.offset = { 0, 0 };
+        ////scissor.extent = *swapChainExtent; //draw entire framebuffer without cutting
+
+        ////viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+        ////viewportState.viewportCount = 1;
+        //////viewportState.pViewports = &viewport;
+        ////viewportState.scissorCount = 1;
+        //////viewportState.pScissors = &scissor;
 
         //////////////////////// RASTERIZER
         //
@@ -369,14 +449,14 @@ private:
         //////////////////////// FIXED FUNCTION STAGE
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
         VkPipelineDynamicStateCreateInfo dynamicStateInfo{};
-        VkViewport viewport{}; VkRect2D scissor{}; std::vector<VkDynamicState> dynamicStates;
+        std::vector<VkDynamicState> dynamicStates;
         VkPipelineViewportStateCreateInfo viewportState{};
         VkPipelineRasterizationStateCreateInfo rasterizerInfo{};
         VkPipelineMultisampleStateCreateInfo multisamplingInfo{};
         VkPipelineColorBlendAttachmentState colorBlendAttachment{};
         VkPipelineColorBlendStateCreateInfo colorBlendingInfo{};
 
-        setupFixedFunctionStage(dynamicStates, viewport, scissor, inputAssemblyInfo, dynamicStateInfo, viewportState, rasterizerInfo, multisamplingInfo, colorBlendAttachment, colorBlendingInfo, swapChainExtent);
+        setupFixedFunctionStage(dynamicStates, inputAssemblyInfo, dynamicStateInfo, viewportState, rasterizerInfo, multisamplingInfo, colorBlendAttachment, colorBlendingInfo, swapChainExtent);
 
         //////////////////////// PIPELINE LAYOUT
         // Pipeline layout : the uniform and push values referenced by the shader that can be updated at draw time
@@ -429,10 +509,29 @@ class VulkanPresentationDevicesInitializer {
 public:
 
 private:
+    ///////////////////////////////////////
+    /*      Sub-Section for Command Pool creation  */
+    ///////////////////////////////////////
+    void createCommandPool(VkCommandPool* commandPool, VkSurfaceKHR* surface, VkDevice* device, VkPhysicalDevice* physicalDevice) {
+        QueueFamilyIndices queueFamilyIndices = findQueueFamilies(*surface, *physicalDevice);
+
+        // VK_COMMAND_POOL_CREATE_TRANSIENT_BIT: Hint that command buffers are rerecorded with new commands very often (may change memory allocation behavior)
+        // VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT: Allow command buffers to be rerecorded individually, without this flag they all have to be reset together
+        VkCommandPoolCreateInfo poolInfo{};
+        poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; // record a command buffer every frame
+        poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+
+        if (vkCreateCommandPool(*device, &poolInfo, nullptr, commandPool) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create command pool!");
+        }
+    }
+
 
     ///////////////////////////////////////
     /*      Section for Window Surfaces, Swap Chains and Image Views  */
     ///////////////////////////////////////
+
 
     void createImageViews(std::vector<VkImageView>* swapChainImageViews, VkFormat* swapChainImageFormat, std::vector<VkImage>* swapChainImages, VkDevice* device) {
         swapChainImageViews->resize(swapChainImages->size());
@@ -1124,6 +1223,8 @@ private:
     VkPipeline graphicsPipeline;
 
     std::vector<VkFramebuffer> swapChainFramebuffers;
+    VkCommandPool commandPool;
+    VkCommandBuffer commandBuffer;
 
 
 
@@ -1151,6 +1252,9 @@ private:
         graphicsPipelineCreator->createGraphicsPipeline(&graphicsPipeline , &renderPass, &pipelineLayout, &swapChainExtent, &device);
         
         drawingCreator->createFramebuffers(&swapChainFramebuffers, &swapChainExtent, &swapChainImageViews, &renderPass, &device);
+        presentationDeviceCreator->createCommandPool(&commandPool, &surface, &device, &physicalDevice);
+        drawingCreator->createCommandBuffer(&commandBuffer, &commandPool, &device);
+        drawingCreator->recordCommandBuffer(1, &commandBuffer, &commandPool, &graphicsPipeline, &renderPass, &swapChainFramebuffers, &swapChainExtent, &device);
     }
 
     void mainLoop() {
@@ -1209,7 +1313,12 @@ private:
         }
     }
 
+    void cleanupCommandPools() {
+        vkDestroyCommandPool(device, commandPool, nullptr);
+    }
+
     void cleanup() {
+        cleanupCommandPools();
         cleanupFramebuffers();
         cleanupGraphicsPipeline();
         cleanupImageViews();
