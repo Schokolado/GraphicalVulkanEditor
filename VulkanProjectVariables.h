@@ -18,4 +18,4 @@ const std::string VERTEX_SHADER_FILE = "shaders/raw_shaders/shader.vert";
 const std::string FRAGMENT_SHADER_FILE = "shaders/raw_shaders/shader.frag";
 const bool REDUCE_SPIRV_CODE_SIZE = false;
 const VkCullModeFlagBits CULL_MODE = VK_CULL_MODE_BACK_BIT;
-VkClearValue CLEAR_COLOR = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
+VkClearValue CLEAR_COLOR = { {{0.0f, 0.0f, 0.0f, 0.0f}} };
