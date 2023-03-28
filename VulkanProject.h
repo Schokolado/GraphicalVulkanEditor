@@ -79,9 +79,14 @@ struct Vertex {
 };
 
 const std::vector<Vertex> vertices = {
-    {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
     {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-    {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+    {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+    {{-0.5f, 0.0f}, {1.0f, 0.0f, 1.0f}}
+};
+
+const std::vector<uint16_t> indices = {
+    0, 1, 2, 2, 3, 0
 };
 
 // Creator class to initialize and setup Vulkan specific objects related to drawing, such as framebuffers and command buffers/pools
@@ -166,6 +171,8 @@ private:
         allocInfo.allocationSize = memRequirements.size;
         allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties, physicalDevice);
 
+        // Don't call vkAllicateMemory for every buffer:
+        // check out https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator 
         if (vkAllocateMemory(*device, &allocInfo, nullptr, bufferMemory) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate vertex buffer memory!");
         }
@@ -173,6 +180,28 @@ private:
         vkBindBufferMemory(*device, *buffer, *bufferMemory, 0);
     }
 
+    void createIndexBuffer(VkDeviceMemory* indexBufferMemory, VkBuffer* indexBuffer, VkCommandPool* commandPool, VkQueue* graphicsQueue, VkDevice* device, VkPhysicalDevice* physicalDevice) {
+        VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+        //upload cpu buffer (host visible) into gpu buffer (device local) 
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+
+        createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory, device, physicalDevice);
+
+        // access a region of the specified memory resource defined by an offset and size, use VK_WHOLE_SIZE to map all of the memory
+        void* data;
+        vkMapMemory(*device, stagingBufferMemory, 0, bufferSize, 0, &data);
+        memcpy(data, vertices.data(), (size_t)bufferSize); //copy contents of buffer into accessible field
+        vkUnmapMemory(*device, stagingBufferMemory);
+
+        createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory, device, physicalDevice);
+
+        copyBuffer(stagingBuffer, *indexBuffer, bufferSize, commandPool, graphicsQueue, device);
+
+        vkDestroyBuffer(*device, stagingBuffer, nullptr);
+        vkFreeMemory(*device, stagingBufferMemory, nullptr);
+    }
 
     void createVertexBuffer(VkDeviceMemory* vertexBufferMemory, VkBuffer* vertexBuffer, VkCommandPool* commandPool, VkQueue* graphicsQueue, VkDevice* device, VkPhysicalDevice* physicalDevice) {
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
@@ -236,7 +265,7 @@ private:
         }
     }
 
-    void recordCommandBuffer(uint32_t imageIndex, VkBuffer* vertexBuffer, VkCommandBuffer* commandBuffer, VkCommandPool* commandPool, VkPipeline* graphicsPipeline, VkRenderPass* renderPass, std::vector<VkFramebuffer>* swapchainFramebuffers, VkExtent2D* swapChainExtent, VkDevice* device) {
+    void recordCommandBuffer(uint32_t imageIndex, VkBuffer* indexBuffer, VkBuffer* vertexBuffer, VkCommandBuffer* commandBuffer, VkCommandPool* commandPool, VkPipeline* graphicsPipeline, VkRenderPass* renderPass, std::vector<VkFramebuffer>* swapchainFramebuffers, VkExtent2D* swapChainExtent, VkDevice* device) {
         // The flags parameter specifies how the command buffer is used:
         // VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT: The command buffer will be rerecorded right after executing it once.
         // VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT : This is a secondary command buffer that will be entirely within a single render pass.
@@ -270,6 +299,8 @@ private:
         VkBuffer vertexBuffers[] = { *vertexBuffer };
         VkDeviceSize offsets[] = { 0 };
         vkCmdBindVertexBuffers(*commandBuffer, 0, 1, vertexBuffers, offsets);
+        vkCmdBindIndexBuffer(*commandBuffer, *indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
 
         // define dynamic states
         VkViewport viewport{};
@@ -291,7 +322,10 @@ private:
         // instanceCount : Used for instanced rendering, use 1 if you're not doing that.
         // firstVertex : Used as an offset into the vertex buffer, defines the lowest value of gl_VertexIndex.
         // firstInstance : Used as an offset for instanced rendering, defines the lowest value of gl_InstanceIndex.
+        // 
         vkCmdDraw(*commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+        //vkCmdDrawIndexed(*commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+
 
         vkCmdEndRenderPass(*commandBuffer);
 
@@ -1438,6 +1472,8 @@ private:
     std::vector<VkCommandBuffer> commandBuffers;
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
+    VkBuffer indexBuffer;
+    VkDeviceMemory indexBufferMemory;
 
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;
@@ -1480,6 +1516,7 @@ private:
         presentationDeviceCreator->createCommandPool(&commandPool, &surface, &device, &physicalDevice);
         presentationDeviceCreator->createShortLivedCommandPool(&shortLivedCommandPool, &surface, &device, &physicalDevice);
         drawingCreator->createVertexBuffer(&vertexBufferMemory, &vertexBuffer, &shortLivedCommandPool, &graphicsQueue, &device, &physicalDevice);
+        drawingCreator->createIndexBuffer(&indexBufferMemory, &indexBuffer, &shortLivedCommandPool, &graphicsQueue, &device, &physicalDevice);
         drawingCreator->createCommandBuffers(&commandBuffers, &commandPool, &device);
         drawingCreator->createSyncObjects(&imageAvailableSemaphores, &renderFinishedSemaphores, &inFlightFences, &device);
     }
@@ -1537,7 +1574,7 @@ private:
 
         
         vkResetCommandBuffer(commandBuffers[currentFrame], 0);
-        drawingCreator->recordCommandBuffer(imageIndex, &vertexBuffer, &commandBuffers[currentFrame], &commandPool, &graphicsPipeline, &renderPass, &swapchainFramebuffers, &swapChainExtent, &device);
+        drawingCreator->recordCommandBuffer(imageIndex, &indexBuffer, &vertexBuffer, &commandBuffers[currentFrame], &commandPool, &graphicsPipeline, &renderPass, &swapchainFramebuffers, &swapChainExtent, &device);
 
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1651,9 +1688,11 @@ private:
 
     void cleanupBuffers() {
         vkDestroyBuffer(device, vertexBuffer, nullptr);
+        vkDestroyBuffer(device, indexBuffer, nullptr);
     }
     void cleanupMemory() {
         vkFreeMemory(device, vertexBufferMemory, nullptr);
+        vkFreeMemory(device, indexBufferMemory, nullptr);
     }
 
     void cleanup() {
