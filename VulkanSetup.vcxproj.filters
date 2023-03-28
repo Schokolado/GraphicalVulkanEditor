@@ -31,11 +31,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="shaders\shader.vert">
+    <None Include="shaders\raw_shaders\shader.vert">
       <Filter>Source Files</Filter>
-    </Text>
-    <Text Include="shaders\shader.frag">
+    </None>
+    <None Include="shaders\raw_shaders\shader.frag">
       <Filter>Source Files</Filter>
-    </Text>
+    </None>
   </ItemGroup>
 </Project>

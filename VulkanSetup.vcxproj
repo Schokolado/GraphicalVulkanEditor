@@ -146,8 +146,8 @@
     <ClInclude Include="VulkanProjectVariables.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="shaders\shader.frag" />
-    <Text Include="shaders\shader.vert" />
+    <None Include="shaders\raw_shaders\shader.frag" />
+    <None Include="shaders\raw_shaders\shader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

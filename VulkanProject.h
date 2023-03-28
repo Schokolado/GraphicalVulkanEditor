@@ -11,9 +11,17 @@
 #include <string>
 #include <fstream>
 #include <algorithm>
+#include <array>
 
 #include <shaderc/shaderc.hpp>
+#include <glm/glm.hpp>
 #include "VulkanProjectVariables.h"
+
+#ifdef NDEBUG
+const bool enableValidationLayers = false;
+#else
+const bool enableValidationLayers = true;
+#endif
 
 const std::vector<const char*> validationLayers = {
     "VK_LAYER_KHRONOS_validation"
@@ -23,11 +31,58 @@ const std::vector<const char*> deviceExtensions = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
-#ifdef NDEBUG
-const bool enableValidationLayers = false;
-#else
-const bool enableValidationLayers = true;
-#endif
+struct Vertex {
+    glm::vec2 pos;
+    glm::vec3 color;
+
+    // vertex binding describes at which rate to load data from memory throughout the vertices. It specifies the number of bytes between data entries and whether to move to the next data entry after each vertex or after each instance.
+    static VkVertexInputBindingDescription getBindingDescription() {
+        VkVertexInputBindingDescription bindingDescription{};
+        // binding : specifies the index of the binding in the array of bindings.
+        // stride : specifies the number of bytes from one entry to the next
+        // inputRate : can have one of the following values:
+        // VK_VERTEX_INPUT_RATE_VERTEX: Move to the next data entry after each vertex
+        // VK_VERTEX_INPUT_RATE_INSTANCE : Move to the next data entry after each instance
+        bindingDescription.binding = 0; 
+        bindingDescription.stride = sizeof(Vertex);
+        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+        return bindingDescription;
+    }
+
+    static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
+        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+        // binding : tells Vulkan from which binding the per-vertex data comes.
+        // location : references the location directive of the input in the vertex shader
+        // The format parameter describes the type of data for the attribute, implicitly defines the byte size of attribute data: 
+        // float: VK_FORMAT_R32_SFLOAT
+        // vec2 : VK_FORMAT_R32G32_SFLOAT
+        // vec3 : VK_FORMAT_R32G32B32_SFLOAT
+        // vec4 : VK_FORMAT_R32G32B32A32_SFLOAT
+        // ivec2: VK_FORMAT_R32G32_SINT, a 2 - component vector of 32 - bit signed integers
+        // uvec4 : VK_FORMAT_R32G32B32A32_UINT, a 4 - component vector of 32 - bit unsigned integers
+        // double : VK_FORMAT_R64_SFLOAT,
+        attributeDescriptions[0].binding = 0;
+        attributeDescriptions[0].location = 0; // layout(location = 0) in vec2 inPosition;
+        attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT; // The input in the vertex shader with location 0 is the position, which has two 32-bit float components.
+        attributeDescriptions[0].offset = offsetof(Vertex, pos);
+
+        attributeDescriptions[1].binding = 0;
+        attributeDescriptions[1].location = 1; // layout(location = 1) in vec3 inColor;
+        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[1].offset = offsetof(Vertex, color);
+
+        // add more attribute descriptions for more shader input variables
+
+        return attributeDescriptions;
+    }
+};
+
+const std::vector<Vertex> vertices = {
+    {{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
+    {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+    {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+};
 
 // Creator class to initialize and setup Vulkan specific objects related to drawing, such as framebuffers and command buffers/pools
 class VulkanDrawingInitializer {
@@ -39,6 +94,59 @@ private:
     /////////////////////////////////////////////////
     /*         Section for Drawing Objects         */
     /////////////////////////////////////////////////
+
+    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkPhysicalDevice* physicalDevice) {
+        VkPhysicalDeviceMemoryProperties memProperties;
+        vkGetPhysicalDeviceMemoryProperties(*physicalDevice, &memProperties);
+
+        //find memory type that is suitable and check if writing data into it is possible
+        for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+            if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+                return i;
+            }
+        }
+
+        throw std::runtime_error("failed to find suitable memory type!");
+
+    }
+
+    void createVertexBuffer(VkDeviceMemory* vertexBufferMemory, VkBuffer* vertexBuffer, VkDevice* device, VkPhysicalDevice* physicalDevice) {
+        VkBufferCreateInfo bufferInfo{};
+        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferInfo.size = sizeof(vertices[0]) * vertices.size();
+        bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT; //  indicates for which purposes the data in the buffer is going to be used
+        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // buffers can also be owned by specific wqueue family or shared between multiple at the same time
+        bufferInfo.flags = 0;
+
+        if (vkCreateBuffer(*device, &bufferInfo, nullptr, vertexBuffer) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create vertex buffer!");
+        }
+
+        VkMemoryRequirements memRequirements;
+        // size: The size of the required amount of memory in bytes, may differ from bufferInfo.size.
+        // alignment: The offset in bytes where the buffer begins in the allocated region of memory, depends on bufferInfo.usage and bufferInfo.flags.
+        // memoryTypeBits : Bit field of the memory types that are suitable for the buffer.
+        vkGetBufferMemoryRequirements(*device, *vertexBuffer, &memRequirements);
+
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize = memRequirements.size;
+        allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, physicalDevice);
+    
+        if (vkAllocateMemory(*device, &allocInfo, nullptr, vertexBufferMemory) != VK_SUCCESS) {
+            throw std::runtime_error("failed to allocate vertex buffer memory!");
+        }
+
+        vkBindBufferMemory(*device, *vertexBuffer, *vertexBufferMemory, 0);
+
+        // access a region of the specified memory resource defined by an offset and size, use VK_WHOLE_SIZE to map all of the memory
+        void* data;
+        vkMapMemory(*device, *vertexBufferMemory, 0, bufferInfo.size, 0, &data);
+        memcpy(data, vertices.data(), (size_t)bufferInfo.size); //copy contents of buffer into accessible field
+        vkUnmapMemory(*device, *vertexBufferMemory);
+
+
+    }
 
     void createSyncObjects(std::vector<VkSemaphore>* imageAvailableSemaphores, std::vector<VkSemaphore>* renderFinishedSemaphores, std::vector<VkFence>* inFlightFences, VkDevice* device) {
         imageAvailableSemaphores->resize(MAX_FRAMES_IN_FLIGHT);
@@ -79,7 +187,7 @@ private:
         }
     }
 
-    void recordCommandBuffer(uint32_t imageIndex, VkCommandBuffer* commandBuffer, VkCommandPool* commandPool, VkPipeline* graphicsPipeline, VkRenderPass* renderPass, std::vector<VkFramebuffer>* swapchainFramebuffers, VkExtent2D* swapChainExtent, VkDevice* device) {
+    void recordCommandBuffer(uint32_t imageIndex, VkBuffer* vertexBuffer, VkCommandBuffer* commandBuffer, VkCommandPool* commandPool, VkPipeline* graphicsPipeline, VkRenderPass* renderPass, std::vector<VkFramebuffer>* swapchainFramebuffers, VkExtent2D* swapChainExtent, VkDevice* device) {
         // The flags parameter specifies how the command buffer is used:
         // VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT: The command buffer will be rerecorded right after executing it once.
         // VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT : This is a secondary command buffer that will be entirely within a single render pass.
@@ -110,6 +218,10 @@ private:
 
         vkCmdBindPipeline(*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *graphicsPipeline);
 
+        VkBuffer vertexBuffers[] = { *vertexBuffer };
+        VkDeviceSize offsets[] = { 0 };
+        vkCmdBindVertexBuffers(*commandBuffer, 0, 1, vertexBuffers, offsets);
+
         // define dynamic states
         VkViewport viewport{};
         viewport.x = 0.0f;
@@ -130,7 +242,7 @@ private:
         // instanceCount : Used for instanced rendering, use 1 if you're not doing that.
         // firstVertex : Used as an offset into the vertex buffer, defines the lowest value of gl_VertexIndex.
         // firstInstance : Used as an offset for instanced rendering, defines the lowest value of gl_InstanceIndex.
-        vkCmdDraw(*commandBuffer, 3, 1, 0, 0);
+        vkCmdDraw(*commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 
         vkCmdEndRenderPass(*commandBuffer);
 
@@ -377,7 +489,7 @@ private:
     }
 
     // Shader stages : the shader modules that define the functionality of the programmable stages of the graphics pipeline
-    std::vector<VkShaderModule> setupShaderStageAndReturnModules(VkPipelineVertexInputStateCreateInfo& vertexInputInfo, VkPipelineShaderStageCreateInfo& fragmentShaderStageInfo, VkPipelineShaderStageCreateInfo& vertexShaderStageInfo, VkDevice* device) {
+    std::vector<VkShaderModule> setupShaderStageAndReturnModules(std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions, VkVertexInputBindingDescription bindingDescription, VkPipelineVertexInputStateCreateInfo& vertexInputInfo, VkPipelineShaderStageCreateInfo& fragmentShaderStageInfo, VkPipelineShaderStageCreateInfo& vertexShaderStageInfo, VkDevice* device) {
         std::string vertexShaderText = readShaderFile(VERTEX_SHADER_FILE);
         std::string fragmentShaderText = readShaderFile(FRAGMENT_SHADER_FILE);
 
@@ -400,10 +512,10 @@ private:
         vertexShaderStageInfo.pSpecializationInfo = nullptr; // add shader constants if used, to get optimization features by compiler
 
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertexInputInfo.vertexBindingDescriptionCount = 0;
-        vertexInputInfo.pVertexBindingDescriptions = nullptr; // Bindings: spacing between data and whether the data is per-vertex or per-instance
-        vertexInputInfo.vertexAttributeDescriptionCount = 0;
-        vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Attribute descriptions: type of the attributes passed to the vertex shader, which binding to load them from and at which offset
+        vertexInputInfo.vertexBindingDescriptionCount = 1;
+        vertexInputInfo.pVertexBindingDescriptions = &bindingDescription; // Bindings: spacing between data and whether the data is per-vertex or per-instance
+        vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+        vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data(); // Attribute descriptions: type of the attributes passed to the vertex shader, which binding to load them from and at which offset
     
         return std::vector<VkShaderModule>{vertexShaderModule, fragmentShaderModule};
     }
@@ -474,8 +586,10 @@ private:
         VkPipelineShaderStageCreateInfo vertexShaderStageInfo{};
         VkPipelineShaderStageCreateInfo fragmentShaderStageInfo{};
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+        auto bindingDescription = Vertex::getBindingDescription();
+        auto attributeDescriptions = Vertex::getAttributeDescriptions();
 
-        std::vector<VkShaderModule> shaderModules = setupShaderStageAndReturnModules(vertexInputInfo, fragmentShaderStageInfo, vertexShaderStageInfo, device);
+        std::vector<VkShaderModule> shaderModules = setupShaderStageAndReturnModules(attributeDescriptions, bindingDescription, vertexInputInfo, fragmentShaderStageInfo, vertexShaderStageInfo, device);
         VkPipelineShaderStageCreateInfo shaderStages[] = { vertexShaderStageInfo, fragmentShaderStageInfo };
 
         //////////////////////// FIXED FUNCTION STAGE
@@ -1257,6 +1371,8 @@ private:
     std::vector<VkFramebuffer> swapchainFramebuffers;
     VkCommandPool commandPool;
     std::vector<VkCommandBuffer> commandBuffers;
+    VkBuffer vertexBuffer;
+    VkDeviceMemory vertexBufferMemory;
 
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;
@@ -1297,6 +1413,7 @@ private:
         
         drawingCreator->createFramebuffers(&swapchainFramebuffers, &swapChainExtent, &swapchainImageViews, &renderPass, &device);
         presentationDeviceCreator->createCommandPool(&commandPool, &surface, &device, &physicalDevice);
+        drawingCreator->createVertexBuffer(&vertexBufferMemory, &vertexBuffer, &device, &physicalDevice);
         drawingCreator->createCommandBuffers(&commandBuffers, &commandPool, &device);
         drawingCreator->createSyncObjects(&imageAvailableSemaphores, &renderFinishedSemaphores, &inFlightFences, &device);
     }
@@ -1354,7 +1471,7 @@ private:
 
         
         vkResetCommandBuffer(commandBuffers[currentFrame], 0);
-        drawingCreator->recordCommandBuffer(imageIndex, &commandBuffers[currentFrame], &commandPool, &graphicsPipeline, &renderPass, &swapchainFramebuffers, &swapChainExtent, &device);
+        drawingCreator->recordCommandBuffer(imageIndex, &vertexBuffer, &commandBuffers[currentFrame], &commandPool, &graphicsPipeline, &renderPass, &swapchainFramebuffers, &swapChainExtent, &device);
 
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1466,10 +1583,19 @@ private:
         }
     }
 
+    void cleanupBuffers() {
+        vkDestroyBuffer(device, vertexBuffer, nullptr);
+    }
+    void cleanupMemory() {
+        vkFreeMemory(device, vertexBufferMemory, nullptr);
+    }
+
     void cleanup() {
         cleanupSyncObjects();
         cleanupCommandPools();
         //cleanupFramebuffers();
+        cleanupBuffers();
+        cleanupMemory();
         cleanupGraphicsPipeline();
         //cleanupImageViews();
         cleanupSwapchain();
