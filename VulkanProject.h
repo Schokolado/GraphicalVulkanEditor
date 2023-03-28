@@ -110,6 +110,39 @@ private:
 
     }
 
+    void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkCommandPool* commandPool, VkQueue* graphicsQueue, VkDevice* device) {
+        VkCommandBufferAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandPool = *commandPool;
+        allocInfo.commandBufferCount = 1;
+
+        VkCommandBuffer commandBuffer;
+        vkAllocateCommandBuffers(*device, &allocInfo, &commandBuffer);
+
+        VkCommandBufferBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+        VkBufferCopy copyRegion{};
+        copyRegion.srcOffset = 0; // Optional
+        copyRegion.dstOffset = 0; // Optional
+        copyRegion.size = size; //  It is not possible to specify VK_WHOLE_SIZE here, unlike the vkMapMemory command.
+        vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+        vkEndCommandBuffer(commandBuffer); //commandbuffer only contains one copy command, can be stopped recording
+
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &commandBuffer;
+
+        vkQueueSubmit(*graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle(*graphicsQueue);
+    }
+
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer* buffer, VkDeviceMemory* bufferMemory, VkDevice* device, VkPhysicalDevice* physicalDevice) {
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -141,17 +174,27 @@ private:
     }
 
 
-    void createVertexBuffer(VkDeviceMemory* vertexBufferMemory, VkBuffer* vertexBuffer, VkDevice* device, VkPhysicalDevice* physicalDevice) {
+    void createVertexBuffer(VkDeviceMemory* vertexBufferMemory, VkBuffer* vertexBuffer, VkCommandPool* commandPool, VkQueue* graphicsQueue, VkDevice* device, VkPhysicalDevice* physicalDevice) {
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
-        createBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, vertexBuffer, vertexBufferMemory, device, physicalDevice);
+
+        //upload cpu buffer (host visible) into gpu buffer (device local) 
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+
+        createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory, device, physicalDevice);
 
         // access a region of the specified memory resource defined by an offset and size, use VK_WHOLE_SIZE to map all of the memory
         void* data;
-        vkMapMemory(*device, *vertexBufferMemory, 0, bufferSize, 0, &data);
+        vkMapMemory(*device, stagingBufferMemory, 0, bufferSize, 0, &data);
         memcpy(data, vertices.data(), (size_t)bufferSize); //copy contents of buffer into accessible field
-        vkUnmapMemory(*device, *vertexBufferMemory);
+        vkUnmapMemory(*device, stagingBufferMemory);
 
+        createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory, device, physicalDevice);
 
+        copyBuffer(stagingBuffer, *vertexBuffer, bufferSize, commandPool, graphicsQueue, device);
+
+        vkDestroyBuffer(*device, stagingBuffer, nullptr);
+        vkFreeMemory(*device, stagingBufferMemory, nullptr);
     }
 
     void createSyncObjects(std::vector<VkSemaphore>* imageAvailableSemaphores, std::vector<VkSemaphore>* renderFinishedSemaphores, std::vector<VkFence>* inFlightFences, VkDevice* device) {
@@ -672,6 +715,21 @@ private:
         VkCommandPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; // record a command buffer every frame
+        poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+
+        if (vkCreateCommandPool(*device, &poolInfo, nullptr, commandPool) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create command pool!");
+        }
+    }
+
+    void createShortLivedCommandPool(VkCommandPool* commandPool, VkSurfaceKHR* surface, VkDevice* device, VkPhysicalDevice* physicalDevice) {
+        QueueFamilyIndices queueFamilyIndices = findQueueFamilies(*surface, *physicalDevice);
+
+        // VK_COMMAND_POOL_CREATE_TRANSIENT_BIT: Hint that command buffers are rerecorded with new commands very often (may change memory allocation behavior)
+        // VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT: Allow command buffers to be rerecorded individually, without this flag they all have to be reset together
+        VkCommandPoolCreateInfo poolInfo{};
+        poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
         poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
         if (vkCreateCommandPool(*device, &poolInfo, nullptr, commandPool) != VK_SUCCESS) {
@@ -1376,6 +1434,7 @@ private:
 
     std::vector<VkFramebuffer> swapchainFramebuffers;
     VkCommandPool commandPool;
+    VkCommandPool shortLivedCommandPool; // for e.g. staging to vertex buffers
     std::vector<VkCommandBuffer> commandBuffers;
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
@@ -1419,7 +1478,8 @@ private:
         
         drawingCreator->createFramebuffers(&swapchainFramebuffers, &swapChainExtent, &swapchainImageViews, &renderPass, &device);
         presentationDeviceCreator->createCommandPool(&commandPool, &surface, &device, &physicalDevice);
-        drawingCreator->createVertexBuffer(&vertexBufferMemory, &vertexBuffer, &device, &physicalDevice);
+        presentationDeviceCreator->createShortLivedCommandPool(&shortLivedCommandPool, &surface, &device, &physicalDevice);
+        drawingCreator->createVertexBuffer(&vertexBufferMemory, &vertexBuffer, &shortLivedCommandPool, &graphicsQueue, &device, &physicalDevice);
         drawingCreator->createCommandBuffers(&commandBuffers, &commandPool, &device);
         drawingCreator->createSyncObjects(&imageAvailableSemaphores, &renderFinishedSemaphores, &inFlightFences, &device);
     }
