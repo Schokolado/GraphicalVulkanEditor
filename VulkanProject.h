@@ -79,7 +79,7 @@ struct Vertex {
 };
 
 const std::vector<Vertex> vertices = {
-    {{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
+    {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
     {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
     {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
 };
@@ -110,15 +110,15 @@ private:
 
     }
 
-    void createVertexBuffer(VkDeviceMemory* vertexBufferMemory, VkBuffer* vertexBuffer, VkDevice* device, VkPhysicalDevice* physicalDevice) {
+    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer* buffer, VkDeviceMemory* bufferMemory, VkDevice* device, VkPhysicalDevice* physicalDevice) {
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        bufferInfo.size = sizeof(vertices[0]) * vertices.size();
-        bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT; //  indicates for which purposes the data in the buffer is going to be used
+        bufferInfo.size = size;
+        bufferInfo.usage = usage; //  indicates for which purposes the data in the buffer is going to be used
         bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // buffers can also be owned by specific wqueue family or shared between multiple at the same time
         bufferInfo.flags = 0;
 
-        if (vkCreateBuffer(*device, &bufferInfo, nullptr, vertexBuffer) != VK_SUCCESS) {
+        if (vkCreateBuffer(*device, &bufferInfo, nullptr, buffer) != VK_SUCCESS) {
             throw std::runtime_error("failed to create vertex buffer!");
         }
 
@@ -126,23 +126,29 @@ private:
         // size: The size of the required amount of memory in bytes, may differ from bufferInfo.size.
         // alignment: The offset in bytes where the buffer begins in the allocated region of memory, depends on bufferInfo.usage and bufferInfo.flags.
         // memoryTypeBits : Bit field of the memory types that are suitable for the buffer.
-        vkGetBufferMemoryRequirements(*device, *vertexBuffer, &memRequirements);
+        vkGetBufferMemoryRequirements(*device, *buffer, &memRequirements);
 
         VkMemoryAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, physicalDevice);
-    
-        if (vkAllocateMemory(*device, &allocInfo, nullptr, vertexBufferMemory) != VK_SUCCESS) {
+        allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties, physicalDevice);
+
+        if (vkAllocateMemory(*device, &allocInfo, nullptr, bufferMemory) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate vertex buffer memory!");
         }
 
-        vkBindBufferMemory(*device, *vertexBuffer, *vertexBufferMemory, 0);
+        vkBindBufferMemory(*device, *buffer, *bufferMemory, 0);
+    }
+
+
+    void createVertexBuffer(VkDeviceMemory* vertexBufferMemory, VkBuffer* vertexBuffer, VkDevice* device, VkPhysicalDevice* physicalDevice) {
+        VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+        createBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, vertexBuffer, vertexBufferMemory, device, physicalDevice);
 
         // access a region of the specified memory resource defined by an offset and size, use VK_WHOLE_SIZE to map all of the memory
         void* data;
-        vkMapMemory(*device, *vertexBufferMemory, 0, bufferInfo.size, 0, &data);
-        memcpy(data, vertices.data(), (size_t)bufferInfo.size); //copy contents of buffer into accessible field
+        vkMapMemory(*device, *vertexBufferMemory, 0, bufferSize, 0, &data);
+        memcpy(data, vertices.data(), (size_t)bufferSize); //copy contents of buffer into accessible field
         vkUnmapMemory(*device, *vertexBufferMemory);
 
 
