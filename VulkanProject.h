@@ -79,12 +79,11 @@ struct Vertex {
 };
 
 const std::vector<Vertex> vertices = {
-    {{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
-    {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-    {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-    {{-0.5f, 0.0f}, {1.0f, 0.0f, 1.0f}}
+    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
 };
-
 const std::vector<uint16_t> indices = {
     0, 1, 2, 2, 3, 0
 };
@@ -192,7 +191,7 @@ private:
         // access a region of the specified memory resource defined by an offset and size, use VK_WHOLE_SIZE to map all of the memory
         void* data;
         vkMapMemory(*device, stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, vertices.data(), (size_t)bufferSize); //copy contents of buffer into accessible field
+        memcpy(data, indices.data(), (size_t)bufferSize); //copy contents of buffer into accessible field
         vkUnmapMemory(*device, stagingBufferMemory);
 
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory, device, physicalDevice);
@@ -285,7 +284,7 @@ private:
         renderPassInfo.framebuffer = swapchainFramebuffers->at(imageIndex);
         renderPassInfo.renderArea.offset = { 0, 0 }; // render area should match the size of the attachments for best performance.
         renderPassInfo.renderArea.extent = *swapChainExtent; // The pixels outside render area will have undefined values.
-        VkClearValue clearColor = CLEAR_COLOR;
+        VkClearValue clearColor = CLEAR_COLOR; // clear image to that color before writing to it. If an area is not drawn, this can also refer to "background color" 
         renderPassInfo.clearValueCount = 1;
         renderPassInfo.pClearValues = &clearColor;
 
@@ -323,8 +322,20 @@ private:
         // firstVertex : Used as an offset into the vertex buffer, defines the lowest value of gl_VertexIndex.
         // firstInstance : Used as an offset for instanced rendering, defines the lowest value of gl_InstanceIndex.
         // 
-        vkCmdDraw(*commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
-        //vkCmdDrawIndexed(*commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+       
+        if (USE_INDEXED_VERTICES) {
+            // reuse vertices by using their indices and place them in order specified by "indices" array
+            // saves about 50% of memory for vertices
+            // std::cout << "Using indexed vertices in draw command. Please make sure to specify the order of vertices." << std::endl;
+            vkCmdDrawIndexed(*commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+        }
+        else {
+            // use non-indexed vertices
+            // make sure to add the correct amount of vertices for each primitive/triangle.
+            // --> three vertices for each triangle, e.g. 6 vertices for a square, etc...
+            // std::cout << "Using non-indexed vertices in draw command. Please make sure to specify the amount and layout of vertices correctly when using this option." << std::endl;
+            vkCmdDraw(*commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+        }
 
 
         vkCmdEndRenderPass(*commandBuffer);

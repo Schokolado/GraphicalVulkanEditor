@@ -21,3 +21,4 @@ const VkCullModeFlagBits CULL_MODE = VK_CULL_MODE_BACK_BIT;
 VkClearValue CLEAR_COLOR = { {{0.0f, 0.0f, 0.0f, 0.0f}} };
 const int MAX_FRAMES_IN_FLIGHT = 5;
 const bool LOCK_WINDOW_SIZE = false;
+const bool USE_INDEXED_VERTICES = true;
