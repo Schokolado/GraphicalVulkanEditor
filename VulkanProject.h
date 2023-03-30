@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 
 #define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES // This will force GLM to use a version of vec2 and mat4 that has the alignment requirements already specified, does not work for nested structures
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -151,6 +152,62 @@ private:
         memcpy(uniformBuffersMapped->at(currentImage), &ubo, sizeof(ubo));
     }
 
+    //////////////////////////////////////////////////////////
+   /*  Sub-Section for Descriptor Pool/Set/Layout creation  */
+   ///////////////////////////////////////////////////////////
+
+    // Use descriptor pools to allocate descriptor sets 
+    void createDescriptorPool(VkDescriptorPool* descriptorPool, VkDevice* device) {
+        VkDescriptorPoolSize poolSize{};
+        poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        poolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT); // create descriptor set for each frame in flight with the same layout 
+
+        VkDescriptorPoolCreateInfo poolInfo{};
+        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        poolInfo.poolSizeCount = 1;
+        poolInfo.pPoolSizes = &poolSize;
+        poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+
+        if (vkCreateDescriptorPool(*device, &poolInfo, nullptr, descriptorPool) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create descriptor pool!");
+        }
+    }
+
+    void createDescriptorSets(std::vector<VkDescriptorSet>* descriptorSets, VkDescriptorPool* descriptorPool, VkDescriptorSetLayout* descriptorSetLayout, std::vector<VkBuffer>* uniformBuffers, VkDevice* device) {
+        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout);
+        VkDescriptorSetAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocInfo.descriptorPool = *descriptorPool;
+        allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+        allocInfo.pSetLayouts = layouts.data();
+
+        descriptorSets->resize(MAX_FRAMES_IN_FLIGHT);
+        if (vkAllocateDescriptorSets(*device, &allocInfo, descriptorSets->data()) != VK_SUCCESS) {
+            throw std::runtime_error("failed to allocate descriptor sets!");
+        }
+
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+            VkDescriptorBufferInfo bufferInfo{};
+            bufferInfo.buffer = uniformBuffers->at(i);
+            bufferInfo.offset = 0;
+            bufferInfo.range = sizeof(UniformBufferObject);
+
+            VkWriteDescriptorSet descriptorWrite{};
+            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrite.dstSet = descriptorSets->at(i);
+            descriptorWrite.dstBinding = 0; // binding index for uniforms, change this if you bind them to a new location in the shader
+            descriptorWrite.dstArrayElement = 0; // descriptors can be arrays, element specifies the first index to be updated, not used here
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrite.descriptorCount = 1; // only one descriptor used here
+            descriptorWrite.pBufferInfo = &bufferInfo;
+            descriptorWrite.pImageInfo = nullptr; // Optional, used for descriptors that refer to image data
+            descriptorWrite.pTexelBufferView = nullptr; // Optional, used for descriptors that refer to buffer views
+
+            vkUpdateDescriptorSets(*device, 1, &descriptorWrite, 0, nullptr);
+        }
+
+    }
+
     void createDescriptorSetLayout(VkDescriptorSetLayout* descriptorSetLayout,VkDevice* device) {
         VkDescriptorSetLayoutBinding uboLayoutBinding{};
         uboLayoutBinding.binding = 0;
@@ -169,6 +226,9 @@ private:
         }
     }
 
+    ///////////////////////////////////////
+   /*   Sub-Section for Buffer creation  */
+   ///////////////////////////////////////
 
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkPhysicalDevice* physicalDevice) {
         VkPhysicalDeviceMemoryProperties memProperties;
@@ -349,7 +409,8 @@ private:
         }
     }
 
-    void recordCommandBuffer(uint32_t imageIndex, VkBuffer* indexBuffer, VkBuffer* vertexBuffer, VkCommandBuffer* commandBuffer, VkCommandPool* commandPool, VkPipeline* graphicsPipeline, VkRenderPass* renderPass, std::vector<VkFramebuffer>* swapchainFramebuffers, VkExtent2D* swapChainExtent, VkDevice* device) {
+    // contains actual draw command containing info from renderpass, and buffers
+    void recordCommandBuffer(uint32_t currentFrame, uint32_t imageIndex, std::vector<VkDescriptorSet>* descriptorSets, VkBuffer* indexBuffer, VkBuffer* vertexBuffer, VkCommandBuffer* commandBuffer, VkCommandPool* commandPool, VkPipeline* graphicsPipeline, VkRenderPass* renderPass, VkPipelineLayout* pipelineLayout, std::vector<VkFramebuffer>* swapchainFramebuffers, VkExtent2D* swapChainExtent, VkDevice* device) {
         // The flags parameter specifies how the command buffer is used:
         // VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT: The command buffer will be rerecorded right after executing it once.
         // VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT : This is a secondary command buffer that will be entirely within a single render pass.
@@ -400,6 +461,8 @@ private:
         scissor.offset = { 0, 0 };
         scissor.extent = *swapChainExtent;
         vkCmdSetScissor(*commandBuffer, 0, 1, &scissor);
+
+        vkCmdBindDescriptorSets(*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *pipelineLayout, 0, 1, &descriptorSets->at(currentFrame), 0, nullptr);
 
         //actual draw command
         // vertexCount
@@ -615,7 +678,7 @@ private:
         rasterizerInfo.polygonMode = VK_POLYGON_MODE_FILL;
         rasterizerInfo.lineWidth = 1.0f; // thickness of lines in terms of number of fragments
         rasterizerInfo.cullMode = CULL_MODE; //specify cull mode such as front-, back- or front-and-back culling
-        rasterizerInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+        rasterizerInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE; // use counter clockwise to correct reversed draw oder caused by y-flip
         rasterizerInfo.depthBiasEnable = VK_FALSE; // bias depth by adding a constant value, e.g. for shadow maps
         rasterizerInfo.depthBiasConstantFactor = 0.0f; // Optional
         rasterizerInfo.depthBiasClamp = 0.0f; // Optional
@@ -786,7 +849,6 @@ private:
         //////////////////////// PIPELINE LAYOUT
         // Pipeline layout : the uniform and push values referenced by the shader that can be updated at draw time
 
-        VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = 1;
@@ -1573,16 +1635,19 @@ private:
     VkBuffer indexBuffer;
     VkDeviceMemory indexBufferMemory;
 
-    std::vector<VkSemaphore> imageAvailableSemaphores;
-    std::vector<VkSemaphore> renderFinishedSemaphores;
-    std::vector<VkFence> inFlightFences;
-    uint32_t currentFrame = 0;
-    bool framebufferResized = false;
-
     std::vector<VkBuffer> uniformBuffers;
     std::vector<VkDeviceMemory> uniformBuffersMemory;
     std::vector<void*> uniformBuffersMapped;
 
+    VkDescriptorPool descriptorPool;
+    std::vector<VkDescriptorSet> descriptorSets;
+
+    std::vector<VkSemaphore> imageAvailableSemaphores;
+    std::vector<VkSemaphore> renderFinishedSemaphores;
+    std::vector<VkFence> inFlightFences;
+    uint32_t currentFrame = 0;
+
+    bool framebufferResized = false;
 
     void initWindow() {
         glfwInit();
@@ -1620,7 +1685,9 @@ private:
         presentationDeviceCreator->createShortLivedCommandPool(&shortLivedCommandPool, &surface, &device, &physicalDevice);
         drawingCreator->createVertexBuffer(&vertexBufferMemory, &vertexBuffer, &shortLivedCommandPool, &graphicsQueue, &device, &physicalDevice);
         drawingCreator->createIndexBuffer(&indexBufferMemory, &indexBuffer, &shortLivedCommandPool, &graphicsQueue, &device, &physicalDevice);
-        drawingCreator->createUniformBuffers(&uniformBuffersMapped, &uniformBuffersMemory, &uniformBuffers, &device);
+        drawingCreator->createUniformBuffers(&uniformBuffersMapped, &uniformBuffersMemory, &uniformBuffers, &device, &physicalDevice);
+        drawingCreator->createDescriptorPool(&descriptorPool, &device);
+        drawingCreator->createDescriptorSets(&descriptorSets, &descriptorPool, &descriptorSetLayout, &uniformBuffers, &device);
         drawingCreator->createCommandBuffers(&commandBuffers, &commandPool, &device);
         drawingCreator->createSyncObjects(&imageAvailableSemaphores, &renderFinishedSemaphores, &inFlightFences, &device);
     }
@@ -1672,13 +1739,15 @@ private:
             throw std::runtime_error("failed to acquire swap chain image!");
         }
 
+        drawingCreator->updateUniformBuffer(currentFrame, &uniformBuffersMapped, &swapChainExtent);
+
         // reset fence to unsignaled after wating
         // only reset fence if work is submitted
         vkResetFences(device, 1, &inFlightFences[currentFrame]);
 
         
         vkResetCommandBuffer(commandBuffers[currentFrame], 0);
-        drawingCreator->recordCommandBuffer(imageIndex, &indexBuffer, &vertexBuffer, &commandBuffers[currentFrame], &commandPool, &graphicsPipeline, &renderPass, &swapchainFramebuffers, &swapChainExtent, &device);
+        drawingCreator->recordCommandBuffer(currentFrame, imageIndex, &descriptorSets, &indexBuffer, &vertexBuffer, &commandBuffers[currentFrame], &commandPool, &graphicsPipeline, &renderPass, &pipelineLayout, &swapchainFramebuffers, &swapChainExtent, &device);
 
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1804,15 +1873,17 @@ private:
         }
     }
 
-    void cleanupDescriptorSets() {
+    void cleanupDescriptors() {
+        vkDestroyDescriptorPool(device, descriptorPool, nullptr);
         vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
+        //no descriptor set cleanup needed, they are freed when descriptor pool is deleted
     }
 
     void cleanup() {
-        cleanupDescriptorSets();
         cleanupSyncObjects();
         cleanupCommandPools();
         //cleanupFramebuffers();
+        cleanupDescriptors();
         cleanupBuffers();
         cleanupMemory();
         cleanupGraphicsPipeline();
