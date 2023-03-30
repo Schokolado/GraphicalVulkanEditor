@@ -2,8 +2,15 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <shaderc/shaderc.hpp>
+
 #include <iostream>
 #include <cstdlib>
+#include <stdexcept>
 #include <vector>
 #include <map>
 #include <set>
@@ -12,10 +19,10 @@
 #include <fstream>
 #include <algorithm>
 #include <array>
+#include <chrono>
 
-#include <shaderc/shaderc.hpp>
-#include <glm/glm.hpp>
 #include "VulkanProjectVariables.h"
+
 
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
@@ -29,6 +36,13 @@ const std::vector<const char*> validationLayers = {
 
 const std::vector<const char*> deviceExtensions = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
+};
+
+struct UniformBufferObject {
+    // glm types must match shader binding types for easy memcpy of ubo into a VkBuffer
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
 };
 
 struct Vertex {
@@ -98,6 +112,63 @@ private:
     /////////////////////////////////////////////////
     /*         Section for Drawing Objects         */
     /////////////////////////////////////////////////
+
+    void updateUniformBuffer(uint32_t currentImage, std::vector<void*>* uniformBuffersMapped, VkExtent2D* swapChainExtent) {
+        static auto startTime = std::chrono::high_resolution_clock::now();
+
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+        UniformBufferObject ubo{};
+        // apply model matrix changes here
+        // rotate the object by 90 degrees per second
+        // use your creativity here to play with uniform modifications of the object
+        auto rotationAngle = time * glm::radians(90.0f);
+        auto rotationAxis = glm::vec3(0.0f, 0.0f, 1.0f);
+        ubo.model = glm::rotate(glm::mat4(1.0f), rotationAngle, rotationAxis);
+
+        // apply view matrix transformations here
+        // loot at the object from above at 45 degree angle
+        // use your creativity here to play with uniform modifications of the view
+        auto eyePosition = glm::vec3(2.0f, 2.0f, 2.0f);
+        auto centerPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+        auto upAxis = glm::vec3(0.0f, 0.0f, 1.0f);
+        ubo.view = glm::lookAt(eyePosition, centerPosition, upAxis);
+
+        // apply projection matrix changes here
+        // use perspective projection with field-of-view of 45 degrees
+        // use your creativity here to play with uniform modifications of the projection
+        auto fieldOfView = glm::radians(45.0f);
+        auto aspectRatio = swapChainExtent->width / (float)swapChainExtent->height;
+        auto nearPlane = 0.1f;
+        auto farPlane = 10.0f;
+        ubo.proj = glm::perspective(fieldOfView, aspectRatio, nearPlane, farPlane);
+
+        // GLM is designed for OpenGL, which has clip coordinates Y-inverted compared to Vulkan.
+        ubo.proj[1][1] *= -1;
+
+        // copy data into uniform buffer without staging buffer (increases performance as it will be called each frame)
+        memcpy(uniformBuffersMapped->at(currentImage), &ubo, sizeof(ubo));
+    }
+
+    void createDescriptorSetLayout(VkDescriptorSetLayout* descriptorSetLayout,VkDevice* device) {
+        VkDescriptorSetLayoutBinding uboLayoutBinding{};
+        uboLayoutBinding.binding = 0;
+        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uboLayoutBinding.descriptorCount = 1; // use 1 for signle unifor buffer objects, increase for multiple transformations for each object.
+        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT; // specify where descriptors are used
+        uboLayoutBinding.pImmutableSamplers = nullptr; // Optional, used for image sampling
+
+        VkDescriptorSetLayoutCreateInfo layoutInfo{};
+        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        layoutInfo.bindingCount = 1;
+        layoutInfo.pBindings = &uboLayoutBinding;
+
+        if (vkCreateDescriptorSetLayout(*device, &layoutInfo, nullptr, descriptorSetLayout) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create descriptor set layout!");
+        }
+    }
+
 
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkPhysicalDevice* physicalDevice) {
         VkPhysicalDeviceMemoryProperties memProperties;
@@ -177,6 +248,20 @@ private:
         }
 
         vkBindBufferMemory(*device, *buffer, *bufferMemory, 0);
+    }
+
+    void createUniformBuffers(std::vector<void*>* uniformBuffersMapped, std::vector<VkDeviceMemory>* uniformBuffersMemory, std::vector<VkBuffer>* uniformBuffers, VkDevice* device, VkPhysicalDevice* physicalDevice) {
+        VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+        // create uniform buffers for as many frames in flight to prevent writing into a buffer that is currently being read
+        uniformBuffers->resize(MAX_FRAMES_IN_FLIGHT);
+        uniformBuffersMemory->resize(MAX_FRAMES_IN_FLIGHT);
+        uniformBuffersMapped->resize(MAX_FRAMES_IN_FLIGHT);
+
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+            createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &uniformBuffers->at(i), &uniformBuffersMemory->at(i), device, physicalDevice);
+            // persist mapping for the lifetime of the application to increase performance
+            vkMapMemory(*device, uniformBuffersMemory->at(i), 0, bufferSize, 0, &uniformBuffersMapped->at(i));
+        }
     }
 
     void createIndexBuffer(VkDeviceMemory* indexBufferMemory, VkBuffer* indexBuffer, VkCommandPool* commandPool, VkQueue* graphicsQueue, VkDevice* device, VkPhysicalDevice* physicalDevice) {
@@ -675,7 +760,7 @@ private:
 
 
     // Setup grapics pipeline stages such as shader stage, fixed function stage, pipeline layout and renderpasses
-    void createGraphicsPipeline(VkPipeline* graphicsPipeline, VkRenderPass* renderPass, VkPipelineLayout* pipelineLayout, VkExtent2D* swapChainExtent, VkDevice* device) {
+    void createGraphicsPipeline(VkPipeline* graphicsPipeline, VkRenderPass* renderPass, VkDescriptorSetLayout* descriptorSetLayout,VkPipelineLayout* pipelineLayout, VkExtent2D* swapChainExtent, VkDevice* device) {
         //////////////////////// SHADER STAGE
         VkPipelineShaderStageCreateInfo vertexShaderStageInfo{};
         VkPipelineShaderStageCreateInfo fragmentShaderStageInfo{};
@@ -702,9 +787,10 @@ private:
         // Pipeline layout : the uniform and push values referenced by the shader that can be updated at draw time
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+        VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.setLayoutCount = 0; // Optional
-        pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
+        pipelineLayoutInfo.setLayoutCount = 1;
+        pipelineLayoutInfo.pSetLayouts = descriptorSetLayout;
         pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
         pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
@@ -1474,6 +1560,7 @@ private:
     std::vector<VkImageView> swapchainImageViews;
 
     VkRenderPass renderPass;
+    VkDescriptorSetLayout descriptorSetLayout;
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
 
@@ -1491,6 +1578,10 @@ private:
     std::vector<VkFence> inFlightFences;
     uint32_t currentFrame = 0;
     bool framebufferResized = false;
+
+    std::vector<VkBuffer> uniformBuffers;
+    std::vector<VkDeviceMemory> uniformBuffersMemory;
+    std::vector<void*> uniformBuffersMapped;
 
 
     void initWindow() {
@@ -1521,13 +1612,15 @@ private:
         presentationDeviceCreator->createImageViews(&swapchainImageViews, &swapChainImageFormat, &swapChainImages, &device);
 
         graphicsPipelineCreator->createRenderPass(&renderPass, &swapChainImageFormat, &device);
-        graphicsPipelineCreator->createGraphicsPipeline(&graphicsPipeline , &renderPass, &pipelineLayout, &swapChainExtent, &device);
+        drawingCreator->createDescriptorSetLayout(&descriptorSetLayout, &device);
+        graphicsPipelineCreator->createGraphicsPipeline(&graphicsPipeline , &renderPass, &descriptorSetLayout, &pipelineLayout, &swapChainExtent, &device);
         
         drawingCreator->createFramebuffers(&swapchainFramebuffers, &swapChainExtent, &swapchainImageViews, &renderPass, &device);
         presentationDeviceCreator->createCommandPool(&commandPool, &surface, &device, &physicalDevice);
         presentationDeviceCreator->createShortLivedCommandPool(&shortLivedCommandPool, &surface, &device, &physicalDevice);
         drawingCreator->createVertexBuffer(&vertexBufferMemory, &vertexBuffer, &shortLivedCommandPool, &graphicsQueue, &device, &physicalDevice);
         drawingCreator->createIndexBuffer(&indexBufferMemory, &indexBuffer, &shortLivedCommandPool, &graphicsQueue, &device, &physicalDevice);
+        drawingCreator->createUniformBuffers(&uniformBuffersMapped, &uniformBuffersMemory, &uniformBuffers, &device);
         drawingCreator->createCommandBuffers(&commandBuffers, &commandPool, &device);
         drawingCreator->createSyncObjects(&imageAvailableSemaphores, &renderFinishedSemaphores, &inFlightFences, &device);
     }
@@ -1704,9 +1797,19 @@ private:
     void cleanupMemory() {
         vkFreeMemory(device, vertexBufferMemory, nullptr);
         vkFreeMemory(device, indexBufferMemory, nullptr);
+
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+            vkDestroyBuffer(device, uniformBuffers[i], nullptr);
+            vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
+        }
+    }
+
+    void cleanupDescriptorSets() {
+        vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
     }
 
     void cleanup() {
+        cleanupDescriptorSets();
         cleanupSyncObjects();
         cleanupCommandPools();
         //cleanupFramebuffers();
