@@ -104,13 +104,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.231.0\Include;C:\Users\Avoccardo\source\repos\VulkanSetup\libraries\glm;C:\Users\Avoccardo\source\repos\VulkanSetup\libraries\glfw\glfw-3.2.1.bin.WIN64\include;C:\Users\Avoccardo\source\repos\VulkanSetup\libraries\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.243.0\Include;C:\Users\Riccardo\source\repos\Schokolado\VulkanSetup\libraries\stb;C:\Users\Riccardo\source\repos\Schokolado\VulkanSetup\libraries\glfw\glfw-3.2.1.bin.WIN64\include;C:\Users\Riccardo\source\repos\Schokolado\VulkanSetup\libraries\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\VulkanSDK\1.3.231.0\Lib;C:\Users\Avoccardo\source\repos\VulkanSetup\libraries\glfw\glfw-3.2.1.bin.WIN64\lib-vc2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.3.243.0\Lib;C:\Users\Riccardo\source\repos\Schokolado\VulkanSetup\libraries\glfw\glfw-3.2.1.bin.WIN64\lib-vc2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>vulkan-1.lib;glfw3.lib;shaderc_combinedd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
