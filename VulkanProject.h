@@ -117,7 +117,88 @@ private:
     /////////////////////////////////////////////////
     /*         Section for (texture) Images                  */
     /////////////////////////////////////////////////
-    
+
+    void createTextureSampler(VkSampler* textureSampler, VkDevice* device, VkPhysicalDevice* physicalDevice) {
+        VkSamplerCreateInfo samplerInfo{};
+        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerInfo.magFilter = VK_FILTER_LINEAR; // specify how to interpolate texels that are magnified, NEAREST or LINEAR
+        samplerInfo.minFilter = VK_FILTER_LINEAR; // specify how to interpolate texels that are minified, NEAREST or LINEAR
+
+        // specify per-axis addressing
+        // VK_SAMPLER_ADDRESS_MODE_REPEAT: Repeat the texture when going beyond the image dimensions. useful for e.g. walls or floors
+        // VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT: Like repeat, but inverts the coordinates to mirror the image when going beyond the dimensions.
+        // VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE : Take the color of the edge closest to the coordinate beyond the image dimensions.
+        // VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE : Like clamp to edge, but instead uses the edge opposite to the closest edge.
+        // VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER : Return a solid color when sampling beyond the dimensions of the image.
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+        // anisotropic filtering, use maximum available anisotropic value (= amount of texel samples that can be used to calculate the final color) for best results (at cost of performace)
+        samplerInfo.anisotropyEnable = ENABLE_ANISOTRIPIC_FILTER;
+        samplerInfo.maxAnisotropy = 1.0f;
+        if (ENABLE_ANISOTRIPIC_FILTER) {
+            VkPhysicalDeviceProperties properties{};
+            vkGetPhysicalDeviceProperties(*physicalDevice, &properties);
+            samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+        }
+
+        // border color beyond sampling area of clamp to border, can be black, white or transparent
+        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+
+        // unnormalizedCoordinates specifies which coordinate system addresses texels in an image, if true [0, texHeight), if false [0, 1) range on all axes.
+        // set TRUE to use textures of varying resolutions with the exact same coordinates.
+        samplerInfo.unnormalizedCoordinates = VK_FALSE;
+
+        // If a comparison function is enabled, then texels will first be compared to a value, and the result of that comparison is used in filtering operations.
+        // used for shadow-maps 
+        samplerInfo.compareEnable = VK_FALSE;
+        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+
+        // mip-mapping filter
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerInfo.mipLodBias = 0.0f;
+        samplerInfo.minLod = 0.0f;
+        samplerInfo.maxLod = 0.0f;
+
+        if (vkCreateSampler(*device, &samplerInfo, nullptr, textureSampler) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create texture sampler!");
+        }
+    }
+
+    //FIXME: refactor code to call create image view from presentationdevices-initializer to remove duplicated code
+    VkImageView createImageView(VkImage* image, VkFormat format, VkDevice* device) {
+        VkImageViewCreateInfo viewInfo{};
+        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewInfo.image = *image; // color/render target
+        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D; // treat images as 1D textures, 2D textures, 3D textures and cube maps.
+        viewInfo.format = format; // pixel format, color space
+
+        // Shift color channels to prefered likings e.g. map all channels to red to get monochrome textures etc.
+        viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+        // subresource describes what the image's purpose is and which part of the image should be accessed.
+        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; // Use color information
+        viewInfo.subresourceRange.baseMipLevel = MIPMAP_LEVEL; // choose mipmap level for image views
+        viewInfo.subresourceRange.levelCount = 1; // no multilayered images
+        viewInfo.subresourceRange.baseArrayLayer = 0;
+        viewInfo.subresourceRange.layerCount = 1; // for stereoscopic 3D applications, use multiple layers to access views for left and right eye
+
+        VkImageView imageView;
+        if (vkCreateImageView(*device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create texture image view!");
+        }
+
+        return imageView;
+    }
+       
+    void createTextureImageView(VkImageView* textureImageView, VkImage* textureImage, VkDevice* device) {
+        *textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, device);
+    }
+
     // helper function, contents may be recorded into setup buffer and flused as single commandbuffer
     void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkCommandPool* commandPool, VkQueue* graphicsQueue, VkDevice* device) {
         VkCommandBuffer commandBuffer = beginSingleTimeCommands(commandPool, device);
@@ -1075,7 +1156,7 @@ private:
 class VulkanPresentationDevicesInitializer {
     friend class VulkanApplication;
 public:
-
+ 
 private:
     ///////////////////////////////////////
     /*      Sub-Section for Command Pool creation  */
@@ -1094,7 +1175,7 @@ private:
             throw std::runtime_error("failed to create command pool!");
         }
     }
-
+    //FIXME: add description for why to use short lived cmd pool
     void createShortLivedCommandPool(VkCommandPool* commandPool, VkSurfaceKHR* surface, VkDevice* device, VkPhysicalDevice* physicalDevice) {
         QueueFamilyIndices queueFamilyIndices = findQueueFamilies(*surface, *physicalDevice);
 
@@ -1116,33 +1197,39 @@ private:
     ///////////////////////////////////////
 
 
-    void createImageViews(std::vector<VkImageView>* swapchainImageViews, VkFormat* swapChainImageFormat, std::vector<VkImage>* swapChainImages, VkDevice* device) {
-        swapchainImageViews->resize(swapChainImages->size());
+    void createImageViews(std::vector<VkImageView>* swapChainImageViews, VkFormat* swapChainImageFormat, std::vector<VkImage>* swapChainImages, VkDevice* device) {
+        swapChainImageViews->resize(swapChainImages->size());
         for (size_t i = 0; i < swapChainImages->size(); i++) {
-            VkImageViewCreateInfo createInfo{};
-           
-            createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            createInfo.image = swapChainImages->at(i); // color/render target
-            createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D; // treat images as 1D textures, 2D textures, 3D textures and cube maps.
-            createInfo.format = *swapChainImageFormat; // pixel format, color space
-           
-            // Shift color channels to prefered likings e.g. map all channels to red to get monochrome textures etc.
-            createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-            createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-            createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-            createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-            
-            // subresource describes what the image's purpose is and which part of the image should be accessed.
-            createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; // Use color information
-            createInfo.subresourceRange.baseMipLevel = MIPMAP_LEVEL; // choose mipmap level for image views
-            createInfo.subresourceRange.levelCount = 1; // no multilayered images
-            createInfo.subresourceRange.baseArrayLayer = 0;
-            createInfo.subresourceRange.layerCount = 1; // for stereoscopic 3D applications, use multiple layers to access views for left and right eye
-
-            if (vkCreateImageView(*device, &createInfo, nullptr, &swapchainImageViews->at(i)) != VK_SUCCESS) {
-                throw std::runtime_error("failed to create image views!");
-            }
+            swapChainImageViews->at(i) = createImageView(&swapChainImages->at(i), *swapChainImageFormat, device);
         }
+    }
+
+    VkImageView createImageView(VkImage* image, VkFormat format, VkDevice* device) {
+        VkImageViewCreateInfo viewInfo{};
+        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewInfo.image = *image; // color/render target
+        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D; // treat images as 1D textures, 2D textures, 3D textures and cube maps.
+        viewInfo.format = format; // pixel format, color space
+
+        // Shift color channels to prefered likings e.g. map all channels to red to get monochrome textures etc.
+        viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+        // subresource describes what the image's purpose is and which part of the image should be accessed.
+        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; // Use color information
+        viewInfo.subresourceRange.baseMipLevel = MIPMAP_LEVEL; // choose mipmap level for image views
+        viewInfo.subresourceRange.levelCount = 1; // no multilayered images
+        viewInfo.subresourceRange.baseArrayLayer = 0;
+        viewInfo.subresourceRange.layerCount = 1; // for stereoscopic 3D applications, use multiple layers to access views for left and right eye
+
+        VkImageView imageView;
+        if (vkCreateImageView(*device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create texture image view!");
+        }
+
+        return imageView;
     }
 
     struct SwapChainSupportDetails {
@@ -1343,6 +1430,7 @@ private:
         populateQueueCreateInfo(queueCreateInfos, *surface, physicalDevice);
 
         VkPhysicalDeviceFeatures deviceFeatures{};
+        deviceFeatures.samplerAnisotropy = ENABLE_ANISOTRIPIC_FILTER;
 
         VkDeviceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -1492,6 +1580,11 @@ private:
             swapChainAdequate = checkSwapChainSupport(surface, device);
         }
 
+        if (ENABLE_ANISOTRIPIC_FILTER && !deviceFeatures.samplerAnisotropy) {
+
+            return false;
+        }
+
         return indices.isComplete() && deviceFeatures.geometryShader && extensionsSupported && swapChainAdequate;
     }
 
@@ -1543,6 +1636,12 @@ private:
 
         // Application can't function without geometry shaders or necessary extensions (for e.g. swapchains to present images) or inadequate swapchains
         if (!deviceFeatures.geometryShader || !extensionsSupported || !swapChainAdequate || !indices.isComplete()) {
+            return 0;
+        }
+
+        // check for anisotropic filtering option and availablity
+        if (ENABLE_ANISOTRIPIC_FILTER && !deviceFeatures.samplerAnisotropy) {
+
             return 0;
         }
 
@@ -1829,6 +1928,10 @@ private:
 
     VkImage textureImage;
     VkDeviceMemory textureImageMemory;
+    VkImageView textureImageView;
+    VkSampler textureSampler;
+
+
 
     bool framebufferResized = false;
 
@@ -1867,6 +1970,9 @@ private:
         presentationDeviceCreator->createShortLivedCommandPool(&shortLivedCommandPool, &surface, &device, &physicalDevice);
         
         drawingCreator->createTextureImage(&textureImageMemory, &textureImage, &commandPool, &graphicsQueue, &device, &physicalDevice);
+        drawingCreator->createTextureImageView(&textureImageView, &textureImage, &device);
+        //drawingCreator->createtextureSampler(&textureSampler, &device, &physicalDevice);
+
         drawingCreator->createFramebuffers(&swapchainFramebuffers, &swapChainExtent, &swapchainImageViews, &renderPass, &device);
         drawingCreator->createVertexBuffer(&vertexBufferMemory, &vertexBuffer, &shortLivedCommandPool, &graphicsQueue, &device, &physicalDevice);
         drawingCreator->createIndexBuffer(&indexBufferMemory, &indexBuffer, &shortLivedCommandPool, &graphicsQueue, &device, &physicalDevice);
@@ -2017,6 +2123,7 @@ private:
         for (auto imageView : swapchainImageViews) {
             vkDestroyImageView(device, imageView, nullptr);
         }
+        vkDestroyImageView(device, textureImageView, nullptr);
     }
 
     void cleanupGraphicsPipeline() {
@@ -2033,6 +2140,7 @@ private:
 
     void cleanupCommandPools() {
         vkDestroyCommandPool(device, commandPool, nullptr);
+        vkDestroyCommandPool(device, shortLivedCommandPool, nullptr);
         //no commandbuffer cleanup needed, they are freed when commandpool is deleted
     }
 
@@ -2070,6 +2178,10 @@ private:
         vkDestroyImage(device, textureImage, nullptr);
     }
 
+    void cleanupSamplers() {
+        vkDestroySampler(device, textureSampler, nullptr);
+    }
+
     void cleanup() {
         cleanupSyncObjects();
         cleanupCommandPools();
@@ -2078,7 +2190,7 @@ private:
         cleanupBuffers();
         cleanupMemory();
         cleanupGraphicsPipeline();
-        //cleanupImageViews();
+        cleanupImageViews();
         cleanupSwapchain();
         cleanupImages();
         cleanupDevices();
