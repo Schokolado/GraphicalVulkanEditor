@@ -52,6 +52,9 @@ struct UniformBufferObject {
 struct Vertex {
     glm::vec2 pos;
     glm::vec3 color;
+    glm::vec2 texCoord;
+
+    static const uint32_t attributeCount = 3; // set amount of attributes 
 
     // vertex binding describes at which rate to load data from memory throughout the vertices. It specifies the number of bytes between data entries and whether to move to the next data entry after each vertex or after each instance.
     static VkVertexInputBindingDescription getBindingDescription() {
@@ -68,8 +71,8 @@ struct Vertex {
         return bindingDescription;
     }
 
-    static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+    static std::array<VkVertexInputAttributeDescription, attributeCount> getAttributeDescriptions() {
+        std::array<VkVertexInputAttributeDescription, attributeCount> attributeDescriptions{};
         // binding : tells Vulkan from which binding the per-vertex data comes.
         // location : references the location directive of the input in the vertex shader
         // The format parameter describes the type of data for the attribute, implicitly defines the byte size of attribute data: 
@@ -90,6 +93,11 @@ struct Vertex {
         attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
         attributeDescriptions[1].offset = offsetof(Vertex, color);
 
+        attributeDescriptions[1].binding = 0;
+        attributeDescriptions[1].location = 2; // layout(location = 2) in vec2 inTexCoord;
+        attributeDescriptions[1].format = VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[1].offset = offsetof(Vertex, texCoord);
+
         // add more attribute descriptions for more shader input variables
 
         return attributeDescriptions;
@@ -97,10 +105,10 @@ struct Vertex {
 };
 
 const std::vector<Vertex> vertices = {
-    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
 };
 const std::vector<uint16_t> indices = {
     0, 1, 2, 2, 3, 0
@@ -349,14 +357,17 @@ private:
 
     // Use descriptor pools to allocate descriptor sets 
     void createDescriptorPool(VkDescriptorPool* descriptorPool, VkDevice* device) {
-        VkDescriptorPoolSize poolSize{};
-        poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        poolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT); // create descriptor set for each frame in flight with the same layout 
+        // create one poolsize for each descriptor, here we use one for uniform buffer and one for combined image sampler (for textures)
+        std::array<VkDescriptorPoolSize, 2> poolSizes{};
+        poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);  // create descriptor set for each frame in flight with the same layout, not explicity necesary but recommended for best practice
+        poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);  // create descriptor set for each frame in flight with the same layout, not explicity necesary but recommended for best practice
 
         VkDescriptorPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolInfo.poolSizeCount = 1;
-        poolInfo.pPoolSizes = &poolSize;
+        poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+        poolInfo.pPoolSizes = poolSizes.data();
         poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
         if (vkCreateDescriptorPool(*device, &poolInfo, nullptr, descriptorPool) != VK_SUCCESS) {
@@ -364,7 +375,7 @@ private:
         }
     }
 
-    void createDescriptorSets(std::vector<VkDescriptorSet>* descriptorSets, VkDescriptorPool* descriptorPool, VkDescriptorSetLayout* descriptorSetLayout, std::vector<VkBuffer>* uniformBuffers, VkDevice* device) {
+    void createDescriptorSets(VkSampler* textureSampler, VkImageView* textureImageView, std::vector<VkDescriptorSet>* descriptorSets, VkDescriptorPool* descriptorPool, VkDescriptorSetLayout* descriptorSetLayout, std::vector<VkBuffer>* uniformBuffers, VkDevice* device) {
         std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout);
         VkDescriptorSetAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -378,28 +389,45 @@ private:
         }
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+            // setup descriptor resources for uniform buffer
             VkDescriptorBufferInfo bufferInfo{};
             bufferInfo.buffer = uniformBuffers->at(i);
             bufferInfo.offset = 0;
             bufferInfo.range = sizeof(UniformBufferObject);
 
-            VkWriteDescriptorSet descriptorWrite{};
-            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrite.dstSet = descriptorSets->at(i);
-            descriptorWrite.dstBinding = 0; // binding index for uniforms, change this if you bind them to a new location in the shader
-            descriptorWrite.dstArrayElement = 0; // descriptors can be arrays, element specifies the first index to be updated, not used here
-            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            descriptorWrite.descriptorCount = 1; // only one descriptor used here
-            descriptorWrite.pBufferInfo = &bufferInfo;
-            descriptorWrite.pImageInfo = nullptr; // Optional, used for descriptors that refer to image data
-            descriptorWrite.pTexelBufferView = nullptr; // Optional, used for descriptors that refer to buffer views
+            // setup descriptor resources for combined image sampler
+            VkDescriptorImageInfo imageInfo{};
+            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageInfo.imageView = *textureImageView;
+            imageInfo.sampler = *textureSampler;
 
-            vkUpdateDescriptorSets(*device, 1, &descriptorWrite, 0, nullptr);
+            std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+            // setup descriptor resources for uniform buffer
+            descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[0].dstSet = descriptorSets->at(i);
+            descriptorWrites[0].dstBinding = 0; // binding index for uniforms, change this if you bind them to a new location in the shader
+            descriptorWrites[0].dstArrayElement = 0; // descriptors can be arrays, element specifies the first index to be updated, not used here
+            descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrites[0].descriptorCount = 1; // only one descriptor used here
+            descriptorWrites[0].pBufferInfo = &bufferInfo;
+            descriptorWrites[0].pImageInfo = nullptr; // Optional, used for descriptors that refer to image data
+            descriptorWrites[0].pTexelBufferView = nullptr; // Optional, used for descriptors that refer to buffer views
+
+            descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[1].dstSet = descriptorSets->at(i);
+            descriptorWrites[1].dstBinding = 1; // binding index for texture, change this if you bind them to a new location in the shader
+            descriptorWrites[1].dstArrayElement = 0; // descriptors can be arrays, element specifies the first index to be updated, not used here
+            descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            descriptorWrites[1].descriptorCount = 1;
+            descriptorWrites[1].pImageInfo = &imageInfo;
+
+            vkUpdateDescriptorSets(*device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
         }
 
     }
 
     void createDescriptorSetLayout(VkDescriptorSetLayout* descriptorSetLayout,VkDevice* device) {
+        // uniform buffer binding descriptor
         VkDescriptorSetLayoutBinding uboLayoutBinding{};
         uboLayoutBinding.binding = 0;
         uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -407,10 +435,21 @@ private:
         uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT; // specify where descriptors are used
         uboLayoutBinding.pImmutableSamplers = nullptr; // Optional, used for image sampling
 
+        // combined image sampler descriptor
+        VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+        samplerLayoutBinding.binding = 1;
+        samplerLayoutBinding.descriptorCount = 1;
+        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerLayoutBinding.pImmutableSamplers = nullptr;
+        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT; // indicate that sampler descriptor will be used in fragment shader, use in vertex shader to e.g. deform grids for heightmaps 
+
+        std::array<VkDescriptorSetLayoutBinding, 2> bindings = { 
+            uboLayoutBinding, 
+            samplerLayoutBinding };
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = 1;
-        layoutInfo.pBindings = &uboLayoutBinding;
+        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+        layoutInfo.pBindings = bindings.data();
 
         if (vkCreateDescriptorSetLayout(*device, &layoutInfo, nullptr, descriptorSetLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor set layout!");
@@ -992,7 +1031,7 @@ private:
     }
 
     // Shader stages : the shader modules that define the functionality of the programmable stages of the graphics pipeline
-    std::vector<VkShaderModule> setupShaderStageAndReturnModules(std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions, VkVertexInputBindingDescription bindingDescription, VkPipelineVertexInputStateCreateInfo& vertexInputInfo, VkPipelineShaderStageCreateInfo& fragmentShaderStageInfo, VkPipelineShaderStageCreateInfo& vertexShaderStageInfo, VkDevice* device) {
+    std::vector<VkShaderModule> setupShaderStageAndReturnModules(std::array<VkVertexInputAttributeDescription, Vertex::attributeCount> attributeDescriptions, VkVertexInputBindingDescription bindingDescription, VkPipelineVertexInputStateCreateInfo& vertexInputInfo, VkPipelineShaderStageCreateInfo& fragmentShaderStageInfo, VkPipelineShaderStageCreateInfo& vertexShaderStageInfo, VkDevice* device) {
         std::string vertexShaderText = readShaderFile(VERTEX_SHADER_FILE);
         std::string fragmentShaderText = readShaderFile(FRAGMENT_SHADER_FILE);
 
@@ -1971,14 +2010,14 @@ private:
         
         drawingCreator->createTextureImage(&textureImageMemory, &textureImage, &commandPool, &graphicsQueue, &device, &physicalDevice);
         drawingCreator->createTextureImageView(&textureImageView, &textureImage, &device);
-        //drawingCreator->createtextureSampler(&textureSampler, &device, &physicalDevice);
+        drawingCreator->createTextureSampler(&textureSampler, &device, &physicalDevice);
 
         drawingCreator->createFramebuffers(&swapchainFramebuffers, &swapChainExtent, &swapchainImageViews, &renderPass, &device);
         drawingCreator->createVertexBuffer(&vertexBufferMemory, &vertexBuffer, &shortLivedCommandPool, &graphicsQueue, &device, &physicalDevice);
         drawingCreator->createIndexBuffer(&indexBufferMemory, &indexBuffer, &shortLivedCommandPool, &graphicsQueue, &device, &physicalDevice);
         drawingCreator->createUniformBuffers(&uniformBuffersMapped, &uniformBuffersMemory, &uniformBuffers, &device, &physicalDevice);
         drawingCreator->createDescriptorPool(&descriptorPool, &device);
-        drawingCreator->createDescriptorSets(&descriptorSets, &descriptorPool, &descriptorSetLayout, &uniformBuffers, &device);
+        drawingCreator->createDescriptorSets(&textureSampler, &textureImageView, &descriptorSets, &descriptorPool, &descriptorSetLayout, &uniformBuffers, &device);
         drawingCreator->createCommandBuffers(&commandBuffers, &commandPool, &device);
         drawingCreator->createSyncObjects(&imageAvailableSemaphores, &renderFinishedSemaphores, &inFlightFences, &device);
     }
