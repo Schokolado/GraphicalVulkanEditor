@@ -4,8 +4,8 @@
 
 #pragma once
 
-const uint32_t WIDTH = 800;
-const uint32_t HEIGHT = 600;
+const uint32_t WIDTH = 1200;
+const uint32_t HEIGHT = 1000;
 const char* APPLICATION_NAME = "Vulkan Application";
 const bool RUN_ON_MACOS = false;
 const bool CHOOSE_GPU_ON_STARTUP = false;

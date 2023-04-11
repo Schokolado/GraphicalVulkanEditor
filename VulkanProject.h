@@ -93,10 +93,10 @@ struct Vertex {
         attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
         attributeDescriptions[1].offset = offsetof(Vertex, color);
 
-        attributeDescriptions[1].binding = 0;
-        attributeDescriptions[1].location = 2; // layout(location = 2) in vec2 inTexCoord;
-        attributeDescriptions[1].format = VK_FORMAT_R32G32_SFLOAT;
-        attributeDescriptions[1].offset = offsetof(Vertex, texCoord);
+        attributeDescriptions[2].binding = 0;
+        attributeDescriptions[2].location = 2; // layout(location = 2) in vec2 inTexCoord;
+        attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
 
         // add more attribute descriptions for more shader input variables
 
