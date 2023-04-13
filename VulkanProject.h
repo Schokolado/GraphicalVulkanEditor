@@ -7,6 +7,8 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE // OpenGL default is -1 to 1, but Vulkan uses 0 to 1
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -21,6 +23,7 @@
 #include <stdexcept>
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <set>
 #include <optional>
 #include <string>
@@ -107,12 +110,29 @@ struct Vertex {
 
         return attributeDescriptions;
     }
+
+    // == operator overloaded to use Vertex as key in a hash table
+    bool operator==(const Vertex& other) const {
+        return pos == other.pos && color == other.color && texCoord == other.texCoord;
+    }
 };
+
+namespace std {
+    // template specialization for Vertex objects - to use Vertex as key in a hash table
+    template<> struct hash<Vertex> {
+        size_t operator()(Vertex const& vertex) const {
+            return ((hash<glm::vec3>()(vertex.pos) ^
+                (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
+                (hash<glm::vec2>()(vertex.texCoord) << 1);
+        }
+    };
+}
 
 
 std::vector<Vertex> vertices;
 std::vector<uint32_t> indices;
 
+// Fill vertices with your own data if not using a model:
 //const std::vector<Vertex> vertices = {
 //    {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
 //    {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
@@ -130,6 +150,57 @@ std::vector<uint32_t> indices;
 //    4, 5, 6, 6, 7, 4
 //};
 
+// Creator class to initialize and setup Vulkan specific objects related to models
+class VulkanModelInitializer {
+    friend class VulkanApplication;
+public:
+
+private:
+
+    /////////////////////////////////////////////////
+    /*         Section for loading Models                  */
+    /////////////////////////////////////////////////
+
+    void loadModel() {
+        tinyobj::attrib_t attrib; // holds all of the positions, normals and texture coordinates in its attrib.vertices, attrib.normals and attrib.texcoords vectors
+        std::vector<tinyobj::shape_t> shapes; // contains all of the separate objects and their faces. Each face consists of an array of vertices, and each vertex contains the indices of the position, normal and texture coordinate attributes.
+        std::vector<tinyobj::material_t> materials;
+        std::string warn, err;
+
+        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_FILE.c_str())) {
+            throw std::runtime_error(warn + err);
+        }
+
+        std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+
+        for (const auto& shape : shapes) {
+            for (const auto& index : shape.mesh.indices) {
+                Vertex vertex{};
+
+                vertex.pos = { // attrib.vertices array is an array of float values instead of something like glm::vec3, therefore multiplying by 3 is necessary
+                    attrib.vertices[3 * index.vertex_index + 0],
+                    attrib.vertices[3 * index.vertex_index + 1],
+                    attrib.vertices[3 * index.vertex_index + 2]
+                };
+
+                vertex.texCoord = { // multiplying by 2 is necessary here because of single floats for glm::vec2 UVs
+                    attrib.texcoords[2 * index.texcoord_index + 0],
+                    1.0f - attrib.texcoords[2 * index.texcoord_index + 1] // flip vertical component to match Vulkan's 0-up convention
+                };
+
+                vertex.color = { 1.0f, 1.0f, 1.0f };
+
+                // vertex deduplication: check for each vertex if already present and add to vertices if not seen before. 
+                if (uniqueVertices.count(vertex) == 0) {
+                    uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size()); // store index of unique vertex into temp array for later retrieval by indices.
+                    vertices.push_back(vertex);
+                }
+                // add index of vertex based on temp array for unique vertices 
+                indices.push_back(uniqueVertices[vertex]);
+            }
+        }
+    }
+};
 
 // Creator class to initialize and setup Vulkan specific objects related to drawing, such as framebuffers and command buffers/pools
 class VulkanDrawingInitializer {
@@ -167,43 +238,6 @@ public:
         throw std::runtime_error("failed to find supported format!");
     }
 private:
-
-    /////////////////////////////////////////////////
-    /*         Section for loading Models                  */
-    /////////////////////////////////////////////////
-
-    void loadModel() {
-        tinyobj::attrib_t attrib; // holds all of the positions, normals and texture coordinates in its attrib.vertices, attrib.normals and attrib.texcoords vectors
-        std::vector<tinyobj::shape_t> shapes; // contains all of the separate objects and their faces. Each face consists of an array of vertices, and each vertex contains the indices of the position, normal and texture coordinate attributes.
-        std::vector<tinyobj::material_t> materials;
-        std::string warn, err;
-
-        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_FILE.c_str())) {
-            throw std::runtime_error(warn + err);
-        }
-
-        for (const auto& shape : shapes) {
-            for (const auto& index : shape.mesh.indices) {
-                Vertex vertex{};
-
-                vertex.pos = { // attrib.vertices array is an array of float values instead of something like glm::vec3, therefore multiplying by 3 is necessary
-                    attrib.vertices[3 * index.vertex_index + 0],
-                    attrib.vertices[3 * index.vertex_index + 1],
-                    attrib.vertices[3 * index.vertex_index + 2]
-                };
-
-                vertex.texCoord = { // multiplying by 2 is necessary here because of single floats for glm::vec2 UVs
-                    attrib.texcoords[2 * index.texcoord_index + 0],
-                    1.0f - attrib.texcoords[2 * index.texcoord_index + 1] // flip vertical component to match Vulkan's 0-up convention
-                };
-
-                vertex.color = { 1.0f, 1.0f, 1.0f };
-
-                vertices.push_back(vertex);
-                indices.push_back(indices.size());
-            }
-        }
-    }
 
     /////////////////////////////////////////////////
     /*         Section for (depth) Images                  */
@@ -2059,6 +2093,7 @@ public:
     }
 
 private:
+    VulkanModelInitializer* modelCreator;
     VulkanDrawingInitializer* drawingCreator;
     VulkanGraphicsPipelineInitializer* graphicsPipelineCreator;
     VulkanPresentationDevicesInitializer* presentationDeviceCreator;
@@ -2162,10 +2197,11 @@ private:
 
         drawingCreator->createFramebuffers(&depthImageView, &swapchainFramebuffers, &swapChainExtent, &swapchainImageViews, &renderPass, &device);
 
-        drawingCreator->loadModel();
+        modelCreator->loadModel();
         drawingCreator->createVertexBuffer(&vertexBufferMemory, &vertexBuffer, &shortLivedCommandPool, &graphicsQueue, &device, &physicalDevice);
         drawingCreator->createIndexBuffer(&indexBufferMemory, &indexBuffer, &shortLivedCommandPool, &graphicsQueue, &device, &physicalDevice);
         drawingCreator->createUniformBuffers(&uniformBuffersMapped, &uniformBuffersMemory, &uniformBuffers, &device, &physicalDevice);
+        
         drawingCreator->createDescriptorPool(&descriptorPool, &device);
         drawingCreator->createDescriptorSets(&textureSampler, &textureImageView, &descriptorSets, &descriptorPool, &descriptorSetLayout, &uniformBuffers, &device);
         drawingCreator->createCommandBuffers(&commandBuffers, &commandPool, &device);
