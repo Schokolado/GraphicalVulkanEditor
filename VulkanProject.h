@@ -11,6 +11,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tiny_obj_loader.h>
+
 #include <shaderc/shaderc.hpp>
 
 #include <iostream>
@@ -106,22 +109,26 @@ struct Vertex {
     }
 };
 
-const std::vector<Vertex> vertices = {
-    {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-    {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-    {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-    {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
 
-    {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-    {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-    {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-    {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
-};
+std::vector<Vertex> vertices;
+std::vector<uint32_t> indices;
 
-const std::vector<uint16_t> indices = {
-    0, 1, 2, 2, 3, 0,
-    4, 5, 6, 6, 7, 4
-};
+//const std::vector<Vertex> vertices = {
+//    {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+//    {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+//    {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+//    {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
+//
+//    {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+//    {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+//    {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+//    {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
+//};
+//
+//const std::vector<uint16_t> indices = {
+//    0, 1, 2, 2, 3, 0,
+//    4, 5, 6, 6, 7, 4
+//};
 
 
 // Creator class to initialize and setup Vulkan specific objects related to drawing, such as framebuffers and command buffers/pools
@@ -162,12 +169,47 @@ public:
 private:
 
     /////////////////////////////////////////////////
+    /*         Section for loading Models                  */
+    /////////////////////////////////////////////////
+
+    void loadModel() {
+        tinyobj::attrib_t attrib; // holds all of the positions, normals and texture coordinates in its attrib.vertices, attrib.normals and attrib.texcoords vectors
+        std::vector<tinyobj::shape_t> shapes; // contains all of the separate objects and their faces. Each face consists of an array of vertices, and each vertex contains the indices of the position, normal and texture coordinate attributes.
+        std::vector<tinyobj::material_t> materials;
+        std::string warn, err;
+
+        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_FILE.c_str())) {
+            throw std::runtime_error(warn + err);
+        }
+
+        for (const auto& shape : shapes) {
+            for (const auto& index : shape.mesh.indices) {
+                Vertex vertex{};
+
+                vertex.pos = { // attrib.vertices array is an array of float values instead of something like glm::vec3, therefore multiplying by 3 is necessary
+                    attrib.vertices[3 * index.vertex_index + 0],
+                    attrib.vertices[3 * index.vertex_index + 1],
+                    attrib.vertices[3 * index.vertex_index + 2]
+                };
+
+                vertex.texCoord = { // multiplying by 2 is necessary here because of single floats for glm::vec2 UVs
+                    attrib.texcoords[2 * index.texcoord_index + 0],
+                    1.0f - attrib.texcoords[2 * index.texcoord_index + 1] // flip vertical component to match Vulkan's 0-up convention
+                };
+
+                vertex.color = { 1.0f, 1.0f, 1.0f };
+
+                vertices.push_back(vertex);
+                indices.push_back(indices.size());
+            }
+        }
+    }
+
+    /////////////////////////////////////////////////
     /*         Section for (depth) Images                  */
     /////////////////////////////////////////////////
 
     //Depth images should have the same resolution as the color attachment, defined by the swap chain extent, an image usage appropriate for a depth attachment, optimal tiling and device local memory.
-
-
 
     void createDepthResources(VkImage* depthImage, VkDeviceMemory* depthImageMemory, VkImageView* depthImageView, VkExtent2D* swapChainExtent, VkDevice* device, VkPhysicalDevice* physicalDevice) {
         VkFormat depthFormat = findDepthFormat(physicalDevice);
@@ -336,7 +378,8 @@ private:
 
     void createTextureImage(VkDeviceMemory* textureImageMemory, VkImage* textureImage, VkCommandPool* commandPool, VkQueue* graphicsQueue, VkDevice* device, VkPhysicalDevice* physicalDevice) {
         int texWidth, texHeight, texChannels;
-        stbi_uc* pixels = stbi_load("textures/texture.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+        //stbi_uc* pixels = stbi_load("textures/texture.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+        stbi_uc* pixels = stbi_load(TEXTURE_FILE.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha); // load pixels from texture file
         VkDeviceSize imageSize = texWidth * texHeight * 4; // STBI rgb alpha uses 4 bytes per pixel, increase in case of larger datatype
 
         if (!pixels) {
@@ -805,7 +848,7 @@ private:
         VkBuffer vertexBuffers[] = { *vertexBuffer };
         VkDeviceSize offsets[] = { 0 };
         vkCmdBindVertexBuffers(*commandBuffer, 0, 1, vertexBuffers, offsets);
-        vkCmdBindIndexBuffer(*commandBuffer, *indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+        vkCmdBindIndexBuffer(*commandBuffer, *indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
 
         // define dynamic states
@@ -2047,6 +2090,7 @@ private:
     VkCommandPool commandPool;
     VkCommandPool shortLivedCommandPool; // for e.g. staging to vertex buffers
     std::vector<VkCommandBuffer> commandBuffers;
+
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
     VkBuffer indexBuffer;
@@ -2117,6 +2161,8 @@ private:
         drawingCreator->createTextureSampler(&textureSampler, &device, &physicalDevice);
 
         drawingCreator->createFramebuffers(&depthImageView, &swapchainFramebuffers, &swapChainExtent, &swapchainImageViews, &renderPass, &device);
+
+        drawingCreator->loadModel();
         drawingCreator->createVertexBuffer(&vertexBufferMemory, &vertexBuffer, &shortLivedCommandPool, &graphicsQueue, &device, &physicalDevice);
         drawingCreator->createIndexBuffer(&indexBufferMemory, &indexBuffer, &shortLivedCommandPool, &graphicsQueue, &device, &physicalDevice);
         drawingCreator->createUniformBuffers(&uniformBuffersMapped, &uniformBuffersMemory, &uniformBuffers, &device, &physicalDevice);
