@@ -45,9 +45,7 @@ const std::vector<const char*> validationLayers = {
     "VK_LAYER_KHRONOS_validation"
 };
 
-const std::vector<const char*> deviceExtensions = {
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME
-};
+const std::vector<const char*> deviceExtensions = DEVICE_EXTENSIONS;
 
 // Uniform object to pass to shaders
 struct UniformBufferObject {
@@ -57,6 +55,7 @@ struct UniformBufferObject {
     glm::mat4 proj;
 };
 
+// Wrapper struct containing Vertex information for further processing such as position, color and functions to forward shader input variables.
 struct Vertex {
     glm::vec3 pos;
     glm::vec3 color;
@@ -79,6 +78,7 @@ struct Vertex {
         return bindingDescription;
     }
 
+    // set vertex shader input variables and bind them to vulkan
     static std::array<VkVertexInputAttributeDescription, attributeCount> getAttributeDescriptions() {
         std::array<VkVertexInputAttributeDescription, attributeCount> attributeDescriptions{};
         // binding : tells Vulkan from which binding the per-vertex data comes.
@@ -157,9 +157,18 @@ public:
 
 private:
 
-    /////////////////////////////////////////////////
-    /*         Section for loading Models                  */
-    /////////////////////////////////////////////////
+    ////////////////////////////////////////////////
+    /*         Section for loading Models         */
+    ////////////////////////////////////////////////
+    
+    // demonstration how vertices may be moved. Use creativity to add multiple objects (e.g. use datastructure to store and retrieve them) and move them around.
+    // follow "vertices" and modify to actual needs 
+    // think about creating vertex buffers, uniform buffers and command buffers per model.
+    void moveVertices() {
+        for (auto& vertex: vertices) {
+            vertex.pos.y -= 1.0f;
+        }
+    }
 
     void loadModel() {
         tinyobj::attrib_t attrib; // holds all of the positions, normals and texture coordinates in its attrib.vertices, attrib.normals and attrib.texcoords vectors
@@ -239,9 +248,9 @@ public:
     }
 private:
 
-    /////////////////////////////////////////////////
-    /*         Section for (depth) Images                  */
-    /////////////////////////////////////////////////
+    ////////////////////////////////////////////////
+    /*         Section for (depth) Images         */
+    ////////////////////////////////////////////////
 
     //Depth images should have the same resolution as the color attachment, defined by the swap chain extent, an image usage appropriate for a depth attachment, optimal tiling and device local memory.
 
@@ -255,9 +264,9 @@ private:
     }
 
 
-    /////////////////////////////////////////////////
-    /*         Section for (texture) Images                  */
-    /////////////////////////////////////////////////
+    //////////////////////////////////////////////////
+    /*         Section for (texture) Images         */
+    //////////////////////////////////////////////////
 
     void createTextureSampler(VkSampler* textureSampler, VkDevice* device, VkPhysicalDevice* physicalDevice) {
         VkSamplerCreateInfo samplerInfo{};
@@ -485,9 +494,9 @@ private:
         memcpy(uniformBuffersMapped->at(currentImage), &ubo, sizeof(ubo));
     }
 
-    //////////////////////////////////////////////////////////
-   /*  Sub-Section for Descriptor Pool/Set/Layout creation  */
-   ///////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    /*         Sub-section for Descriptor Pool/Set/Layout creation         */
+    /////////////////////////////////////////////////////////////////////////
 
     // Use descriptor pools to allocate descriptor sets 
     void createDescriptorPool(VkDescriptorPool* descriptorPool, VkDevice* device) {
@@ -590,9 +599,9 @@ private:
         }
     }
 
-    ///////////////////////////////////////
-   /*   Sub-Section for Buffer creation  */
-   ///////////////////////////////////////
+    /////////////////////////////////////////////////////
+    /*         Sub-Section for Buffer creation         */
+    /////////////////////////////////////////////////////
 
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkPhysicalDevice* physicalDevice) {
         VkPhysicalDeviceMemoryProperties memProperties;
@@ -963,13 +972,13 @@ public:
 
 private:
 
-    /////////////////////////////////////////////////
-    /*    Section for Graphics Pipeline Objects    */
-    /////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
+    /*         Section for Graphics Pipeline Objects         */
+    ///////////////////////////////////////////////////////////
 
     // Render pass: the attachments referenced by the pipeline stages and their usage
     void createRenderPass(VkRenderPass* renderPass, VkFormat* swapChainImageFormat, VkDevice* device, VkPhysicalDevice* physicalDevice) {
-        // single color buffer attachment by one ima from swapchain
+        // single color buffer attachment by one image from swapchain
         VkAttachmentDescription colorAttachment{};
         VkAttachmentDescription depthAttachment{};
 
@@ -1070,6 +1079,7 @@ private:
         VkPipelineDepthStencilStateCreateInfo& depthStencilInfo,
         VkPipelineColorBlendAttachmentState& colorBlendAttachment,
         VkPipelineColorBlendStateCreateInfo& colorBlendingInfo, VkExtent2D* swapChainExtent) {
+
         //////////////////////// INPUT ASSEMBLY
         //
         // specify geometry topology and primitive reuse
@@ -1080,7 +1090,7 @@ private:
         // VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST : triangle from every 3 vertices without reuse
         // VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP : the second and third vertex of every triangle are used as first two vertices of the next triangle
         inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        inputAssemblyInfo.topology = VERTEX_TOPOLOGY;
         inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
 
         //////////////////////// DYNAMIC STATES
@@ -1137,7 +1147,7 @@ private:
         rasterizerInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
         rasterizerInfo.depthClampEnable = VK_FALSE; // clamp instead of discard fragments to far or near plane if are beyond, useful for e.g. shadow maps
         rasterizerInfo.rasterizerDiscardEnable = VK_FALSE; // discard geometry passing through rasterizer, disables output to framebuffer.
-        rasterizerInfo.polygonMode = VK_POLYGON_MODE_FILL;
+        rasterizerInfo.polygonMode = POLYGON_MODE;
         rasterizerInfo.lineWidth = 1.0f; // thickness of lines in terms of number of fragments
         rasterizerInfo.cullMode = CULL_MODE; //specify cull mode such as front-, back- or front-and-back culling
         rasterizerInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE; // use counter clockwise to correct reversed draw oder caused by y-flip
@@ -1173,7 +1183,7 @@ private:
         //////////////////////// COLOR BLENDING
         //
         // combine fragment shader output with framebuffer color
-
+        // 
         //contains the configuration per attached framebuffer
         colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
         colorBlendAttachment.blendEnable = VK_FALSE;
@@ -1219,13 +1229,13 @@ private:
         vertexShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         vertexShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
         vertexShaderStageInfo.module = vertexShaderModule;
-        vertexShaderStageInfo.pName = "main"; // choose entry point function within shader
+        vertexShaderStageInfo.pName = SHADER_ENTRY_FUNCTION_NAME; // choose entry point function within shader
         vertexShaderStageInfo.pSpecializationInfo = nullptr; // add shader constants if used, to get optimization features by compiler
 
         fragmentShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         fragmentShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
         fragmentShaderStageInfo.module = fragmentShaderModule;
-        fragmentShaderStageInfo.pName = "main";
+        fragmentShaderStageInfo.pName = SHADER_ENTRY_FUNCTION_NAME;
         vertexShaderStageInfo.pSpecializationInfo = nullptr; // add shader constants if used, to get optimization features by compiler
 
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -1373,9 +1383,9 @@ class VulkanPresentationDevicesInitializer {
 public:
  
 private:
-    ///////////////////////////////////////
-    /*      Sub-Section for Command Pool creation  */
-    ///////////////////////////////////////
+    ///////////////////////////////////////////////////////////
+    /*         Sub-Section for Command Pool creation         */
+    ///////////////////////////////////////////////////////////
     void createCommandPool(VkCommandPool* commandPool, VkSurfaceKHR* surface, VkDevice* device, VkPhysicalDevice* physicalDevice) {
         QueueFamilyIndices queueFamilyIndices = findQueueFamilies(*surface, *physicalDevice);
 
@@ -1406,11 +1416,9 @@ private:
         }
     }
 
-
-    ///////////////////////////////////////
-    /*      Section for Window Surfaces, Swap Chains and Image Views  */
-    ///////////////////////////////////////
-
+    //////////////////////////////////////////////////////////////////////////////
+    /*         Section for Window Surfaces, Swap Chains and Image Views         */
+    //////////////////////////////////////////////////////////////////////////////
 
     void createImageViews(std::vector<VkImageView>* swapChainImageViews, VkFormat* swapChainImageFormat, std::vector<VkImage>* swapChainImages, VkDevice* device) {
         swapChainImageViews->resize(swapChainImages->size());
@@ -1475,7 +1483,7 @@ private:
         createInfo.imageColorSpace = surfaceFormat.colorSpace;
         createInfo.imageExtent = extent;
         createInfo.imageArrayLayers = 1; // specifies the amount of layers each image consists of, always 1 for 2D Applications. Increase if using 3D stereoscopic images.
-        createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT; // specifies what kind of operations we'll use the images in the swap chain for.
+        createInfo.imageUsage = IMAGE_USAGE; // specifies what kind of operations we'll use the images in the swap chain for.
                                                                     // VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT specifies to render directly into images
                                                                     // VK_IMAGE_USAGE_TRANSFER_DST_BIT may be used to render into separate image and perform post processing. Perform memory operation then to transport image to swap chain.
         QueueFamilyIndices indices = findQueueFamilies(*surface, *physicalDevice);
@@ -1544,7 +1552,7 @@ private:
     VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentationModes) {
         for (const auto& availablePresentationMode : availablePresentationModes) {
             if (!SAVE_ENERGY_FOR_MOBILE) {
-                if (availablePresentationMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+                if (availablePresentationMode == PRESENTATION_MODE) {
                     return availablePresentationMode;
                 }
             }
@@ -1556,7 +1564,7 @@ private:
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
         for (const auto& availableFormat : availableFormats) {
             // prefer 32 Bit srgb color cormat (8 bit per channel) and srgb color space for more accurate colors
-            if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLORSPACE_SRGB_NONLINEAR_KHR) {
+            if (availableFormat.format == IMAGE_FORMAT && availableFormat.colorSpace == IMAGE_COLOR_SPACE) {
                 return availableFormat;
             }
         }
@@ -1617,9 +1625,9 @@ private:
         }
     }
 
-    ///////////////////////////////////////
-    /* Section for Logical Devices and Queues */
-    ///////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+    /*         Section for Logical Devices and Queues         */
+    ////////////////////////////////////////////////////////////
 
     void populateQueueCreateInfo(std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos, VkSurfaceKHR surface, VkPhysicalDevice* physicalDevice) {
         QueueFamilyIndices indices = findQueueFamilies(surface, *physicalDevice);
@@ -1673,9 +1681,9 @@ private:
         vkGetDeviceQueue(*device, queueCreateInfos.data()->queueFamilyIndex, 0, presentationQueue);
     }
 
-    ///////////////////////////////////////
-    /*      Section for Queue Families   */
-    ///////////////////////////////////////
+    ////////////////////////////////////////////////
+    /*         Section for Queue Families         */
+    ////////////////////////////////////////////////
 
     struct QueueFamilyIndices {
         std::optional<uint32_t> graphicsFamily;
@@ -1710,7 +1718,6 @@ private:
                 indices.presentationFamily = i;
             }
 
-
             if (indices.isComplete()) {
                 break;
             }
@@ -1721,9 +1728,9 @@ private:
         return indices;
     }
 
-    ///////////////////////////////////////
-    /*      Section for Physical Devices */
-    ///////////////////////////////////////
+    //////////////////////////////////////////////////
+    /*         Section for Physical Devices         */
+    //////////////////////////////////////////////////
 
     bool chooseStartUpGPU(VkSurfaceKHR surface, VkPhysicalDevice* physicalDevice, std::vector<VkPhysicalDevice> devices) {
         
@@ -1895,9 +1902,11 @@ friend class VulkanApplication;
 public:
 
 private:
-    ///////////////////////////////////////
-    /*      Section for Debug Messenger  */
-    ///////////////////////////////////////
+
+    /////////////////////////////////////////////////
+    /*         Section for Debug Messenger         */
+    /////////////////////////////////////////////////
+
     void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
         // extension functions are not loaded automatically and need to be called via vkGetInstanceProcAddr
         auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
@@ -2198,6 +2207,7 @@ private:
         drawingCreator->createFramebuffers(&depthImageView, &swapchainFramebuffers, &swapChainExtent, &swapchainImageViews, &renderPass, &device);
 
         modelCreator->loadModel();
+        //modelCreator->moveVertices();
         drawingCreator->createVertexBuffer(&vertexBufferMemory, &vertexBuffer, &shortLivedCommandPool, &graphicsQueue, &device, &physicalDevice);
         drawingCreator->createIndexBuffer(&indexBufferMemory, &indexBuffer, &shortLivedCommandPool, &graphicsQueue, &device, &physicalDevice);
         drawingCreator->createUniformBuffers(&uniformBuffersMapped, &uniformBuffersMemory, &uniformBuffers, &device, &physicalDevice);
@@ -2417,7 +2427,7 @@ private:
     void cleanup() {
         cleanupSyncObjects();
         cleanupCommandPools();
-        //cleanupFramebuffers();
+        cleanupFramebuffers();
         cleanupDescriptors();
         cleanupBuffers();
         cleanupMemory();
