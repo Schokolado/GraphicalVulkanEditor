@@ -1,9 +1,11 @@
-import sys
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import uic
+from PyQt5.QtWidgets import QApplication
 
-app = QtWidgets.QApplication(sys.argv)
-widget = QtWidgets.QWidget()
-widget.resize(400, 200)
-widget.setWindowTitle("This is PyQt Widget example")
-widget.show()
-exit(app.exec_())
+Form, Window = uic.loadUiType("VulkanSetupGUI.ui")
+
+app = QApplication([])
+window = Window()
+form = Form()
+form.setupUi(window)
+window.show()
+app.exec()

@@ -1,16 +1,16 @@
 // This header includes all changeable but constant variables for the VulkanProject Header.
 // Any changes should be made inside this header-file such that the original implementation can be kept untouched.
+// DO NOT TOUCH THIS FILE. Any changes will be overridden on next save of Vulkan Setup GUI.
 
 
 #pragma once
 // Instance
 const char* APPLICATION_NAME = "Vulkan Application";
-const bool SHOW_VALIDATION_LAYER_DEBUG_INFO = false;
+const bool SHOW_VALIDATION_LAYER_DEBUG_INFO = true;
 const bool RUN_ON_MACOS = false;
 
 // Physical Device
 const bool CHOOSE_GPU_ON_STARTUP = false;
-const bool SAVE_ENERGY_FOR_MOBILE = false;
 
 // Device
 
@@ -26,6 +26,7 @@ const int MAX_FRAMES_IN_FLIGHT = 5;
 const bool LOCK_WINDOW_SIZE = false;
 const VkImageUsageFlagBits IMAGE_USAGE = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 const VkPresentModeKHR PRESENTATION_MODE = VK_PRESENT_MODE_MAILBOX_KHR;
+const bool SAVE_ENERGY_FOR_MOBILE = false;
 const VkFormat IMAGE_FORMAT = VK_FORMAT_B8G8R8A8_SRGB;
 const VkColorSpaceKHR IMAGE_COLOR_SPACE = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
 // Descriptor
@@ -39,8 +40,8 @@ const char* SHADER_ENTRY_FUNCTION_NAME = "main";
 const VkPrimitiveTopology VERTEX_TOPOLOGY = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
 // Model
-const std::string MODEL_FILE = "models/viking_room.obj";
-const std::string TEXTURE_FILE = "textures/viking_room.png";
+const std::string MODEL_FILE = "models/Knife.obj";
+const std::string TEXTURE_FILE = "textures/OpenGL_normal.png";
 
 // Graphics Pipeline
 	// Rasterizer

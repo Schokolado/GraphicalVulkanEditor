@@ -5,86 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/28_model_loading.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/aliasing.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/anisotropic_filtering.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/antialiasing.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/cube_demo.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/cube_demo_mac.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/cube_demo_nowindow.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/depth_correct.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/depth_issues.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/drawing_model.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/extra_square.svg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/favicon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/glfw_directory.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/highmipmaps.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/include_dirs_stb.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/include_dirs_tinyobjloader.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/indexed_rectangle.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/inverted_texture_coordinates.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/library_directory.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/mipmaps.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/mipmaps_comparison.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/mipmaps_example.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/multisampling.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/multisampling_comparison.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/multisampling_comparison2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/normalized_device_coordinates.svg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/sample_shading.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/select_develop_branch.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/semaphore_in_use.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/spinning_quad.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/steam_layers_env.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/swap_chain_validation_layer.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/texcoord_visualization.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/texture.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/texture_addressing.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/texture_filtering.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/texture_on_square.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/texture_on_square_colorized.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/texture_on_square_repeated.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/triangle.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/triangle_coordinates.svg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/triangle_coordinates_colors.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/triangle_white.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/unsubmitted_fence.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/validation_layer_anisotropy.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/validation_layer_test.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vertex_vs_index.svg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/viewports_scissors.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vs_all_configs.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vs_application_settings.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vs_build_mode.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vs_cpp17.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vs_cpp_general.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vs_dependencies.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vs_export_template.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vs_include_dirs.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vs_link_dirs.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vs_link_input.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vs_link_settings.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vs_new_cpp_project.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vs_new_item.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vs_new_source_file.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vs_open_project_properties.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vs_template.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vs_test_window.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vulkan_sdk_download_buttons.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/vulkan_simplified_pipeline.svg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/xcode_frameworks.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/xcode_new_project.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/xcode_new_project_2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/xcode_output.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/xcode_paths.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/images/xcode_variables.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/shaders/26_shader_depth.frag" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/shaders/26_shader_depth.vert" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/shaders/Shader Readme.md.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/shaders/frag.spv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/shaders/vert.spv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/textures/viking_room.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/VulkanProjectVariables.h" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanProjectVariables.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.ui" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.ui" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -106,14 +30,14 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "C:/Users/Avoccardo/source/repos/VulkanSetup",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Avoccardo/source/repos/VulkanSetup&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="VulkanSetupGUI" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="VulkanSetup" />
