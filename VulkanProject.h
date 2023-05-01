@@ -1319,22 +1319,9 @@ private:
         auto bindingDescription = Vertex::getBindingDescription();
         auto attributeDescriptions = Vertex::getAttributeDescriptions();
 
+        // For now only one shader can be used for any pipeline. Future implementations will feature shader selection for each pipeline.
         std::vector<VkShaderModule> shaderModules = setupShaderStageAndReturnModules(attributeDescriptions, bindingDescription, vertexInputInfo, fragmentShaderStageInfo, vertexShaderStageInfo, device);
         VkPipelineShaderStageCreateInfo shaderStages[] = { vertexShaderStageInfo, fragmentShaderStageInfo };
-
-        //////////////////////// FIXED FUNCTION STAGE
-        VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
-        VkPipelineDynamicStateCreateInfo dynamicStateInfo{};
-        std::vector<VkDynamicState> dynamicStates;
-        VkPipelineViewportStateCreateInfo viewportState{};
-        VkPipelineRasterizationStateCreateInfo rasterizerInfo{};
-        VkPipelineMultisampleStateCreateInfo multisamplingInfo{};
-        VkPipelineDepthStencilStateCreateInfo depthStencilInfo{};
-        VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-        VkPipelineColorBlendStateCreateInfo colorBlendingInfo{};
-
-        //FIXME: add loop for each pipeline and pipeline info (re-set pipeline info on setupFixedFunctionStage)
-        setupFixedFunctionStage(dynamicStates, inputAssemblyInfo, dynamicStateInfo, viewportState, rasterizerInfo, multisamplingInfo, depthStencilInfo, colorBlendAttachment, colorBlendingInfo, swapChainExtent);
 
         //////////////////////// PIPELINE LAYOUT
         // Pipeline layout : the uniform and push values referenced by the shader that can be updated at draw time
@@ -1351,30 +1338,50 @@ private:
         }
 
         //////////////////////// PIPELINE CREATION
-
-        VkGraphicsPipelineCreateInfo pipelineInfo{};
-        pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-        pipelineInfo.stageCount = 2;
-        pipelineInfo.pStages = shaderStages;
-        pipelineInfo.pVertexInputState = &vertexInputInfo;
-        pipelineInfo.pInputAssemblyState = &inputAssemblyInfo;
-        pipelineInfo.pViewportState = &viewportState;
-        pipelineInfo.pRasterizationState = &rasterizerInfo;
-        pipelineInfo.pMultisampleState = &multisamplingInfo;
-        pipelineInfo.pDepthStencilState = &depthStencilInfo;
-        pipelineInfo.pColorBlendState = &colorBlendingInfo;
-        pipelineInfo.pDynamicState = &dynamicStateInfo;
-        pipelineInfo.layout = *pipelineLayout;
-        pipelineInfo.renderPass = *renderPass;
-        pipelineInfo.subpass = 0; // index of the sub pass where this graphics pipeline will be used
-        pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional, specify the handle of an existing pipeline with basePipelineHandle or reference another pipeline that is about to be created by index with basePipelineIndex
-        pipelineInfo.basePipelineIndex = -1; // Optional, Right now there is only a single pipeline, so we'll simply specify a null handle and an invalid index. These values are only used if the VK_PIPELINE_CREATE_DERIVATIVE_BIT flag is also specified in the flags field of VkGraphicsPipelineCreateInfo.
-
-        //FIXME: add loop for each pipeline and pipeline info (re-set pipeline info on setupFixedFunctionStage)
-
+        std::vector<VkGraphicsPipelineCreateInfo> pipelineInfos;
+        //pipelineInfos.resize(PIPELINE_COUNT);
         graphicsPipelines->resize(PIPELINE_COUNT); //FIXME: resize to sizeof pipeline info count
 
-        if (vkCreateGraphicsPipelines(*device, VK_NULL_HANDLE, PIPELINE_COUNT, &pipelineInfo, nullptr, graphicsPipelines->data()) != VK_SUCCESS) {
+        VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
+        VkPipelineDynamicStateCreateInfo dynamicStateInfo{};
+        std::vector<VkDynamicState> dynamicStates;
+        VkPipelineViewportStateCreateInfo viewportState{};
+        VkPipelineRasterizationStateCreateInfo rasterizerInfo{};
+        VkPipelineMultisampleStateCreateInfo multisamplingInfo{};
+        VkPipelineDepthStencilStateCreateInfo depthStencilInfo{};
+        VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+        VkPipelineColorBlendStateCreateInfo colorBlendingInfo{};
+
+        for (int i = 0; i < PIPELINE_COUNT; i++) {
+            //////////////////////// FIXED FUNCTION STAGE
+
+            setupFixedFunctionStage(dynamicStates, inputAssemblyInfo, dynamicStateInfo, viewportState, rasterizerInfo, multisamplingInfo, depthStencilInfo, colorBlendAttachment, colorBlendingInfo, swapChainExtent);
+
+            //////////////////////// PIPELINE CREATION
+
+            VkGraphicsPipelineCreateInfo pipelineInfo{};
+            pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+            pipelineInfo.stageCount = 2;
+            pipelineInfo.pStages = shaderStages;
+            pipelineInfo.pVertexInputState = &vertexInputInfo;
+            pipelineInfo.pInputAssemblyState = &inputAssemblyInfo;
+            pipelineInfo.pViewportState = &viewportState;
+            pipelineInfo.pRasterizationState = &rasterizerInfo;
+            pipelineInfo.pMultisampleState = &multisamplingInfo;
+            pipelineInfo.pDepthStencilState = &depthStencilInfo;
+            pipelineInfo.pColorBlendState = &colorBlendingInfo;
+            pipelineInfo.pDynamicState = &dynamicStateInfo;
+            pipelineInfo.layout = *pipelineLayout;
+            pipelineInfo.renderPass = *renderPass;
+            pipelineInfo.subpass = 0; // index of the sub pass where this graphics pipeline will be used
+            pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional, specify the handle of an existing pipeline with basePipelineHandle or reference another pipeline that is about to be created by index with basePipelineIndex
+            pipelineInfo.basePipelineIndex = -1; // Optional, Right now there is only a single pipeline, so we'll simply specify a null handle and an invalid index. These values are only used if the VK_PIPELINE_CREATE_DERIVATIVE_BIT flag is also specified in the flags field of VkGraphicsPipelineCreateInfo.
+
+            //FIXME: add loop for each pipeline and pipeline info (re-set pipeline info on setupFixedFunctionStage)
+            pipelineInfos.push_back(pipelineInfo);//
+        }
+
+        if (vkCreateGraphicsPipelines(*device, VK_NULL_HANDLE, PIPELINE_COUNT, pipelineInfos.data(), nullptr, graphicsPipelines->data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to create graphics pipeline!");
         }
 
