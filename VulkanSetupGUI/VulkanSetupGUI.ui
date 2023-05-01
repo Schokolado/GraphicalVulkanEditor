@@ -54,7 +54,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>3</number>
+        <number>5</number>
        </property>
        <widget class="QWidget" name="instance">
         <property name="enabled">
@@ -63,16 +63,16 @@
         <attribute name="title">
          <string>Instance</string>
         </attribute>
-        <widget class="QWidget" name="">
+        <widget class="QWidget" name="layoutWidget">
          <property name="geometry">
           <rect>
            <x>10</x>
            <y>10</y>
            <width>521</width>
-           <height>51</height>
+           <height>41</height>
           </rect>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
+         <layout class="QVBoxLayout" name="verticalLayoutApplicationName">
           <item>
            <widget class="QLabel" name="applicationNameLabel">
             <property name="toolTip">
@@ -95,13 +95,13 @@
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="">
+        <widget class="QWidget" name="layoutWidget">
          <property name="geometry">
           <rect>
            <x>10</x>
-           <y>80</y>
+           <y>60</y>
            <width>521</width>
-           <height>101</height>
+           <height>42</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -141,7 +141,7 @@
            <x>9</x>
            <y>9</y>
            <width>521</width>
-           <height>111</height>
+           <height>21</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayoutPhysicalDevice">
@@ -226,13 +226,13 @@
         <attribute name="title">
          <string>Swapchain</string>
         </attribute>
-        <widget class="QWidget" name="">
+        <widget class="QWidget" name="layoutWidget">
          <property name="geometry">
           <rect>
-           <x>11</x>
-           <y>12</y>
+           <x>10</x>
+           <y>10</y>
            <width>521</width>
-           <height>431</height>
+           <height>466</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayoutSwapchain">
@@ -243,13 +243,13 @@
               <property name="minimumSize">
                <size>
                 <width>0</width>
-                <height>40</height>
+                <height>20</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>40</height>
+                <height>20</height>
                </size>
               </property>
               <property name="text">
@@ -261,15 +261,37 @@
              <layout class="QHBoxLayout" name="horizontalLayoutImageDimensions">
               <item>
                <layout class="QHBoxLayout" name="horizontalLayoutImageHeight">
+                <property name="spacing">
+                 <number>6</number>
+                </property>
+                <property name="sizeConstraint">
+                 <enum>QLayout::SetDefaultConstraint</enum>
+                </property>
                 <item>
                  <widget class="QLabel" name="imageHeightLabel">
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>20</height>
+                   </size>
+                  </property>
                   <property name="text">
                    <string>Height:</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QSpinBox" name="imageHeightInput"/>
+                 <widget class="QSpinBox" name="imageHeightInput">
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                  <property name="maximum">
+                   <number>99999</number>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </item>
@@ -277,13 +299,29 @@
                <layout class="QHBoxLayout" name="horizontalLayoutImageWidth">
                 <item>
                  <widget class="QLabel" name="imageWidthLabel">
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>20</height>
+                   </size>
+                  </property>
                   <property name="text">
                    <string>Width:</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QSpinBox" name="imageWidthInput"/>
+                 <widget class="QSpinBox" name="imageWidthInput">
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                  <property name="maximum">
+                   <number>99999</number>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </item>
@@ -323,13 +361,13 @@
               <property name="minimumSize">
                <size>
                 <width>0</width>
-                <height>40</height>
+                <height>20</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>40</height>
+                <height>20</height>
                </size>
               </property>
               <property name="toolTip">
@@ -348,6 +386,9 @@
                  <widget class="QLabel" name="clearColorRLabel">
                   <property name="text">
                    <string>R:</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                   </property>
                  </widget>
                 </item>
@@ -370,6 +411,9 @@
                   <property name="text">
                    <string>G:</string>
                   </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
                  </widget>
                 </item>
                 <item>
@@ -390,6 +434,9 @@
                  <widget class="QLabel" name="clearColorBLabel">
                   <property name="text">
                    <string>B:</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                   </property>
                  </widget>
                 </item>
@@ -414,6 +461,9 @@
                  <widget class="QLabel" name="clearColorALabel">
                   <property name="text">
                    <string>A:</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                   </property>
                  </widget>
                 </item>
@@ -443,13 +493,13 @@
               <property name="minimumSize">
                <size>
                 <width>0</width>
-                <height>86</height>
+                <height>20</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>86</height>
+                <height>20</height>
                </size>
               </property>
               <property name="toolTip">
@@ -462,6 +512,18 @@
             </item>
             <item>
              <widget class="QSpinBox" name="framesInFlightInput">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="maximum">
                <number>999</number>
               </property>
@@ -503,6 +565,12 @@
              <layout class="QVBoxLayout" name="verticalLayoutImageSelectorsLabel">
               <item>
                <widget class="QLabel" name="ImageUsageLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Specify what kind of operations the images in the swap chain are used for.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -513,6 +581,12 @@
               </item>
               <item>
                <widget class="QLabel" name="imagePresentationModeLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Presentation Modes define how images are presented.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -523,6 +597,12 @@
               </item>
               <item>
                <widget class="QLabel" name="imageFormatLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Image Format:</string>
                 </property>
@@ -530,6 +610,12 @@
               </item>
               <item>
                <widget class="QLabel" name="imageColorSpaceLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Image Color Space:</string>
                 </property>
@@ -544,7 +630,7 @@
                 <property name="minimumSize">
                  <size>
                   <width>251</width>
-                  <height>0</height>
+                  <height>20</height>
                  </size>
                 </property>
                 <property name="toolTip">
@@ -568,7 +654,7 @@
                 <property name="minimumSize">
                  <size>
                   <width>231</width>
-                  <height>0</height>
+                  <height>20</height>
                  </size>
                 </property>
                 <property name="toolTip">
@@ -607,7 +693,7 @@
                 <property name="minimumSize">
                  <size>
                   <width>231</width>
-                  <height>0</height>
+                  <height>20</height>
                  </size>
                 </property>
                 <property name="editable">
@@ -628,7 +714,7 @@
                 <property name="minimumSize">
                  <size>
                   <width>231</width>
-                  <height>0</height>
+                  <height>20</height>
                  </size>
                 </property>
                 <property name="editable">
@@ -648,6 +734,22 @@
             </item>
            </layout>
           </item>
+          <item>
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>160</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
          </layout>
         </widget>
        </widget>
@@ -660,72 +762,92 @@
           <rect>
            <x>10</x>
            <y>10</y>
-           <width>521</width>
-           <height>431</height>
+           <width>527</width>
+           <height>182</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayoutShader">
           <item>
-           <layout class="QGridLayout" name="gridLayoutShaderFiles">
-            <item row="0" column="0">
-             <widget class="QLabel" name="vertexShaderFileLabel">
-              <property name="text">
-               <string>Vertex Shader File:</string>
-              </property>
-             </widget>
+           <layout class="QVBoxLayout" name="verticalLayoutShaderFiles">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayoutVertexShaderFile">
+              <item>
+               <widget class="QLabel" name="vertexShaderFileLabel">
+                <property name="text">
+                 <string>Vertex Shader File:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="vertexShaderFileInput">
+                <property name="minimumSize">
+                 <size>
+                  <width>340</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>340</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="placeholderText">
+                 <string>shaders/raw_shaders/shader.vert</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QToolButton" name="vertexShaderFileToolButton">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select Vertex Shader file from Explorer&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
-            <item row="0" column="1">
-             <widget class="QLineEdit" name="vertexShaderFileInput">
-              <property name="minimumSize">
-               <size>
-                <width>371</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="placeholderText">
-               <string>shaders/raw_shaders/shader.vert</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="2">
-             <widget class="QToolButton" name="vertexShaderFileToolButton">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select Vertex Shader file from Explorer&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>...</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="fragmentShaderFileLabel">
-              <property name="text">
-               <string>Fragment Shader File:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QLineEdit" name="fragmentShaderFileInput">
-              <property name="minimumSize">
-               <size>
-                <width>371</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="placeholderText">
-               <string>shaders/raw_shaders/shader.frag</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="QToolButton" name="fragmentShaderFileToolButton">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select Fragment Shader file from Explorer&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>...</string>
-              </property>
-             </widget>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayoutFragmentShaderFile">
+              <item>
+               <widget class="QLabel" name="fragmentShaderFileLabel">
+                <property name="text">
+                 <string>Fragment Shader File:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="fragmentShaderFileInput">
+                <property name="minimumSize">
+                 <size>
+                  <width>340</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>340</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="placeholderText">
+                 <string>shaders/raw_shaders/shader.frag</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QToolButton" name="fragmentShaderFileToolButton">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select Fragment Shader file from Explorer&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </item>
@@ -743,6 +865,18 @@
             </item>
             <item>
              <widget class="QLineEdit" name="shaderEntryFunctionNameInput">
+              <property name="minimumSize">
+               <size>
+                <width>340</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>340</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <kerning>true</kerning>
@@ -758,6 +892,22 @@
                <bool>false</bool>
               </property>
              </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>30</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </item>
@@ -777,8 +927,14 @@
              <widget class="QComboBox" name="vertexTopologyInput">
               <property name="minimumSize">
                <size>
-                <width>341</width>
+                <width>340</width>
                 <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>338</width>
+                <height>16777215</height>
                </size>
               </property>
               <property name="toolTip">
@@ -841,6 +997,22 @@
               </item>
              </widget>
             </item>
+            <item>
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>30</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
            </layout>
           </item>
           <item>
@@ -868,12 +1040,12 @@
          <property name="geometry">
           <rect>
            <x>10</x>
-           <y>11</y>
+           <y>10</y>
            <width>524</width>
-           <height>431</height>
+           <height>439</height>
           </rect>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <layout class="QVBoxLayout" name="verticalLayoutModel">
           <item>
            <layout class="QVBoxLayout" name="verticalLayoutModelTextureFile">
             <item>
@@ -957,6 +1129,22 @@
              </layout>
             </item>
            </layout>
+          </item>
+          <item>
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>80</height>
+             </size>
+            </property>
+           </spacer>
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayoutModelTexturePreview">
@@ -1251,6 +1439,42 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>applicationNameInput</tabstop>
+  <tabstop>showValidationLayerDebugInfoCheckBox</tabstop>
+  <tabstop>runOnMacosCheckBox</tabstop>
+  <tabstop>chooseGPUOnStartupCheckBox</tabstop>
+  <tabstop>deviceExtensionsList</tabstop>
+  <tabstop>imageHeightInput</tabstop>
+  <tabstop>imageWidthInput</tabstop>
+  <tabstop>lockWindowSizeCheckBox</tabstop>
+  <tabstop>clearColorRInput</tabstop>
+  <tabstop>clearColorGInput</tabstop>
+  <tabstop>clearColorBInput</tabstop>
+  <tabstop>clearColorAInput</tabstop>
+  <tabstop>framesInFlightInput</tabstop>
+  <tabstop>saveEnergyForMobileCheckBox</tabstop>
+  <tabstop>imageUsageInput</tabstop>
+  <tabstop>presentationModeInput</tabstop>
+  <tabstop>imageFormatInput</tabstop>
+  <tabstop>imageColorSpaceInput</tabstop>
+  <tabstop>vertexShaderFileInput</tabstop>
+  <tabstop>vertexShaderFileToolButton</tabstop>
+  <tabstop>fragmentShaderFileInput</tabstop>
+  <tabstop>fragmentShaderFileToolButton</tabstop>
+  <tabstop>shaderEntryFunctionNameInput</tabstop>
+  <tabstop>vertexTopologyInput</tabstop>
+  <tabstop>useIndexedVerticesCheckBox</tabstop>
+  <tabstop>reduceSpirvCodeSizeCheckBox</tabstop>
+  <tabstop>modelFileInput</tabstop>
+  <tabstop>modelFileToolButton</tabstop>
+  <tabstop>textureFileInput</tabstop>
+  <tabstop>textureFileToolButton</tabstop>
+  <tabstop>comboBox</tabstop>
+  <tabstop>comboBox_2</tabstop>
+  <tabstop>generateVulkanCodeButton</tabstop>
+  <tabstop>tabWidget</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

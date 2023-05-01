@@ -40,10 +40,12 @@ const char* SHADER_ENTRY_FUNCTION_NAME = "main";
 const VkPrimitiveTopology VERTEX_TOPOLOGY = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
 // Model
-const std::string MODEL_FILE = "models/Knife.obj";
-const std::string TEXTURE_FILE = "textures/OpenGL_normal.png";
+const std::string MODEL_FILE = "models/viking_room.obj";
+const std::string TEXTURE_FILE = "textures/viking_room.png";
 
 // Graphics Pipeline
+	// Pipeline
+	const int PIPELINE_COUNT = 1;
 	// Rasterizer
 	const VkCullModeFlagBits CULL_MODE = VK_CULL_MODE_NONE; //VK_CULL_MODE_BACK_BIT;
 	const VkPolygonMode POLYGON_MODE = VK_POLYGON_MODE_FILL;

@@ -853,7 +853,7 @@ private:
     }
 
     // contains actual draw command containing info from renderpass, and buffers
-    void recordCommandBuffer(uint32_t currentFrame, uint32_t imageIndex, std::vector<VkDescriptorSet>* descriptorSets, VkBuffer* indexBuffer, VkBuffer* vertexBuffer, VkCommandBuffer* commandBuffer, VkCommandPool* commandPool, VkPipeline* graphicsPipeline, VkRenderPass* renderPass, VkPipelineLayout* pipelineLayout, std::vector<VkFramebuffer>* swapchainFramebuffers, VkExtent2D* swapChainExtent, VkDevice* device) {
+    void recordCommandBuffer(uint32_t currentFrame, uint32_t imageIndex, std::vector<VkDescriptorSet>* descriptorSets, VkBuffer* indexBuffer, VkBuffer* vertexBuffer, VkCommandBuffer* commandBuffer, VkCommandPool* commandPool, std::vector<VkPipeline>* graphicsPipelines, VkRenderPass* renderPass, VkPipelineLayout* pipelineLayout, std::vector<VkFramebuffer>* swapchainFramebuffers, VkExtent2D* swapChainExtent, VkDevice* device) {
         // The flags parameter specifies how the command buffer is used:
         // VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT: The command buffer will be rerecorded right after executing it once.
         // VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT : This is a secondary command buffer that will be entirely within a single render pass.
@@ -886,7 +886,10 @@ private:
         // VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS : The render pass commands will be executed from secondary command buffers.
         vkCmdBeginRenderPass(*commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdBindPipeline(*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *graphicsPipeline);
+        // bind each pipeline to graphics
+        for (auto pipeline : *graphicsPipelines) {
+            vkCmdBindPipeline(*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        }
 
         VkBuffer vertexBuffers[] = { *vertexBuffer };
         VkDeviceSize offsets[] = { 0 };
@@ -1308,7 +1311,7 @@ private:
 
 
     // Setup grapics pipeline stages such as shader stage, fixed function stage, pipeline layout and renderpasses
-    void createGraphicsPipeline(VkPipeline* graphicsPipeline, VkRenderPass* renderPass, VkDescriptorSetLayout* descriptorSetLayout,VkPipelineLayout* pipelineLayout, VkExtent2D* swapChainExtent, VkDevice* device) {
+    void createGraphicsPipelines(std::vector<VkPipeline>* graphicsPipelines, VkRenderPass* renderPass, VkDescriptorSetLayout* descriptorSetLayout,VkPipelineLayout* pipelineLayout, VkExtent2D* swapChainExtent, VkDevice* device) {
         //////////////////////// SHADER STAGE
         VkPipelineShaderStageCreateInfo vertexShaderStageInfo{};
         VkPipelineShaderStageCreateInfo fragmentShaderStageInfo{};
@@ -1330,6 +1333,7 @@ private:
         VkPipelineColorBlendAttachmentState colorBlendAttachment{};
         VkPipelineColorBlendStateCreateInfo colorBlendingInfo{};
 
+        //FIXME: add loop for each pipeline and pipeline info (re-set pipeline info on setupFixedFunctionStage)
         setupFixedFunctionStage(dynamicStates, inputAssemblyInfo, dynamicStateInfo, viewportState, rasterizerInfo, multisamplingInfo, depthStencilInfo, colorBlendAttachment, colorBlendingInfo, swapChainExtent);
 
         //////////////////////// PIPELINE LAYOUT
@@ -1366,7 +1370,11 @@ private:
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional, specify the handle of an existing pipeline with basePipelineHandle or reference another pipeline that is about to be created by index with basePipelineIndex
         pipelineInfo.basePipelineIndex = -1; // Optional, Right now there is only a single pipeline, so we'll simply specify a null handle and an invalid index. These values are only used if the VK_PIPELINE_CREATE_DERIVATIVE_BIT flag is also specified in the flags field of VkGraphicsPipelineCreateInfo.
 
-        if (vkCreateGraphicsPipelines(*device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, graphicsPipeline) != VK_SUCCESS) {
+        //FIXME: add loop for each pipeline and pipeline info (re-set pipeline info on setupFixedFunctionStage)
+
+        graphicsPipelines->resize(PIPELINE_COUNT); //FIXME: resize to sizeof pipeline info count
+
+        if (vkCreateGraphicsPipelines(*device, VK_NULL_HANDLE, PIPELINE_COUNT, &pipelineInfo, nullptr, graphicsPipelines->data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to create graphics pipeline!");
         }
 
@@ -2128,7 +2136,7 @@ private:
     VkRenderPass renderPass;
     VkDescriptorSetLayout descriptorSetLayout;
     VkPipelineLayout pipelineLayout;
-    VkPipeline graphicsPipeline;
+    std::vector<VkPipeline> graphicsPipelines;
 
     std::vector<VkFramebuffer> swapchainFramebuffers;
     VkCommandPool commandPool;
@@ -2193,7 +2201,7 @@ private:
 
         graphicsPipelineCreator->createRenderPass(&renderPass, &swapChainImageFormat, &device, &physicalDevice);
         drawingCreator->createDescriptorSetLayout(&descriptorSetLayout, &device);
-        graphicsPipelineCreator->createGraphicsPipeline(&graphicsPipeline , &renderPass, &descriptorSetLayout, &pipelineLayout, &swapChainExtent, &device);
+        graphicsPipelineCreator->createGraphicsPipelines(&graphicsPipelines , &renderPass, &descriptorSetLayout, &pipelineLayout, &swapChainExtent, &device);
         
         presentationDeviceCreator->createCommandPool(&commandPool, &surface, &device, &physicalDevice);
         presentationDeviceCreator->createShortLivedCommandPool(&shortLivedCommandPool, &surface, &device, &physicalDevice);
@@ -2271,9 +2279,8 @@ private:
         // only reset fence if work is submitted
         vkResetFences(device, 1, &inFlightFences[currentFrame]);
 
-        
         vkResetCommandBuffer(commandBuffers[currentFrame], 0);
-        drawingCreator->recordCommandBuffer(currentFrame, imageIndex, &descriptorSets, &indexBuffer, &vertexBuffer, &commandBuffers[currentFrame], &commandPool, &graphicsPipeline, &renderPass, &pipelineLayout, &swapchainFramebuffers, &swapChainExtent, &device);
+        drawingCreator->recordCommandBuffer(currentFrame, imageIndex, &descriptorSets, &indexBuffer, &vertexBuffer, &commandBuffers[currentFrame], &commandPool, &graphicsPipelines, &renderPass, &pipelineLayout, &swapchainFramebuffers, &swapChainExtent, &device);
 
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -2343,10 +2350,11 @@ private:
         // Will be destroyed on instance destruction
         // 
         // Nothing to do for device queues. 
-        // Will be destroyed on logical device destruction
+        // Will be destroyed on logical device destruction.
         vkDestroyDevice(device, nullptr);
     }
 
+    // Swapchain cleanup for each swapchain recreation and at the end of application.
     void cleanupSwapchain() {
         cleanupDepthResources();
         cleanupFramebuffers();
@@ -2362,7 +2370,9 @@ private:
     }
 
     void cleanupGraphicsPipeline() {
-        vkDestroyPipeline(device, graphicsPipeline, nullptr);
+        for (auto pipeline : graphicsPipelines) {
+            vkDestroyPipeline(device, pipeline, nullptr);
+        }
         vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
         vkDestroyRenderPass(device, renderPass, nullptr);
     }
@@ -2376,7 +2386,7 @@ private:
     void cleanupCommandPools() {
         vkDestroyCommandPool(device, commandPool, nullptr);
         vkDestroyCommandPool(device, shortLivedCommandPool, nullptr);
-        //no commandbuffer cleanup needed, they are freed when commandpool is deleted
+        //no commandbuffer cleanup needed, they are freed when commandpool is deleted.
     }
 
     void cleanupSyncObjects() {
@@ -2406,7 +2416,7 @@ private:
     void cleanupDescriptors() {
         vkDestroyDescriptorPool(device, descriptorPool, nullptr);
         vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
-        //no descriptor set cleanup needed, they are freed when descriptor pool is deleted
+        //no descriptor set cleanup needed, they are freed when descriptor pool is deleted.
     }
 
     void cleanupImages() {
@@ -2427,12 +2437,12 @@ private:
     void cleanup() {
         cleanupSyncObjects();
         cleanupCommandPools();
-        cleanupFramebuffers();
+        //cleanupFramebuffers(); // not needed, will be done in cleanup swapchain.
         cleanupDescriptors();
         cleanupBuffers();
         cleanupMemory();
         cleanupGraphicsPipeline();
-        cleanupImageViews();
+        //cleanupImageViews(); // not needed, will be done in cleanup swapchain.
         cleanupTextureResources();
         cleanupSwapchain();
         cleanupImages();
