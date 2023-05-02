@@ -1073,7 +1073,8 @@ private:
         }
     }
     // Fixed-function stage : all of the structures that define the fixed - function stages of the pipeline, like input assembly, rasterizer, viewport and color blending
-    void setupFixedFunctionStage(std::vector<VkDynamicState>& dynamicStates,
+    void setupFixedFunctionStage(FixedFunctionStageParameters pipelineParameters,
+        std::vector<VkDynamicState>& dynamicStates,
         VkPipelineInputAssemblyStateCreateInfo& inputAssemblyInfo,
         VkPipelineDynamicStateCreateInfo& dynamicStateInfo,
         VkPipelineViewportStateCreateInfo& viewportState,
@@ -1093,8 +1094,8 @@ private:
         // VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST : triangle from every 3 vertices without reuse
         // VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP : the second and third vertex of every triangle are used as first two vertices of the next triangle
         inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        inputAssemblyInfo.topology = VERTEX_TOPOLOGY;
-        inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
+        inputAssemblyInfo.topology = pipelineParameters.inputAssemblyInfo_topology;
+        inputAssemblyInfo.primitiveRestartEnable = pipelineParameters.inputAssemblyInfo_primitiveRestartEnable;
 
         //////////////////////// DYNAMIC STATES
         //
@@ -1148,27 +1149,27 @@ private:
         // VK_POLYGON_MODE_LINE : polygon edges are drawn as lines
         // VK_POLYGON_MODE_POINT : polygon vertices are drawn as points
         rasterizerInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-        rasterizerInfo.depthClampEnable = VK_FALSE; // clamp instead of discard fragments to far or near plane if are beyond, useful for e.g. shadow maps
-        rasterizerInfo.rasterizerDiscardEnable = VK_FALSE; // discard geometry passing through rasterizer, disables output to framebuffer.
-        rasterizerInfo.polygonMode = POLYGON_MODE;
-        rasterizerInfo.lineWidth = 1.0f; // thickness of lines in terms of number of fragments
-        rasterizerInfo.cullMode = CULL_MODE; //specify cull mode such as front-, back- or front-and-back culling
-        rasterizerInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE; // use counter clockwise to correct reversed draw oder caused by y-flip
-        rasterizerInfo.depthBiasEnable = VK_FALSE; // bias depth by adding a constant value, e.g. for shadow maps
-        rasterizerInfo.depthBiasConstantFactor = 0.0f; // Optional
-        rasterizerInfo.depthBiasClamp = 0.0f; // Optional
-        rasterizerInfo.depthBiasSlopeFactor = 0.0f; // Optional
+        rasterizerInfo.depthClampEnable = pipelineParameters.rasterizerInfo_depthClampEnable; // clamp instead of discard fragments to far or near plane if are beyond, useful for e.g. shadow maps
+        rasterizerInfo.rasterizerDiscardEnable = pipelineParameters.rasterizerInfo_rasterizerDiscardEnable; // discard geometry passing through rasterizer, disables output to framebuffer.
+        rasterizerInfo.polygonMode = pipelineParameters.rasterizerInfo_polygonMode;
+        rasterizerInfo.lineWidth = pipelineParameters.rasterizerInfo_lineWidth; // thickness of lines in terms of number of fragments
+        rasterizerInfo.cullMode = pipelineParameters.rasterizerInfo_cullMode; //specify cull mode such as front-, back- or front-and-back culling
+        rasterizerInfo.frontFace = pipelineParameters.rasterizerInfo_frontFace; // use counter clockwise to correct reversed draw oder caused by y-flip
+        rasterizerInfo.depthBiasEnable = pipelineParameters.rasterizerInfo_depthBiasEnable; // bias depth by adding a constant value, e.g. for shadow maps
+        rasterizerInfo.depthBiasConstantFactor = pipelineParameters.rasterizerInfo_depthBiasConstantFactor; // Optional
+        rasterizerInfo.depthBiasClamp = pipelineParameters.rasterizerInfo_depthBiasClamp; // Optional
+        rasterizerInfo.depthBiasSlopeFactor = pipelineParameters.rasterizerInfo_depthBiasSlopeFactor; // Optional
 
         //////////////////////// DEPTH AND STENCIL
         //
         depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-        depthStencilInfo.depthTestEnable = VK_TRUE; // specifies if the depth of new fragments should be compared to the depth buffer to see if they should be discarded
-        depthStencilInfo.depthWriteEnable = VK_TRUE; // specifies if the new depth of fragments that pass the depth test should actually be written to the depth buffer
-        depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS; // specifies the comparison that is performed to keep or discard fragments. Use convention of lower depth = closer
-        depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
-        depthStencilInfo.minDepthBounds = 0.0f; // Optional, used for the optional depth bound test. Basically, this allows to only keep fragments that fall within the specified depth range. 
-        depthStencilInfo.maxDepthBounds = 1.0f; // Optional, used for the optional depth bound test. Basically, this allows to only keep fragments that fall within the specified depth range. 
-        depthStencilInfo.stencilTestEnable = VK_FALSE;
+        depthStencilInfo.depthTestEnable = pipelineParameters.depthStencilInfo_depthTestEnable; // specifies if the depth of new fragments should be compared to the depth buffer to see if they should be discarded
+        depthStencilInfo.depthWriteEnable = pipelineParameters.depthStencilInfo_depthWriteEnable; // specifies if the new depth of fragments that pass the depth test should actually be written to the depth buffer
+        depthStencilInfo.depthCompareOp = pipelineParameters.depthStencilInfo_depthCompareOp; // specifies the comparison that is performed to keep or discard fragments. Use convention of lower depth = closer
+        depthStencilInfo.depthBoundsTestEnable = pipelineParameters.depthStencilInfo_depthBoundsTestEnable;
+        depthStencilInfo.minDepthBounds = pipelineParameters.depthStencilInfo_minDepthBounds; // Optional, used for the optional depth bound test. Basically, this allows to only keep fragments that fall within the specified depth range. 
+        depthStencilInfo.maxDepthBounds = pipelineParameters.depthStencilInfo_maxDepthBounds; // Optional, used for the optional depth bound test. Basically, this allows to only keep fragments that fall within the specified depth range. 
+        depthStencilInfo.stencilTestEnable = pipelineParameters.depthStencilInfo_stencilTestEnable;
         depthStencilInfo.front = {}; // Optional
         depthStencilInfo.back = {}; // Optional
 
@@ -1176,26 +1177,26 @@ private:
         //
         // One Way to perform anti-aliasing, combine fragment shader results of multiple polygons to the same pixel
         multisamplingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-        multisamplingInfo.sampleShadingEnable = VK_FALSE;
-        multisamplingInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-        multisamplingInfo.minSampleShading = 1.0f; // Optional
+        multisamplingInfo.sampleShadingEnable = pipelineParameters.multisamplingInfo_sampleShadingEnable;
+        multisamplingInfo.rasterizationSamples = pipelineParameters.multisamplingInfo_rasterizationSamples;
+        multisamplingInfo.minSampleShading = pipelineParameters.multisamplingInfo_minSampleShading; // Optional
         multisamplingInfo.pSampleMask = nullptr; // Optional
-        multisamplingInfo.alphaToCoverageEnable = VK_FALSE; // Optional
-        multisamplingInfo.alphaToOneEnable = VK_FALSE; // Optional
+        multisamplingInfo.alphaToCoverageEnable = pipelineParameters.multisamplingInfo_alphaToCoverageEnable; // Optional
+        multisamplingInfo.alphaToOneEnable = pipelineParameters.multisamplingInfo_alphaToOneEnable; // Optional
 
         //////////////////////// COLOR BLENDING
         //
         // combine fragment shader output with framebuffer color
         // 
         //contains the configuration per attached framebuffer
-        colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-        colorBlendAttachment.blendEnable = VK_FALSE;
-        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
-        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
-        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional
-        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
-        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
-        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD; // Optional
+        colorBlendAttachment.colorWriteMask = pipelineParameters.colorBlendAttachment_colorWriteMask;
+        colorBlendAttachment.blendEnable = pipelineParameters.colorBlendAttachment_blendEnable;
+        colorBlendAttachment.srcColorBlendFactor = pipelineParameters.colorBlendAttachment_srcColorBlendFactor; // Optional
+        colorBlendAttachment.dstColorBlendFactor = pipelineParameters.colorBlendAttachment_dstColorBlendFactor; // Optional
+        colorBlendAttachment.colorBlendOp = pipelineParameters.colorBlendAttachment_colorBlendOp; // Optional
+        colorBlendAttachment.srcAlphaBlendFactor = pipelineParameters.colorBlendAttachment_srcAlphaBlendFactor; // Optional
+        colorBlendAttachment.dstAlphaBlendFactor = pipelineParameters.colorBlendAttachment_dstAlphaBlendFactor; // Optional
+        colorBlendAttachment.alphaBlendOp = pipelineParameters.colorBlendAttachment_alphaBlendOp; // Optional
 
         // if using alpha blending
         //colorBlendAttachmentInfo.blendEnable = VK_TRUE;
@@ -1208,14 +1209,14 @@ private:
 
         //contains the global color blending settings
         colorBlendingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-        colorBlendingInfo.logicOpEnable = VK_FALSE; //false applies to ALL attached framebuffers. Set to true if using e.g. alpha blending
-        colorBlendingInfo.logicOp = VK_LOGIC_OP_COPY; // Optional
+        colorBlendingInfo.logicOpEnable = pipelineParameters.colorBlendingInfo_logicOpEnable; //false applies to ALL attached framebuffers. Set to true if using e.g. alpha blending
+        colorBlendingInfo.logicOp = pipelineParameters.colorBlendingInfo_logicOp; // Optional
         colorBlendingInfo.attachmentCount = 1;
         colorBlendingInfo.pAttachments = &colorBlendAttachment;
-        colorBlendingInfo.blendConstants[0] = 0.0f; // Optional
-        colorBlendingInfo.blendConstants[1] = 0.0f; // Optional
-        colorBlendingInfo.blendConstants[2] = 0.0f; // Optional
-        colorBlendingInfo.blendConstants[3] = 0.0f; // Optional
+        colorBlendingInfo.blendConstants[0] = pipelineParameters.colorBlendingInfo_blendConstants_0; // Optional
+        colorBlendingInfo.blendConstants[1] = pipelineParameters.colorBlendingInfo_blendConstants_1; // Optional
+        colorBlendingInfo.blendConstants[2] = pipelineParameters.colorBlendingInfo_blendConstants_2; // Optional
+        colorBlendingInfo.blendConstants[3] = pipelineParameters.colorBlendingInfo_blendConstants_3; // Optional
     }
 
     // Shader stages : the shader modules that define the functionality of the programmable stages of the graphics pipeline
@@ -1352,10 +1353,12 @@ private:
         VkPipelineColorBlendAttachmentState colorBlendAttachment{};
         VkPipelineColorBlendStateCreateInfo colorBlendingInfo{};
 
+        std::vector<FixedFunctionStageParameters> parameters{pipelineParameters_1, pipelineParameters_2};
+
         for (int i = 0; i < PIPELINE_COUNT; i++) {
             //////////////////////// FIXED FUNCTION STAGE
 
-            setupFixedFunctionStage(dynamicStates, inputAssemblyInfo, dynamicStateInfo, viewportState, rasterizerInfo, multisamplingInfo, depthStencilInfo, colorBlendAttachment, colorBlendingInfo, swapChainExtent);
+            setupFixedFunctionStage(parameters[i], dynamicStates, inputAssemblyInfo, dynamicStateInfo, viewportState, rasterizerInfo, multisamplingInfo, depthStencilInfo, colorBlendAttachment, colorBlendingInfo, swapChainExtent);
 
             //////////////////////// PIPELINE CREATION
 

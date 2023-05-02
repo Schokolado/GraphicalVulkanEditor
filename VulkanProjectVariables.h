@@ -54,6 +54,7 @@ const std::string TEXTURE_FILE = "textures/viking_room.png";
 const bool MIPMAP_LEVEL = 0;
 const VkBool32 ENABLE_ANISOTRIPIC_FILTER = VK_TRUE;
 
+
 struct FixedFunctionStageParameters {
 
     //////////////////////// INPUT ASSEMBLY
@@ -67,7 +68,7 @@ struct FixedFunctionStageParameters {
 	const float rasterizerInfo_lineWidth; // thickness of lines in terms of number of fragments
 	const VkCullModeFlagBits rasterizerInfo_cullMode; //specify cull mode such as front-, back- or front-and-back culling
 	const VkFrontFace rasterizerInfo_frontFace; // use counter clockwise to correct reversed draw oder caused by y-flip
-	const VkBool32 rasterizerInfodepthBiasEnable; // bias depth by adding a constant value, e.g. for shadow maps
+	const VkBool32 rasterizerInfo_depthBiasEnable; // bias depth by adding a constant value, e.g. for shadow maps
 	const float rasterizerInfo_depthBiasConstantFactor; // Optional
 	const float rasterizerInfo_depthBiasClamp; // Optional
 	const float rasterizerInfo_depthBiasSlopeFactor; // Optional
@@ -105,4 +106,107 @@ struct FixedFunctionStageParameters {
     const float colorBlendingInfo_blendConstants_1; // Optional
     const float colorBlendingInfo_blendConstants_2; // Optional
     const float colorBlendingInfo_blendConstants_3; // Optional
+};
+FixedFunctionStageParameters pipelineParameters_1{
+	//////////////////////// INPUT ASSEMBLY
+	VERTEX_TOPOLOGY, // inputAssemblyInfo_topology
+	VK_FALSE, // inputAssemblyInfo_primitiveRestartEnable
+
+	//////////////////////// RASTERIZER
+	VK_FALSE, // rasterizerInfo_depthClampEnable
+	VK_FALSE, // rasterizerInfo_rasterizerDiscardEnable
+	POLYGON_MODE, // rasterizerInfo_polygonMode 
+	1.0f, // rasterizerInfo_lineWidth
+	CULL_MODE, //CULL_MODE, // rasterizerInfo_cullMode
+	VK_FRONT_FACE_COUNTER_CLOCKWISE, // rasterizerInfo_frontFace
+	VK_FALSE, // rasterizerInfodepthBiasEnable
+	0.0f, // rasterizerInfo_depthBiasConstantFactor
+	0.0f, // rasterizerInfo_depthBiasClamp
+	0.0f, // rasterizerInfo_depthBiasSlopeFactor
+
+	//////////////////////// DEPTH AND STENCIL
+	VK_TRUE, // depthStencilInfo_depthTestEnable
+	VK_TRUE, // depthStencilInfo_depthWriteEnable
+	VK_COMPARE_OP_LESS, // depthStencilInfo_depthCompareOp
+	VK_FALSE, // depthStencilInfo_depthBoundsTestEnable
+	0.0f, // depthStencilInfo_minDepthBounds
+	1.0f, // depthStencilInfo_maxDepthBounds
+	VK_FALSE, // depthStencilInfo_stencilTestEnable
+
+	//////////////////////// MULTISAMPLING
+	VK_FALSE, // multisamplingInfo_sampleShadingEnable
+	VK_SAMPLE_COUNT_1_BIT, // multisamplingInfo_rasterizationSamples
+	1.0f, // multisamplingInfo_minSampleShading
+	VK_FALSE, // multisamplingInfo_alphaToCoverageEnable
+	VK_FALSE, // multisamplingInfo_alphaToOneEnable
+
+	//////////////////////// COLOR BLENDING
+	VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT, // colorBlendAttachment_colorWriteMask
+	VK_FALSE, // colorBlendAttachment_blendEnable
+	VK_BLEND_FACTOR_ONE, // colorBlendAttachment_srcColorBlendFactor
+	VK_BLEND_FACTOR_ZERO, // colorBlendAttachment_dstColorBlendFactor
+	VK_BLEND_OP_ADD, // colorBlendAttachment_colorBlendOp
+	VK_BLEND_FACTOR_ONE, // colorBlendAttachment_srcAlphaBlendFactor
+	VK_BLEND_FACTOR_ZERO, // colorBlendAttachment_dstAlphaBlendFactor
+	VK_BLEND_OP_ADD, // colorBlendAttachment_alphaBlendOp
+
+	VK_FALSE, // colorBlendingInfo_logicOpEnable
+	VK_LOGIC_OP_COPY, // colorBlendingInfo_logicOp
+	1, // colorBlendingInfo_attachmentCount
+	0.0f, // colorBlendingInfo_blendConstants_0
+	0.0f, // colorBlendingInfo_blendConstants_1
+	0.0f, // colorBlendingInfo_blendConstants_2
+	0.0f // colorBlendingInfo_blendConstants_3
+};
+
+FixedFunctionStageParameters pipelineParameters_2{
+	//////////////////////// INPUT ASSEMBLY
+	VERTEX_TOPOLOGY, // inputAssemblyInfo_topology
+	VK_FALSE, // inputAssemblyInfo_primitiveRestartEnable
+
+	//////////////////////// RASTERIZER
+	VK_FALSE, // rasterizerInfo_depthClampEnable
+	VK_FALSE, // rasterizerInfo_rasterizerDiscardEnable
+	POLYGON_MODE, // rasterizerInfo_polygonMode 
+	1.0f, // rasterizerInfo_lineWidth
+	CULL_MODE, //CULL_MODE, // rasterizerInfo_cullMode
+	VK_FRONT_FACE_COUNTER_CLOCKWISE, // rasterizerInfo_frontFace
+	VK_FALSE, // rasterizerInfodepthBiasEnable
+	0.0f, // rasterizerInfo_depthBiasConstantFactor
+	0.0f, // rasterizerInfo_depthBiasClamp
+	0.0f, // rasterizerInfo_depthBiasSlopeFactor
+
+	//////////////////////// DEPTH AND STENCIL
+	VK_TRUE, // depthStencilInfo_depthTestEnable
+	VK_TRUE, // depthStencilInfo_depthWriteEnable
+	VK_COMPARE_OP_LESS, // depthStencilInfo_depthCompareOp
+	VK_FALSE, // depthStencilInfo_depthBoundsTestEnable
+	0.0f, // depthStencilInfo_minDepthBounds
+	1.0f, // depthStencilInfo_maxDepthBounds
+	VK_FALSE, // depthStencilInfo_stencilTestEnable
+
+	//////////////////////// MULTISAMPLING
+	VK_FALSE, // multisamplingInfo_sampleShadingEnable
+	VK_SAMPLE_COUNT_1_BIT, // multisamplingInfo_rasterizationSamples
+	1.0f, // multisamplingInfo_minSampleShading
+	VK_FALSE, // multisamplingInfo_alphaToCoverageEnable
+	VK_FALSE, // multisamplingInfo_alphaToOneEnable
+
+	//////////////////////// COLOR BLENDING
+	VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT, // colorBlendAttachment_colorWriteMask
+	VK_FALSE, // colorBlendAttachment_blendEnable
+	VK_BLEND_FACTOR_ONE, // colorBlendAttachment_srcColorBlendFactor
+	VK_BLEND_FACTOR_ZERO, // colorBlendAttachment_dstColorBlendFactor
+	VK_BLEND_OP_ADD, // colorBlendAttachment_colorBlendOp
+	VK_BLEND_FACTOR_ONE, // colorBlendAttachment_srcAlphaBlendFactor
+	VK_BLEND_FACTOR_ZERO, // colorBlendAttachment_dstAlphaBlendFactor
+	VK_BLEND_OP_ADD, // colorBlendAttachment_alphaBlendOp
+
+	VK_FALSE, // colorBlendingInfo_logicOpEnable
+	VK_LOGIC_OP_COPY, // colorBlendingInfo_logicOp
+	1, // colorBlendingInfo_attachmentCount
+	0.0f, // colorBlendingInfo_blendConstants_0
+	0.0f, // colorBlendingInfo_blendConstants_1
+	0.0f, // colorBlendingInfo_blendConstants_2
+	0.0f // colorBlendingInfo_blendConstants_3
 };
