@@ -886,16 +886,10 @@ private:
         // VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS : The render pass commands will be executed from secondary command buffers.
         vkCmdBeginRenderPass(*commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        // bind each pipeline to graphics
-        for (auto pipeline : *graphicsPipelines) {
-            vkCmdBindPipeline(*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-        }
-
         VkBuffer vertexBuffers[] = { *vertexBuffer };
         VkDeviceSize offsets[] = { 0 };
         vkCmdBindVertexBuffers(*commandBuffer, 0, 1, vertexBuffers, offsets);
         vkCmdBindIndexBuffer(*commandBuffer, *indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
 
         // define dynamic states
         VkViewport viewport{};
@@ -920,21 +914,36 @@ private:
         // firstVertex : Used as an offset into the vertex buffer, defines the lowest value of gl_VertexIndex.
         // firstInstance : Used as an offset for instanced rendering, defines the lowest value of gl_InstanceIndex.
         // 
-
+       
         if (VulkanProject::USE_INDEXED_VERTICES) {
             // reuse vertices by using their indices and place them in order specified by "indices" array
             // saves about 50% of memory for vertices
             // std::cout << "Using indexed vertices in draw command. Please make sure to specify the order of vertices." << std::endl;
-            vkCmdDrawIndexed(*commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+
+            // bind each pipeline to graphic
+            
+            for (auto pipeline : *graphicsPipelines) {
+                vkCmdBindPipeline(*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+                vkCmdDrawIndexed(*commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+            }
+
+            //vkCmdBindPipeline(*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelines->at(0));
+            //vkCmdDrawIndexed(*commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+            
+
         }
         else {
             // use non-indexed vertices
             // make sure to add the correct amount of vertices for each primitive/triangle.
             // --> three vertices for each triangle, e.g. 6 vertices for a square, etc...
             // std::cout << "Using non-indexed vertices in draw command. Please make sure to specify the amount and layout of vertices correctly when using this option." << std::endl;
-            vkCmdDraw(*commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+            
+            // bind each pipeline to graphics
+            for (auto &pipeline : *graphicsPipelines) {
+                vkCmdBindPipeline(*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+                vkCmdDraw(*commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+            }
         }
-
 
         vkCmdEndRenderPass(*commandBuffer);
 
@@ -1339,26 +1348,27 @@ private:
         }
 
         //////////////////////// PIPELINE CREATION
-        std::vector<VkGraphicsPipelineCreateInfo> pipelineInfos;
-        //pipelineInfos.resize(PIPELINE_COUNT);
-        graphicsPipelines->resize(VulkanProject::PIPELINE_COUNT); //FIXME: resize to sizeof pipeline info count
 
-        VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
-        VkPipelineDynamicStateCreateInfo dynamicStateInfo{};
-        std::vector<VkDynamicState> dynamicStates;
-        VkPipelineViewportStateCreateInfo viewportState{};
-        VkPipelineRasterizationStateCreateInfo rasterizerInfo{};
-        VkPipelineMultisampleStateCreateInfo multisamplingInfo{};
-        VkPipelineDepthStencilStateCreateInfo depthStencilInfo{};
-        VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-        VkPipelineColorBlendStateCreateInfo colorBlendingInfo{};
+        std::vector<VkGraphicsPipelineCreateInfo> pipelineInfos(VulkanProject::PIPELINE_COUNT);
+        graphicsPipelines->resize(VulkanProject::PIPELINE_COUNT);
+
+        std::vector<VkPipelineInputAssemblyStateCreateInfo> inputAssemblyInfos(VulkanProject::PIPELINE_COUNT);
+        std::vector<VkPipelineDynamicStateCreateInfo> dynamicStateInfos(VulkanProject::PIPELINE_COUNT);
+        std::vector<std::vector<VkDynamicState>> dynamicStates(VulkanProject::PIPELINE_COUNT);
+        std::vector<VkPipelineViewportStateCreateInfo> viewportStates(VulkanProject::PIPELINE_COUNT);
+        std::vector<VkPipelineRasterizationStateCreateInfo> rasterizerInfos(VulkanProject::PIPELINE_COUNT);
+        std::vector<VkPipelineMultisampleStateCreateInfo> multisamplingInfos(VulkanProject::PIPELINE_COUNT);
+        std::vector<VkPipelineDepthStencilStateCreateInfo> depthStencilInfos(VulkanProject::PIPELINE_COUNT);
+        std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments(VulkanProject::PIPELINE_COUNT);
+        std::vector<VkPipelineColorBlendStateCreateInfo> colorBlendingInfos(VulkanProject::PIPELINE_COUNT);
 
         std::vector<VulkanProject::FixedFunctionStageParameters> parameters = VulkanProject::PIPELINE_PARAMETERS;
+
 
         for (int i = 0; i < VulkanProject::PIPELINE_COUNT; i++) {
             //////////////////////// FIXED FUNCTION STAGE
 
-            setupFixedFunctionStage(parameters[i], dynamicStates, inputAssemblyInfo, dynamicStateInfo, viewportState, rasterizerInfo, multisamplingInfo, depthStencilInfo, colorBlendAttachment, colorBlendingInfo, swapChainExtent);
+            setupFixedFunctionStage(parameters[i], dynamicStates[i], inputAssemblyInfos[i], dynamicStateInfos[i], viewportStates[i], rasterizerInfos[i], multisamplingInfos[i], depthStencilInfos[i], colorBlendAttachments[i], colorBlendingInfos[i], swapChainExtent);
 
             //////////////////////// PIPELINE CREATION
 
@@ -1367,21 +1377,20 @@ private:
             pipelineInfo.stageCount = 2;
             pipelineInfo.pStages = shaderStages;
             pipelineInfo.pVertexInputState = &vertexInputInfo;
-            pipelineInfo.pInputAssemblyState = &inputAssemblyInfo;
-            pipelineInfo.pViewportState = &viewportState;
-            pipelineInfo.pRasterizationState = &rasterizerInfo;
-            pipelineInfo.pMultisampleState = &multisamplingInfo;
-            pipelineInfo.pDepthStencilState = &depthStencilInfo;
-            pipelineInfo.pColorBlendState = &colorBlendingInfo;
-            pipelineInfo.pDynamicState = &dynamicStateInfo;
+            pipelineInfo.pInputAssemblyState = &inputAssemblyInfos[i];
+            pipelineInfo.pViewportState = &viewportStates[i];
+            pipelineInfo.pRasterizationState = &rasterizerInfos[i];
+            pipelineInfo.pMultisampleState = &multisamplingInfos[i];
+            pipelineInfo.pDepthStencilState = &depthStencilInfos[i];
+            pipelineInfo.pColorBlendState = &colorBlendingInfos[i];
+            pipelineInfo.pDynamicState = &dynamicStateInfos[i];
             pipelineInfo.layout = *pipelineLayout;
             pipelineInfo.renderPass = *renderPass;
             pipelineInfo.subpass = 0; // index of the sub pass where this graphics pipeline will be used
             pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional, specify the handle of an existing pipeline with basePipelineHandle or reference another pipeline that is about to be created by index with basePipelineIndex
             pipelineInfo.basePipelineIndex = -1; // Optional, Right now there is only a single pipeline, so we'll simply specify a null handle and an invalid index. These values are only used if the VK_PIPELINE_CREATE_DERIVATIVE_BIT flag is also specified in the flags field of VkGraphicsPipelineCreateInfo.
 
-            //FIXME: add loop for each pipeline and pipeline info (re-set pipeline info on setupFixedFunctionStage)
-            pipelineInfos.push_back(pipelineInfo);//
+            pipelineInfos[i] = pipelineInfo;
         }
 
         if (vkCreateGraphicsPipelines(*device, VK_NULL_HANDLE, VulkanProject::PIPELINE_COUNT, pipelineInfos.data(), nullptr, graphicsPipelines->data()) != VK_SUCCESS) {
