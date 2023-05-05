@@ -23,8 +23,8 @@ class VulkanSetupGUI:
 class VulkanSetupGUI(QMainWindow):
     def __init__(self):
         super(VulkanSetupGUI, self).__init__()
-        #uic.loadUi("VulkanSetupGUI.ui", self)
-        uic.loadUi("pipelineTestView.ui", self)
+        uic.loadUi("VulkanSetupGUI.ui", self)
+        #uic.loadUi("pipelineTestView.ui", self)
         self.show()
 
         #self.modelFileToolButton.clicked.connect(self.fileOpenDialog)
