@@ -146,6 +146,7 @@
     <ClInclude Include="VulkanProjectVariables.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\raw_shaders\shader-debug.frag" />
     <None Include="shaders\raw_shaders\shader.frag" />
     <None Include="shaders\raw_shaders\shader.vert" />
   </ItemGroup>

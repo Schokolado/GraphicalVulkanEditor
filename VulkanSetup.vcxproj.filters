@@ -37,5 +37,8 @@
     <None Include="shaders\raw_shaders\shader.frag">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="shaders\raw_shaders\shader-debug.frag">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

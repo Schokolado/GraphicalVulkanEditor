@@ -35,12 +35,12 @@ namespace VulkanProject {
 	// Descriptor
 
 	// Shader
-	const std::string VERTEX_SHADER_FILE = "shaders/raw_shaders/shader.vert";
-	const std::string FRAGMENT_SHADER_FILE = "shaders/raw_shaders/shader.frag";
+	//const std::string VERTEX_SHADER_FILE = "shaders/raw_shaders/shader.vert";
+	//const std::string FRAGMENT_SHADER_FILE = "shaders/raw_shaders/shader.frag";
 	const bool USE_INDEXED_VERTICES = true;
 	const bool REDUCE_SPIRV_CODE_SIZE = false;
-	const char* SHADER_ENTRY_FUNCTION_NAME = "main";
-	const VkPrimitiveTopology VERTEX_TOPOLOGY = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	//const char* SHADER_ENTRY_FUNCTION_NAME = "main";
+	//const VkPrimitiveTopology VERTEX_TOPOLOGY = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
 	// Model
 	const std::string MODEL_FILE = "models/viking_room.obj";
@@ -111,10 +111,11 @@ namespace VulkanProject {
 			const char* vertexShaderEntryFunctionName; // choose entry point function within vertex shader
 			const char* fragmentShaderEntryFunctionName; // choose entry point function within fragment shader
 		};
-
+		
+		// Functional Parameters 
 		FixedFunctionStageParameters pipelineParameters_1{
 			//////////////////////// INPUT ASSEMBLY
-			VERTEX_TOPOLOGY, // inputAssemblyInfo_topology
+			VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, // VERTEX_TOPOLOGY, // inputAssemblyInfo_topology
 			VK_FALSE, // inputAssemblyInfo_primitiveRestartEnable
 
 			//////////////////////// RASTERIZER
@@ -166,7 +167,7 @@ namespace VulkanProject {
 
 		FixedFunctionStageParameters pipelineParameters_2{
 			//////////////////////// INPUT ASSEMBLY
-			VERTEX_TOPOLOGY, // inputAssemblyInfo_topology
+			VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, // VERTEX_TOPOLOGY, // inputAssemblyInfo_topology
 			VK_FALSE, // inputAssemblyInfo_primitiveRestartEnable
 
 			//////////////////////// RASTERIZER
@@ -216,6 +217,7 @@ namespace VulkanProject {
 			0.0f // colorBlendingInfo_blendConstants_3
 		};
 
+		// Shader Parameters
 		ShaderStageParameters pipelineShaders_1{
 			 "shaders/raw_shaders/shader.vert", // vertexShaderText
 			 "shaders/raw_shaders/shader.frag", // fragmentShaderText
@@ -225,7 +227,7 @@ namespace VulkanProject {
 
 		ShaderStageParameters pipelineShaders_2{
 			 "shaders/raw_shaders/shader.vert", // vertexShaderText
-			 "shaders/raw_shaders/shader.frag", // fragmentShaderText
+			 "shaders/raw_shaders/shader-debug.frag", // fragmentShaderText
 			 "main", // vertexShaderEntryFunctionName
 			 "main" // fragmentShaderEntryFunctionName
 		};
