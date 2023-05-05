@@ -105,6 +105,13 @@ namespace VulkanProject {
 			const float colorBlendingInfo_blendConstants_2; // Optional
 			const float colorBlendingInfo_blendConstants_3; // Optional
 		};
+		struct ShaderStageParameters {
+			const std::string vertexShaderText;
+			const std::string fragmentShaderText;
+			const char* vertexShaderEntryFunctionName; // choose entry point function within vertex shader
+			const char* fragmentShaderEntryFunctionName; // choose entry point function within fragment shader
+		};
+
 		FixedFunctionStageParameters pipelineParameters_1{
 			//////////////////////// INPUT ASSEMBLY
 			VERTEX_TOPOLOGY, // inputAssemblyInfo_topology
@@ -209,7 +216,23 @@ namespace VulkanProject {
 			0.0f // colorBlendingInfo_blendConstants_3
 		};
 
+		ShaderStageParameters pipelineShaders_1{
+			 "shaders/raw_shaders/shader.vert", // vertexShaderText
+			 "shaders/raw_shaders/shader.frag", // fragmentShaderText
+			 "main", // vertexShaderEntryFunctionName
+			 "main" // fragmentShaderEntryFunctionName
+		};
+
+		ShaderStageParameters pipelineShaders_2{
+			 "shaders/raw_shaders/shader.vert", // vertexShaderText
+			 "shaders/raw_shaders/shader.frag", // fragmentShaderText
+			 "main", // vertexShaderEntryFunctionName
+			 "main" // fragmentShaderEntryFunctionName
+		};
+
 		const std::vector<FixedFunctionStageParameters> PIPELINE_PARAMETERS{ pipelineParameters_1, pipelineParameters_2 };
+
+		const std::vector<ShaderStageParameters> PIPELINE_SHADERS{ pipelineShaders_1, pipelineShaders_2 };
 
 		const int PIPELINE_COUNT = PIPELINE_PARAMETERS.size();
 

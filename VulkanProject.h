@@ -1229,9 +1229,9 @@ private:
     }
 
     // Shader stages : the shader modules that define the functionality of the programmable stages of the graphics pipeline
-    std::vector<VkShaderModule> setupShaderStageAndReturnModules(std::array<VkVertexInputAttributeDescription, Vertex::attributeCount> attributeDescriptions, VkVertexInputBindingDescription bindingDescription, VkPipelineVertexInputStateCreateInfo& vertexInputInfo, VkPipelineShaderStageCreateInfo& fragmentShaderStageInfo, VkPipelineShaderStageCreateInfo& vertexShaderStageInfo, VkDevice* device) {
-        std::string vertexShaderText = readShaderFile(VulkanProject::VERTEX_SHADER_FILE);
-        std::string fragmentShaderText = readShaderFile(VulkanProject::FRAGMENT_SHADER_FILE);
+    std::vector<VkShaderModule> setupShaderStageAndReturnModules(VulkanProject::ShaderStageParameters shaderParameters, std::array<VkVertexInputAttributeDescription, Vertex::attributeCount> attributeDescriptions, VkVertexInputBindingDescription bindingDescription, VkPipelineVertexInputStateCreateInfo& vertexInputInfo, VkPipelineShaderStageCreateInfo& fragmentShaderStageInfo, VkPipelineShaderStageCreateInfo& vertexShaderStageInfo, VkDevice* device) {
+        std::string vertexShaderText = readShaderFile(shaderParameters.vertexShaderText);
+        std::string fragmentShaderText = readShaderFile(shaderParameters.fragmentShaderText);
 
         auto vertexShaderCode = compileShader(vertexShaderText, "vertex");
         auto fragmentShaderCode = compileShader(fragmentShaderText, "fragment");
@@ -1242,13 +1242,13 @@ private:
         vertexShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         vertexShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
         vertexShaderStageInfo.module = vertexShaderModule;
-        vertexShaderStageInfo.pName = VulkanProject::SHADER_ENTRY_FUNCTION_NAME; // choose entry point function within shader
+        vertexShaderStageInfo.pName = shaderParameters.vertexShaderEntryFunctionName; // choose entry point function within shader
         vertexShaderStageInfo.pSpecializationInfo = nullptr; // add shader constants if used, to get optimization features by compiler
 
         fragmentShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         fragmentShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
         fragmentShaderStageInfo.module = fragmentShaderModule;
-        fragmentShaderStageInfo.pName = VulkanProject::SHADER_ENTRY_FUNCTION_NAME;
+        fragmentShaderStageInfo.pName = shaderParameters.fragmentShaderEntryFunctionName;
         vertexShaderStageInfo.pSpecializationInfo = nullptr; // add shader constants if used, to get optimization features by compiler
 
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -1322,16 +1322,6 @@ private:
 
     // Setup grapics pipeline stages such as shader stage, fixed function stage, pipeline layout and renderpasses
     void createGraphicsPipelines(std::vector<VkPipeline>* graphicsPipelines, VkRenderPass* renderPass, VkDescriptorSetLayout* descriptorSetLayout,VkPipelineLayout* pipelineLayout, VkExtent2D* swapChainExtent, VkDevice* device) {
-        //////////////////////// SHADER STAGE
-        VkPipelineShaderStageCreateInfo vertexShaderStageInfo{};
-        VkPipelineShaderStageCreateInfo fragmentShaderStageInfo{};
-        VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-        auto bindingDescription = Vertex::getBindingDescription();
-        auto attributeDescriptions = Vertex::getAttributeDescriptions();
-
-        // For now only one shader can be used for any pipeline. Future implementations will feature shader selection for each pipeline.
-        std::vector<VkShaderModule> shaderModules = setupShaderStageAndReturnModules(attributeDescriptions, bindingDescription, vertexInputInfo, fragmentShaderStageInfo, vertexShaderStageInfo, device);
-        VkPipelineShaderStageCreateInfo shaderStages[] = { vertexShaderStageInfo, fragmentShaderStageInfo };
 
         //////////////////////// PIPELINE LAYOUT
         // Pipeline layout : the uniform and push values referenced by the shader that can be updated at draw time
@@ -1352,6 +1342,17 @@ private:
         std::vector<VkGraphicsPipelineCreateInfo> pipelineInfos(VulkanProject::PIPELINE_COUNT);
         graphicsPipelines->resize(VulkanProject::PIPELINE_COUNT);
 
+        //////////////////////// SHADER STAGE INFOS
+        std::vector <VkPipelineShaderStageCreateInfo> vertexShaderStageInfos(VulkanProject::PIPELINE_COUNT);
+        std::vector <VkPipelineShaderStageCreateInfo> fragmentShaderStageInfos(VulkanProject::PIPELINE_COUNT);
+        std::vector <VkPipelineVertexInputStateCreateInfo> vertexInputInfos(VulkanProject::PIPELINE_COUNT);
+        std::vector<VulkanProject::ShaderStageParameters> shaders = VulkanProject::PIPELINE_SHADERS;
+        std::vector<std::vector<VkPipelineShaderStageCreateInfo>> shaderStages(VulkanProject::PIPELINE_COUNT);
+        std::vector< std::vector<VkShaderModule>> shaderModules(VulkanProject::PIPELINE_COUNT);
+        auto bindingDescription = Vertex::getBindingDescription();
+        auto attributeDescriptions = Vertex::getAttributeDescriptions();
+
+        //////////////////////// FIXED FUNCTION STAGE INFOS
         std::vector<VkPipelineInputAssemblyStateCreateInfo> inputAssemblyInfos(VulkanProject::PIPELINE_COUNT);
         std::vector<VkPipelineDynamicStateCreateInfo> dynamicStateInfos(VulkanProject::PIPELINE_COUNT);
         std::vector<std::vector<VkDynamicState>> dynamicStates(VulkanProject::PIPELINE_COUNT);
@@ -1366,6 +1367,10 @@ private:
 
 
         for (int i = 0; i < VulkanProject::PIPELINE_COUNT; i++) {
+            //////////////////////// SHADER STAGE
+            shaderModules[i] = setupShaderStageAndReturnModules(shaders[i], attributeDescriptions, bindingDescription, vertexInputInfos[i], fragmentShaderStageInfos[i], vertexShaderStageInfos[i], device);
+            shaderStages[i] = { vertexShaderStageInfos[i], fragmentShaderStageInfos[i] };
+
             //////////////////////// FIXED FUNCTION STAGE
 
             setupFixedFunctionStage(parameters[i], dynamicStates[i], inputAssemblyInfos[i], dynamicStateInfos[i], viewportStates[i], rasterizerInfos[i], multisamplingInfos[i], depthStencilInfos[i], colorBlendAttachments[i], colorBlendingInfos[i], swapChainExtent);
@@ -1375,8 +1380,8 @@ private:
             VkGraphicsPipelineCreateInfo pipelineInfo{};
             pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
             pipelineInfo.stageCount = 2;
-            pipelineInfo.pStages = shaderStages;
-            pipelineInfo.pVertexInputState = &vertexInputInfo;
+            pipelineInfo.pStages = shaderStages[i].data();
+            pipelineInfo.pVertexInputState = &vertexInputInfos[i];
             pipelineInfo.pInputAssemblyState = &inputAssemblyInfos[i];
             pipelineInfo.pViewportState = &viewportStates[i];
             pipelineInfo.pRasterizationState = &rasterizerInfos[i];
@@ -1398,8 +1403,10 @@ private:
         }
 
         // destroy shader modules after pipeline is created.
-        for (VkShaderModule module : shaderModules) {
-            vkDestroyShaderModule(*device, module, nullptr);
+        for (auto modules : shaderModules) {
+            for (VkShaderModule module : modules) {
+                vkDestroyShaderModule(*device, module, nullptr);
+            }
         }
     };
 };
