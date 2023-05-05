@@ -49,8 +49,8 @@ namespace VulkanProject {
 	// Graphics Pipeline
 	 
 		// Rasterizer
-		const VkCullModeFlagBits CULL_MODE = VK_CULL_MODE_NONE; //VK_CULL_MODE_BACK_BIT;
-		const VkPolygonMode POLYGON_MODE = VK_POLYGON_MODE_FILL;
+		// const VkCullModeFlagBits CULL_MODE = VK_CULL_MODE_NONE; //VK_CULL_MODE_BACK_BIT;
+		// const VkPolygonMode POLYGON_MODE = VK_POLYGON_MODE_FILL;
 
 		// Pipeline
 		struct FixedFunctionStageParameters {
@@ -123,7 +123,7 @@ namespace VulkanProject {
 			VK_FALSE, // rasterizerInfo_rasterizerDiscardEnable
 			VK_POLYGON_MODE_LINE, //POLYGON_MODE, // rasterizerInfo_polygonMode 
 			1.0f, // rasterizerInfo_lineWidth
-			CULL_MODE, // rasterizerInfo_cullMode
+			VK_CULL_MODE_NONE, // CULL_MODE // rasterizerInfo_cullMode
 			VK_FRONT_FACE_COUNTER_CLOCKWISE, // rasterizerInfo_frontFace
 			VK_FALSE, // rasterizerInfodepthBiasEnable
 			0.0f, // rasterizerInfo_depthBiasConstantFactor
@@ -173,10 +173,10 @@ namespace VulkanProject {
 			//////////////////////// RASTERIZER
 			VK_FALSE, // rasterizerInfo_depthClampEnable
 			VK_FALSE, // rasterizerInfo_rasterizerDiscardEnable
-			POLYGON_MODE, // rasterizerInfo_polygonMode 
+			VK_POLYGON_MODE_FILL, // POLYGON_MODE, // rasterizerInfo_polygonMode 
 			1.0f, // rasterizerInfo_lineWidth
-			CULL_MODE, // rasterizerInfo_cullMode
-			VK_FRONT_FACE_COUNTER_CLOCKWISE, // rasterizerInfo_frontFace
+			// CULL_MODE, // rasterizerInfo_cullMode
+			VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE, // rasterizerInfo_frontFace
 			VK_FALSE, // rasterizerInfodepthBiasEnable
 			0.0f, // rasterizerInfo_depthBiasConstantFactor
 			0.0f, // rasterizerInfo_depthBiasClamp
@@ -242,8 +242,5 @@ namespace VulkanProject {
 	// To be implemented
 	const bool MIPMAP_LEVEL = 0;
 	const VkBool32 ENABLE_ANISOTRIPIC_FILTER = VK_TRUE;
-
-
-
 
 }
