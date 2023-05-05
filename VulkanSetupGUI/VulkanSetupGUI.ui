@@ -54,7 +54,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>6</number>
+        <number>4</number>
        </property>
        <widget class="QWidget" name="instance">
         <property name="enabled">
@@ -809,106 +809,6 @@
               </item>
              </layout>
             </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayoutFragmentShaderFile">
-              <item>
-               <widget class="QLabel" name="fragmentShaderFileLabel">
-                <property name="text">
-                 <string>Fragment Shader File:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="fragmentShaderFileInput">
-                <property name="minimumSize">
-                 <size>
-                  <width>340</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>340</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="placeholderText">
-                 <string>shaders/raw_shaders/shader.frag</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QToolButton" name="fragmentShaderFileToolButton">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select Fragment Shader file from Explorer&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="text">
-                 <string>...</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayoutShaderEntryFunction">
-            <item>
-             <widget class="QLabel" name="shaderEntryFunctionNameLabel">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Choose entry point function within shader. Usually &lt;span style=&quot; font-style:italic;&quot;&gt;main &lt;/span&gt;as in &lt;span style=&quot; font-style:italic;&quot;&gt;void main()&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>Shader Entry Function Name:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="shaderEntryFunctionNameInput">
-              <property name="minimumSize">
-               <size>
-                <width>340</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>340</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <kerning>true</kerning>
-               </font>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-              </property>
-              <property name="placeholderText">
-               <string>main</string>
-              </property>
-              <property name="clearButtonEnabled">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>30</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
            </layout>
           </item>
           <item>
@@ -1554,9 +1454,6 @@
   <tabstop>imageColorSpaceInput</tabstop>
   <tabstop>vertexShaderFileInput</tabstop>
   <tabstop>vertexShaderFileToolButton</tabstop>
-  <tabstop>fragmentShaderFileInput</tabstop>
-  <tabstop>fragmentShaderFileToolButton</tabstop>
-  <tabstop>shaderEntryFunctionNameInput</tabstop>
   <tabstop>vertexTopologyInput</tabstop>
   <tabstop>useIndexedVerticesCheckBox</tabstop>
   <tabstop>reduceSpirvCodeSizeCheckBox</tabstop>

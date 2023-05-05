@@ -6,10 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/VulkanProject.h" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanProject.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/VulkanProjectVariables.h" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanProjectVariables.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/GraphicsPipelineView.ui" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/GraphicsPipelineView.ui" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.ui" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.ui" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
