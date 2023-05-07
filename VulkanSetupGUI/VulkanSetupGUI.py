@@ -5,7 +5,7 @@ from PyQt5.QtOpenGL import QGLWidget
 from PyQt5.QtWidgets import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
-
+import xml.etree.ElementTree as ET
 
 # Form, Window = uic.loadUiType("VulkanSetupGUI.ui")
 
@@ -40,16 +40,25 @@ class VulkanSetupGUI(QMainWindow):
         self.connectActions()
 
     def connectActions(self):
-        # Instance
+        # Menu Bar and Bottom
         self.actionExport_to_Vulkan.triggered.connect(self.setOutput)
         self.generateVulkanCodeButton.clicked.connect(self.setOutput)
+        self.actionSave_to_File.triggered.connect(self.writeXml)
+
+        # Instance
+
+        # Physical Device
 
         # Logical Device
         self.addExtensionButton.clicked.connect(self.showAddExtensionInput)
         self.removeExtensionButton.clicked.connect(self.showRemoveExtension)
 
+        # Swapchain
+
         # Model
         self.modelFileToolButton.clicked.connect(self.fileOpenDialog)
+
+        #GraphicsPipeline
 
     ### Print and Output Section
 
@@ -75,6 +84,13 @@ class VulkanSetupGUI(QMainWindow):
         # Logical Device
         print("deviceExtensionsList: [{}]".format(
             self.getListContents(self.deviceExtensionsList)))
+
+        # Swapchain
+
+        # Model
+
+        #GraphicsPipeline
+
         print()
 
     ### Show Views Section
@@ -248,7 +264,39 @@ class VulkanSetupGUI(QMainWindow):
         items = [item.text() for item in selectedItems]
         return items
 
+    def writeXml(self):
+        # create the file structure
+        root = ET.Element('VulkanSetup')
 
+        # Instance
+        instance = ET.SubElement(root, 'instance')
+        ET.SubElement(instance, 'applicationNameInput',
+                      name='applicationNameInput').text = \
+            self.applicationNameInput.text()
+        ET.SubElement(instance, 'showValidationLayerDebugInfoCheckBox',
+                      name='showValidationLayerDebugInfoCheckBox').text = convertToVulkanNaming(
+            self.showValidationLayerDebugInfoCheckBox.isChecked())
+        ET.SubElement(instance, 'runOnMacosCheckBox', name='runOnMacosCheckBox').text = convertToVulkanNaming(
+            self.runOnMacosCheckBox.isChecked())
+
+        # Physical Device
+        physicalDevice = ET.SubElement(root, 'physicalDevice')
+        ET.SubElement(physicalDevice, 'chooseGPUOnStartupCheckBox',
+                      name='chooseGPUOnStartupCheckBox').text = convertToVulkanNaming(
+            self.chooseGPUOnStartupCheckBox.isChecked())
+
+        # Logical Device
+        logicalDevice = ET.SubElement(root, 'logicalDevice')
+        ET.SubElement(logicalDevice, 'deviceExtensionsList', name='deviceExtensionsList').text = str(
+            self.getListContents(self.deviceExtensionsList))
+
+        # create a new XML file with the results
+        mydata = ET.tostring(root)
+        with open("VulkanSetup.xml", "wb") as myfile:
+            myfile.write(mydata)
+
+        print("XML File created with parameters:")
+        self.printInputs()
 
 
 class glWidget(QOpenGLWidget):
