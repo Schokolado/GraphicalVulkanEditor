@@ -155,49 +155,70 @@
          <attribute name="title">
           <string>Logical Device</string>
          </attribute>
-         <widget class="QWidget" name="layoutWidget">
+         <widget class="QWidget" name="">
           <property name="geometry">
            <rect>
             <x>9</x>
             <y>9</y>
             <width>521</width>
-            <height>94</height>
+            <height>421</height>
            </rect>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayoutLogicalDevice">
-           <item>
-            <widget class="QLabel" name="deviceExtensionsLabel">
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
+          <layout class="QGridLayout" name="gridLayoutLogicalDevice">
+           <item row="0" column="0" colspan="2">
+            <layout class="QVBoxLayout" name="verticalLayoutDeviceExtensionInput">
+             <item>
+              <widget class="QLabel" name="deviceExtensionsLabel">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>Device Extensions:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QListWidget" name="deviceExtensionsList">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add necessary device extensions to your liking. Absolutely necessary extension for swapchain: VK_KHR_SWAPCHAIN_EXTENSION_NAME. Do not disable.&lt;/p&gt;&lt;p&gt;Multiselection with CTRL+Click&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="selectionMode">
+                <enum>QAbstractItemView::ExtendedSelection</enum>
+               </property>
+               <item>
+                <property name="text">
+                 <string>VK_KHR_SWAPCHAIN_EXTENSION_NAME</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>VK_KHR_SWAPCHAIN_EXTENSION_NAME test</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>other extensions</string>
+                </property>
+                <property name="flags">
+                 <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsUserCheckable</set>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="1" column="0">
+            <widget class="QPushButton" name="removeExtensionButton">
              <property name="text">
-              <string>Device Extensions:</string>
+              <string>Remove Extension</string>
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QListWidget" name="deviceExtensionsList">
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add necessary device extensions to your liking. Absolutely necessary extension for swapchain: VK_KHR_SWAPCHAIN_EXTENSION_NAME. Do not disable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <item row="1" column="1">
+            <widget class="QPushButton" name="addExtensionButton">
+             <property name="text">
+              <string>Add Extension</string>
              </property>
-             <item>
-              <property name="text">
-               <string>VK_KHR_SWAPCHAIN_EXTENSION_NAME</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>VK_KHR_SWAPCHAIN_EXTENSION_NAME test</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>other extensions</string>
-              </property>
-              <property name="flags">
-               <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsUserCheckable</set>
-              </property>
-             </item>
             </widget>
            </item>
           </layout>
@@ -991,7 +1012,7 @@
             <x>280</x>
             <y>141</y>
             <width>257</width>
-            <height>291</height>
+            <height>312</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayoutPipelinePreview">
@@ -1039,7 +1060,7 @@
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="">
+         <widget class="QWidget" name="layoutWidget">
           <property name="geometry">
            <rect>
             <x>280</x>
