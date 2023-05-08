@@ -44,6 +44,7 @@ class VulkanSetupGUI(QMainWindow):
         self.actionExport_to_Vulkan.triggered.connect(self.setOutput)
         self.generateVulkanCodeButton.clicked.connect(self.setOutput)
         self.actionSave_to_File.triggered.connect(self.writeXml)
+        self.actionLoad_from_File.triggered.connect(self.readXml)
 
         # Instance
 
@@ -248,9 +249,9 @@ class VulkanSetupGUI(QMainWindow):
     def addUniqueItem(self, listWidget, item):
         for i in range(listWidget.count()):
             if listWidget.item(i).text() == item:
-                return False
+                return None
         listWidget.addItem(item)
-        return True
+        return listWidget.item(listWidget.count() - 1)
 
     def removeItem(self, listWidget, item):
         for i in range(listWidget.count()):
@@ -263,6 +264,14 @@ class VulkanSetupGUI(QMainWindow):
         selectedItems = listWidget.selectedItems()
         items = [item.text() for item in selectedItems]
         return items
+
+    def findExtension(self, extension):
+        for i in range(self.deviceExtensionsList.count()):
+            item = self.deviceExtensionsList.item(i)
+            if item.text() == extension:
+                # Do something with the item
+                return item
+                print(f"Found item with text 'extension': {item.text()}")
 
     def writeXml(self):
         # create the file structure
@@ -287,8 +296,9 @@ class VulkanSetupGUI(QMainWindow):
 
         # Logical Device
         logicalDevice = ET.SubElement(root, 'logicalDevice')
-        ET.SubElement(logicalDevice, 'deviceExtensionsList', name='deviceExtensionsList').text = str(
-            self.getListContents(self.deviceExtensionsList))
+        deviceExtensionsList = ET.SubElement(logicalDevice, 'deviceExtensionsList', name='deviceExtensionsList')
+        for extension in self.getListContents(self.deviceExtensionsList):
+            ET.SubElement(deviceExtensionsList, 'extension').text = extension
 
         # create a new XML file with the results
         mydata = ET.tostring(root)
@@ -298,6 +308,49 @@ class VulkanSetupGUI(QMainWindow):
         print("XML File created with parameters:")
         self.printInputs()
 
+    def readXml(self):
+        tree = ET.parse('VulkanSetup.xml')
+        root = tree.getroot()
+
+        # recursively iterate over all elements and sub-elements
+        def traverse(elem):
+            print(f"\nElement: {elem.tag}, attributes: {elem.attrib}, text: {elem.text}")
+
+            ### Instance
+            if elem.tag == "applicationNameInput":
+                self.applicationNameInput.setText(elem.text)
+            if elem.tag == "showValidationLayerDebugInfoCheckBox":
+                if(elem.text == "VK_FALSE"):
+                    self.showValidationLayerDebugInfoCheckBox.setChecked(False)
+                if(elem.text == "VK_TRUE"):
+                    self.showValidationLayerDebugInfoCheckBox.setChecked(True)
+            if elem.tag == "runOnMacosCheckBox":
+                if(elem.text == "VK_FALSE"):
+                    self.runOnMacosCheckBox.setChecked(False)
+                if(elem.text == "VK_TRUE"):
+                    self.runOnMacosCheckBox.setChecked(True)
+
+            ### Physical Device
+            if elem.tag == "chooseGPUOnStartupCheckBox":
+                if(elem.text == "VK_FALSE"):
+                    self.chooseGPUOnStartupCheckBox.setChecked(False)
+                if(elem.text == "VK_TRUE"):
+                    self.chooseGPUOnStartupCheckBox.setChecked(True)
+
+            ### Logical Device
+            if elem.tag == "extension":
+                alreadyPresentItem = self.findExtension(elem.text)
+                if alreadyPresentItem:
+                    alreadyPresentItem.setSelected(True)
+                item = self.addUniqueItem(self.deviceExtensionsList, elem.text)
+                if item:
+                    item.setSelected(True)
+                    print(f"Extension Added: {elem.text}")
+
+            for subelem in elem:
+                traverse(subelem)
+
+        traverse(root)
 
 class glWidget(QOpenGLWidget):
 

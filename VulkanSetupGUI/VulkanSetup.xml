@@ -1,16 +1,1 @@
-<VulkanSetup>
-    <instance>
-        <applicationNameInput name="applicationNameInput">Test Application</applicationNameInput>
-        <showValidationLayerDebugInfoCheckBox name="showValidationLayerDebugInfoCheckBox">VK_TRUE
-        </showValidationLayerDebugInfoCheckBox>
-        <runOnMacosCheckBox name="runOnMacosCheckBox">VK_FALSE</runOnMacosCheckBox>
-    </instance>
-    <physicalDevice>
-        <chooseGPUOnStartupCheckBox name="chooseGPUOnStartupCheckBox">VK_FALSE</chooseGPUOnStartupCheckBox>
-    </physicalDevice>
-    <logicalDevice>
-        <deviceExtensionsList name="deviceExtensionsList">['VK_KHR_SWAPCHAIN_EXTENSION_NAME',
-            'VK_KHR_SWAPCHAIN_EXTENSION_NAME test']
-        </deviceExtensionsList>
-    </logicalDevice>
-</VulkanSetup>
+<VulkanSetup><instance><applicationNameInput name="applicationNameInput">Hello</applicationNameInput><showValidationLayerDebugInfoCheckBox name="showValidationLayerDebugInfoCheckBox">VK_TRUE</showValidationLayerDebugInfoCheckBox><runOnMacosCheckBox name="runOnMacosCheckBox">VK_FALSE</runOnMacosCheckBox></instance><physicalDevice><chooseGPUOnStartupCheckBox name="chooseGPUOnStartupCheckBox">VK_FALSE</chooseGPUOnStartupCheckBox></physicalDevice><logicalDevice><deviceExtensionsList name="deviceExtensionsList"><extension>VK_KHR_SWAPCHAIN_EXTENSION_NAME</extension><extension>VK_KHR_SWAPCHAIN_EXTENSION_NAME test</extension></deviceExtensionsList></logicalDevice></VulkanSetup>
