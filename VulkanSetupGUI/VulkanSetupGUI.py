@@ -342,10 +342,11 @@ class VulkanSetupGUI(QMainWindow):
                 alreadyPresentItem = self.findExtension(elem.text)
                 if alreadyPresentItem:
                     alreadyPresentItem.setSelected(True)
-                item = self.addUniqueItem(self.deviceExtensionsList, elem.text)
-                if item:
-                    item.setSelected(True)
-                    print(f"Extension Added: {elem.text}")
+                else:
+                    item = self.addUniqueItem(self.deviceExtensionsList, elem.text)
+                    if item:
+                        item.setSelected(True)
+                        print(f"Extension Added: {elem.text}")
 
             for subelem in elem:
                 traverse(subelem)

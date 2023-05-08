@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="">
+    <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="load from xml added">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetup.xml" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetup.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -77,7 +76,19 @@
       <option name="presentableId" value="Default" />
       <updated>1682011837141</updated>
     </task>
+    <task id="LOCAL-00001" summary="load from xml added">
+      <created>1683566888922</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1683566888922</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="load from xml added" />
+    <option name="LAST_COMMIT_MESSAGE" value="load from xml added" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -89,38 +100,8 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
-          <line>243</line>
-          <option name="timeStamp" value="10" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
           <line>130</line>
           <option name="timeStamp" value="20" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
-          <line>257</line>
-          <option name="timeStamp" value="21" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
-          <line>102</line>
-          <option name="timeStamp" value="22" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
-          <line>119</line>
-          <option name="timeStamp" value="23" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
-          <line>320</line>
-          <option name="timeStamp" value="24" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
-          <line>344</line>
-          <option name="timeStamp" value="26" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
