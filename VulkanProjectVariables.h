@@ -9,11 +9,11 @@ namespace VulkanProject {
 
 	// Instance
 	const char* APPLICATION_NAME = "Vulkan Application";
-	const bool SHOW_VALIDATION_LAYER_DEBUG_INFO = true;
-	const bool RUN_ON_MACOS = false;
+	const bool SHOW_VALIDATION_LAYER_DEBUG_INFO = VK_TRUE;
+	const bool RUN_ON_MACOS = VK_FALSE;
 
 	// Physical Device
-	const bool CHOOSE_GPU_ON_STARTUP = false;
+	const bool CHOOSE_GPU_ON_STARTUP = VK_FALSE;
 
 	// Device
 
@@ -26,10 +26,10 @@ namespace VulkanProject {
 	const uint32_t HEIGHT = 1000;
 	VkClearColorValue CLEAR_COLOR = { {0.0f, 0.0f, 0.0f, 1.0f} };
 	const int MAX_FRAMES_IN_FLIGHT = 5;
-	const bool LOCK_WINDOW_SIZE = false;
+	const bool LOCK_WINDOW_SIZE = VK_FALSE;
 	const VkImageUsageFlagBits IMAGE_USAGE = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 	const VkPresentModeKHR PRESENTATION_MODE = VK_PRESENT_MODE_MAILBOX_KHR;
-	const bool SAVE_ENERGY_FOR_MOBILE = false;
+	const bool SAVE_ENERGY_FOR_MOBILE = VK_FALSE;
 	const VkFormat IMAGE_FORMAT = VK_FORMAT_B8G8R8A8_SRGB;
 	const VkColorSpaceKHR IMAGE_COLOR_SPACE = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
 	// Descriptor
@@ -37,8 +37,8 @@ namespace VulkanProject {
 	// Shader
 	//const std::string VERTEX_SHADER_FILE = "shaders/raw_shaders/shader.vert";
 	//const std::string FRAGMENT_SHADER_FILE = "shaders/raw_shaders/shader.frag";
-	const bool USE_INDEXED_VERTICES = true;
-	const bool REDUCE_SPIRV_CODE_SIZE = false;
+	const bool USE_INDEXED_VERTICES = VK_TRUE;
+	const bool REDUCE_SPIRV_CODE_SIZE = VK_FALSE;
 	//const char* SHADER_ENTRY_FUNCTION_NAME = "main";
 	//const VkPrimitiveTopology VERTEX_TOPOLOGY = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 

@@ -7,6 +7,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 import xml.etree.ElementTree as ET
 
+
 # Form, Window = uic.loadUiType("VulkanSetupGUI.ui")
 
 # app = QApplication([])
@@ -29,6 +30,9 @@ def convertToVulkanNaming(input: str):
             return "VK_TRUE"
         if not input:
             return "VK_FALSE"
+    else:
+        print(f"Provided input was [{input}]. Unnecessary conversion call.")
+        return input
 
 
 class VulkanSetupGUI(QMainWindow):
@@ -59,7 +63,7 @@ class VulkanSetupGUI(QMainWindow):
         # Model
         self.modelFileToolButton.clicked.connect(self.fileOpenDialog)
 
-        #GraphicsPipeline
+        # GraphicsPipeline
 
     ### Print and Output Section
 
@@ -69,6 +73,7 @@ class VulkanSetupGUI(QMainWindow):
             return
 
         self.printInputs()
+
     def printInputs(self):
         # Instance
         print("applicationNameInput: [{}]".format(
@@ -87,10 +92,36 @@ class VulkanSetupGUI(QMainWindow):
             self.getListContents(self.deviceExtensionsList)))
 
         # Swapchain
+        print("imageHeightInput: [{}]".format(
+            self.imageHeightInput.text()))
+        print("imageWidthInput: [{}]".format(
+            self.imageWidthInput.text()))
+        print("lockWindowSizeCheckBox: [{}]".format(
+            convertToVulkanNaming(self.lockWindowSizeCheckBox.isChecked())))
+        print("clearColorRInput: [{}]".format(
+            self.clearColorRInput.text()))
+        print("clearColorGInput: [{}]".format(
+            self.clearColorGInput.text()))
+        print("clearColorBInput: [{}]".format(
+            self.clearColorBInput.text()))
+        print("clearColorAInput: [{}]".format(
+            self.clearColorAInput.text()))
+        print("framesInFlightInput: [{}]".format(
+            self.framesInFlightInput.text()))
+        print("saveEnergyForMobileCheckBox: [{}]".format(
+            convertToVulkanNaming(self.saveEnergyForMobileCheckBox.isChecked())))
+        print("imageUsageInput: [{}]".format(
+            self.imageUsageInput.currentText()))
+        print("presentationModeInput: [{}]".format(
+            self.presentationModeInput.currentText()))
+        print("imageFormatInput: [{}]".format(
+            self.imageFormatInput.currentText()))
+        print("imageColorSpaceInput: [{}]".format(
+            self.imageColorSpaceInput.currentText()))
 
         # Model
 
-        #GraphicsPipeline
+        # GraphicsPipeline
 
         print()
 
@@ -211,8 +242,6 @@ class VulkanSetupGUI(QMainWindow):
                                                'c:\\', "Model files (*.jpg)")
         # self.modelPreviewOpenGLWidget = glWidget(self)
 
-
-
     ### Validation Section
     def checkInput(self):
         if len(self.applicationNameInput.text()) == 0:
@@ -300,6 +329,37 @@ class VulkanSetupGUI(QMainWindow):
         for extension in self.getListContents(self.deviceExtensionsList):
             ET.SubElement(deviceExtensionsList, 'extension').text = extension
 
+        # Swapchain
+        swapchain = ET.SubElement(root, 'swapchain')
+
+        imageDimensions = ET.SubElement(swapchain, 'imageDimensions', name='imageDimensions')
+        ET.SubElement(imageDimensions, 'imageHeightInput', name='imageHeightInput').text = self.imageHeightInput.text()
+        ET.SubElement(imageDimensions, 'imageWidthInput', name='imageWidthInput').text = self.imageWidthInput.text()
+
+        ET.SubElement(swapchain, 'lockWindowSizeCheckBox',
+                      name='lockWindowSizeCheckBox').text = convertToVulkanNaming(
+            self.lockWindowSizeCheckBox.isChecked())
+
+        imageClearColor = ET.SubElement(swapchain, 'imageClearColor', name='imageClearColor')
+        ET.SubElement(imageClearColor, 'clearColorRInput', name='clearColorRInput').text = self.clearColorRInput.text()
+        ET.SubElement(imageClearColor, 'clearColorGInput', name='clearColorGInput').text = self.clearColorGInput.text()
+        ET.SubElement(imageClearColor, 'clearColorBInput', name='clearColorBInput').text = self.clearColorBInput.text()
+        ET.SubElement(imageClearColor, 'clearColorAInput', name='clearColorAInput').text = self.clearColorAInput.text()
+
+        ET.SubElement(swapchain, 'framesInFlightInput',
+                      name='framesInFlightInput').text = self.framesInFlightInput.text()
+        ET.SubElement(swapchain, 'saveEnergyForMobileCheckBox',
+                      name='saveEnergyForMobileCheckBox').text = convertToVulkanNaming(
+            self.saveEnergyForMobileCheckBox.isChecked())
+        ET.SubElement(swapchain, 'imageUsageInput',
+                      name='imageUsageInput').text = self.imageUsageInput.currentText()
+        ET.SubElement(swapchain, 'presentationModeInput',
+                      name='presentationModeInput').text = self.presentationModeInput.currentText()
+        ET.SubElement(swapchain, 'imageFormatInput',
+                      name='imageFormatInput').text = self.imageFormatInput.currentText()
+        ET.SubElement(swapchain, 'imageColorSpaceInput',
+                      name='imageColorSpaceInput').text = self.imageColorSpaceInput.currentText()
+
         # create a new XML file with the results
         mydata = ET.tostring(root)
         with open("VulkanSetup.xml", "wb") as myfile:
@@ -320,21 +380,21 @@ class VulkanSetupGUI(QMainWindow):
             if elem.tag == "applicationNameInput":
                 self.applicationNameInput.setText(elem.text)
             if elem.tag == "showValidationLayerDebugInfoCheckBox":
-                if(elem.text == "VK_FALSE"):
+                if elem.text == "VK_FALSE":
                     self.showValidationLayerDebugInfoCheckBox.setChecked(False)
-                if(elem.text == "VK_TRUE"):
+                if elem.text == "VK_TRUE":
                     self.showValidationLayerDebugInfoCheckBox.setChecked(True)
             if elem.tag == "runOnMacosCheckBox":
-                if(elem.text == "VK_FALSE"):
+                if elem.text == "VK_FALSE":
                     self.runOnMacosCheckBox.setChecked(False)
-                if(elem.text == "VK_TRUE"):
+                if elem.text == "VK_TRUE":
                     self.runOnMacosCheckBox.setChecked(True)
 
             ### Physical Device
             if elem.tag == "chooseGPUOnStartupCheckBox":
-                if(elem.text == "VK_FALSE"):
+                if elem.text == "VK_FALSE":
                     self.chooseGPUOnStartupCheckBox.setChecked(False)
-                if(elem.text == "VK_TRUE"):
+                if elem.text == "VK_TRUE":
                     self.chooseGPUOnStartupCheckBox.setChecked(True)
 
             ### Logical Device
@@ -348,10 +408,49 @@ class VulkanSetupGUI(QMainWindow):
                         item.setSelected(True)
                         print(f"Extension Added: {elem.text}")
 
+            ### Swapchain
+            if elem.tag == "imageHeightInput":
+                self.imageHeightInput.setValue(int(elem.text))
+            if elem.tag == "imageWidthInput":
+                self.imageWidthInput.setValue(int(elem.text))
+            if elem.tag == "lockWindowSizeCheckBox":
+                if elem.text == "VK_FALSE":
+                    self.lockWindowSizeCheckBox.setChecked(False)
+                if elem.text == "VK_TRUE":
+                    self.lockWindowSizeCheckBox.setChecked(True)
+            if elem.tag == "clearColorRInput":
+                self.clearColorRInput.setValue(float(elem.text.replace(',', '.')))
+            if elem.tag == "clearColorGInput":
+                self.clearColorGInput.setValue(float(elem.text.replace(',', '.')))
+            if elem.tag == "clearColorBInput":
+                self.clearColorBInput.setValue(float(elem.text.replace(',', '.')))
+            if elem.tag == "clearColorAInput":
+                self.clearColorAInput.setValue(float(elem.text.replace(',', '.')))
+            if elem.tag == "framesInFlightInput":
+                self.framesInFlightInput.setValue(int(elem.text))
+            if elem.tag == "saveEnergyForMobileCheckBox":
+                if elem.text == "VK_FALSE":
+                    self.saveEnergyForMobileCheckBox.setChecked(False)
+                if elem.text == "VK_TRUE":
+                    self.saveEnergyForMobileCheckBox.setChecked(True)
+            if elem.tag == "imageUsageInput":
+                index = self.imageUsageInput.findText(elem.text)
+                self.imageUsageInput.setCurrentIndex(index)
+            if elem.tag == "presentationModeInput":
+                index = self.presentationModeInput.findText(elem.text)
+                self.presentationModeInput.setCurrentIndex(index)
+            if elem.tag == "imageFormatInput":
+                index = self.imageFormatInput.findText(elem.text)
+                self.imageFormatInput.setCurrentIndex(index)
+            if elem.tag == "imageColorSpaceInput":
+                index = self.imageColorSpaceInput.findText(elem.text)
+                self.imageColorSpaceInput.setCurrentIndex(index)
+
             for subelem in elem:
                 traverse(subelem)
 
         traverse(root)
+
 
 class glWidget(QOpenGLWidget):
 
