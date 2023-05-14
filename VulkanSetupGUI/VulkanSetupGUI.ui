@@ -919,6 +919,25 @@
                  </property>
                 </widget>
                </item>
+               <item>
+                <widget class="QLabel" name="texturePreviewImage">
+                 <property name="maximumSize">
+                  <size>
+                   <width>255</width>
+                   <height>255</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="pixmap">
+                  <pixmap>../textures/viking_room.png</pixmap>
+                 </property>
+                 <property name="scaledContents">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
               </layout>
              </item>
             </layout>

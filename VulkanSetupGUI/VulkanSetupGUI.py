@@ -35,6 +35,7 @@ def convertToVulkanNaming(input: str):
         print(f"Provided input was [{input}]. Unnecessary conversion call.")
         return input
 
+
 class OpenGLWidget(QOpenGLWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -57,44 +58,12 @@ class OpenGLWidget(QOpenGLWidget):
         glVertex2f(0.0, 0.6)
         glEnd()
 
-class TextureOpenGLWidget(QOpenGLWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-    def initializeGL(self):
-        self.gl_format = self.format()
-        self.gl_format.setSwapInterval(1)
-        self.setFormat(self.gl_format)
-
-    def paintGL(self):
-        fbo_format = QOpenGLFramebufferObjectFormat()
-        fbo_format.setAttachment(QOpenGLFramebufferObject.CombinedDepthStencil)
-        fbo = QOpenGLFramebufferObject(self.width(), self.height(), fbo_format)
-        fbo.bind()
-
-        painter = QPainter()
-        painter.begin(self)
-        painter.drawImage(0, 0, fbo.toImage())  # Draw the loaded image
-        painter.end()
-
-        fbo.release()
-        painter = QPainter(self)
-        painter.beginNativePainting()
-        self.paintGLCustom()
-        painter.endNativePainting()
-        self.update()
-    def paintGLCustom(self):
-        pass
-
-    def setImage(self, image):
-        self.image = image
-        self.update()
-
 
 class GraphicsPipelineView(QDialog):
     def __init__(self):
         super(GraphicsPipelineView, self).__init__()
         uic.loadUi("GraphicsPipelineView.ui", self)
+
 
 class VulkanSetupGUI(QMainWindow):
     def __init__(self):
@@ -103,27 +72,12 @@ class VulkanSetupGUI(QMainWindow):
         # uic.loadUi("pipelineTestView.ui", self)
 
         self.connectActions()
-        self.setupTexturePreview()
         self.setupModelPreview()
+        self.loadTexturePreview()
 
-
-    def setupTexturePreview(self):
-        # self.modelPreviewOpenGLWidget = OpenGLWidget()
-
-#        texturePreviewOpenGLWidget = TextureOpenGLWidget()
-#        texturePreviewOpenGLWidget.setMinimumSize(255, 255)
-#        texturePreviewOpenGLWidget.setMaximumSize(255, 255)
-#
-#        image = QImage("C:/Users/Avoccardo/source/repos/VulkanSetup/textures/viking_room.png")
-#        texturePreviewOpenGLWidget.setImage(image)
-#        self.verticalLayoutTexturePreview.addWidget(texturePreviewOpenGLWidget)
-
-        texturePreviewOpenGLWidget = OpenGLWidget()
-        texturePreviewOpenGLWidget.setMinimumSize(255, 255)
-        texturePreviewOpenGLWidget.setMaximumSize(255, 255)
-        self.verticalLayoutTexturePreview.addWidget(texturePreviewOpenGLWidget)
+    def loadTexturePreview(self):
+        self.texturePreviewImage.setPixmap(QPixmap(self.textureFileInput.text()))
         pass
-
 
     def setupModelPreview(self):
 
@@ -138,6 +92,7 @@ class VulkanSetupGUI(QMainWindow):
         self.generateVulkanCodeButton.clicked.connect(self.setOutput)
         self.actionSave_to_File.triggered.connect(self.writeXml)
         self.actionLoad_from_File.triggered.connect(self.readXml)
+        self.actionLoad_from_File.triggered.connect(self.loadTexturePreview)
 
         # Instance
 
@@ -154,6 +109,10 @@ class VulkanSetupGUI(QMainWindow):
         self.textureFileToolButton.clicked.connect(lambda: self.setFilePath("textureFileToolButton"))
 
         # GraphicsPipeline
+        self.addPipelineButton.clicked.connect(self.showAddPipelineInput)
+        # self.editPipelineButton.clicked.connect(self.showEditPipelineInput)
+        self.deletePipelineButton.clicked.connect(self.showRemovePipeline)
+        # self.pipelinePreviewButton.clicked.connect(self.showPreview)
 
     ### Print and Output Section
 
@@ -331,6 +290,73 @@ class VulkanSetupGUI(QMainWindow):
         d.setLayout(layout)
         d.show()
 
+    def showAddPipelineInput(self):
+        def showPipelineAlreadyPresent(extension: str):
+            d = QDialog(self)
+            d.setWindowTitle("")
+            d.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
+            layout = QVBoxLayout()
+            label = QLabel(f"Pipeline already present:\n{extension}")
+            layout.addWidget(label)
+            ok_button = QPushButton("OK")
+            ok_button.clicked.connect(d.accept)
+            layout.addWidget(ok_button)
+            d.setLayout(layout)
+            d.show()
+
+        def addPipeline(pipeline: str):
+            if not pipeline:
+                self.showNotAllowedInput("empty line")
+                return
+
+            if self.addUniqueItem(self.graphicsPipelinesList, pipeline):
+                print(f"Pipeline Added: {pipeline}")
+            else:
+                showPipelineAlreadyPresent(pipeline)
+
+        d = QDialog(self)
+        d.setWindowTitle(" ")
+        d.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
+        layout = QVBoxLayout()
+        label = QLabel(f"Add new Pipeline:\n")
+        layout.addWidget(label)
+        lineEdit = QLineEdit()
+        layout.addWidget(lineEdit)
+        ok_button = QPushButton("Add")
+        ok_button.clicked.connect(lambda: addPipeline(lineEdit.text()))
+        ok_button.clicked.connect(d.accept)
+        layout.addWidget(ok_button)
+        d.setLayout(layout)
+        d.show()
+
+    def showRemovePipeline(self):
+
+        def removePipelines(pipelines):
+            listName = "removed pipelines"
+            items = [item.text() for item in pipelines]
+
+            for pipeline in items:
+                self.removeItem(self.graphicsPipelinesList, pipeline)
+            print(f"{listName}: {items}")
+
+        # nothing to do if nothing selected
+        if not self.graphicsPipelinesList.selectedItems():
+            return
+
+        d = QDialog(self)
+        d.setWindowTitle(" ")
+        d.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
+        layout = QVBoxLayout()
+        pipelinesText = "\n".join(self.getListContents(self.graphicsPipelinesList))
+        label = QLabel(f"Remove Pipeline?:\n{pipelinesText}")
+        layout.addWidget(label)
+        ok_button = QPushButton("OK")
+        ok_button.clicked.connect(lambda: removePipelines(self.graphicsPipelinesList.selectedItems()))
+        ok_button.clicked.connect(d.accept)
+        layout.addWidget(ok_button)
+        d.setLayout(layout)
+        d.show()
+
     def fileOpenDialog(self):
         fileName = QFileDialog.getOpenFileName(self, 'Open file',
                                                'c:\\', "Model files (*.jpg)")
@@ -365,6 +391,7 @@ class VulkanSetupGUI(QMainWindow):
         fileName = QFileDialog.getOpenFileName(self, 'Open file', initialDirectory, inputFilter)
         referenceView = GraphicsPipelineView()
         setParametersBasedOnOrigin(fileInput, fileName)
+        self.loadTexturePreview()
 
     ### Validation Section
     def checkInput(self):
