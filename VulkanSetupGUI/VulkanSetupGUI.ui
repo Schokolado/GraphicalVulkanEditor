@@ -47,7 +47,7 @@
          </size>
         </property>
         <property name="currentIndex">
-         <number>3</number>
+         <number>4</number>
         </property>
         <widget class="QWidget" name="instance">
          <property name="enabled">
@@ -896,22 +896,6 @@
                  </property>
                 </widget>
                </item>
-               <item>
-                <widget class="QOpenGLWidget" name="modelPreviewOpenGLWidget">
-                 <property name="minimumSize">
-                  <size>
-                   <width>255</width>
-                   <height>255</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>255</width>
-                   <height>255</height>
-                  </size>
-                 </property>
-                </widget>
-               </item>
               </layout>
              </item>
              <item>
@@ -932,22 +916,6 @@
                  </property>
                  <property name="text">
                   <string>Texture Preview:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QOpenGLWidget" name="texturePreviewOpenGLWidget">
-                 <property name="minimumSize">
-                  <size>
-                   <width>255</width>
-                   <height>255</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>255</width>
-                   <height>255</height>
-                  </size>
                  </property>
                 </widget>
                </item>
@@ -1004,7 +972,7 @@
             <x>280</x>
             <y>141</y>
             <width>257</width>
-            <height>291</height>
+            <height>312</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayoutPipelinePreview">

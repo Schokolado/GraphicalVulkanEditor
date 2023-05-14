@@ -1,6 +1,7 @@
-from PyQt5 import uic
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap
+from PyQt5 import uic, sip
+from PyQt5.QtCore import Qt, QByteArray
+from PyQt5.QtGui import QPixmap, QImage, QOpenGLFramebufferObject, QPainter, QSurfaceFormat, \
+    QOpenGLFramebufferObjectFormat
 from PyQt5.QtOpenGL import QGLWidget
 from PyQt5.QtWidgets import *
 from OpenGL.GL import *
@@ -34,6 +35,62 @@ def convertToVulkanNaming(input: str):
         print(f"Provided input was [{input}]. Unnecessary conversion call.")
         return input
 
+class OpenGLWidget(QOpenGLWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def initializeGL(self):
+        glClearColor(0.0, 0.0, 0.0, 1.0)
+
+    def resizeGL(self, width, height):
+        glViewport(0, 0, width, height)
+
+    def paintGL(self):
+        glClear(GL_COLOR_BUFFER_BIT)
+
+        glBegin(GL_TRIANGLES)
+        glColor3f(1.0, 0.0, 0.0)  # Red color
+        glVertex2f(-0.6, -0.4)
+        glColor3f(0.0, 1.0, 0.0)  # Green color
+        glVertex2f(0.6, -0.4)
+        glColor3f(0.0, 0.0, 1.0)  # Blue color
+        glVertex2f(0.0, 0.6)
+        glEnd()
+
+class TextureOpenGLWidget(QOpenGLWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def initializeGL(self):
+        self.gl_format = self.format()
+        self.gl_format.setSwapInterval(1)
+        self.setFormat(self.gl_format)
+
+    def paintGL(self):
+        fbo_format = QOpenGLFramebufferObjectFormat()
+        fbo_format.setAttachment(QOpenGLFramebufferObject.CombinedDepthStencil)
+        fbo = QOpenGLFramebufferObject(self.width(), self.height(), fbo_format)
+        fbo.bind()
+
+        painter = QPainter()
+        painter.begin(self)
+        painter.drawImage(0, 0, fbo.toImage())  # Draw the loaded image
+        painter.end()
+
+        fbo.release()
+        painter = QPainter(self)
+        painter.beginNativePainting()
+        self.paintGLCustom()
+        painter.endNativePainting()
+        self.update()
+    def paintGLCustom(self):
+        pass
+
+    def setImage(self, image):
+        self.image = image
+        self.update()
+
+
 class GraphicsPipelineView(QDialog):
     def __init__(self):
         super(GraphicsPipelineView, self).__init__()
@@ -46,6 +103,34 @@ class VulkanSetupGUI(QMainWindow):
         # uic.loadUi("pipelineTestView.ui", self)
 
         self.connectActions()
+        self.setupTexturePreview()
+        self.setupModelPreview()
+
+
+    def setupTexturePreview(self):
+        # self.modelPreviewOpenGLWidget = OpenGLWidget()
+
+#        texturePreviewOpenGLWidget = TextureOpenGLWidget()
+#        texturePreviewOpenGLWidget.setMinimumSize(255, 255)
+#        texturePreviewOpenGLWidget.setMaximumSize(255, 255)
+#
+#        image = QImage("C:/Users/Avoccardo/source/repos/VulkanSetup/textures/viking_room.png")
+#        texturePreviewOpenGLWidget.setImage(image)
+#        self.verticalLayoutTexturePreview.addWidget(texturePreviewOpenGLWidget)
+
+        texturePreviewOpenGLWidget = OpenGLWidget()
+        texturePreviewOpenGLWidget.setMinimumSize(255, 255)
+        texturePreviewOpenGLWidget.setMaximumSize(255, 255)
+        self.verticalLayoutTexturePreview.addWidget(texturePreviewOpenGLWidget)
+        pass
+
+
+    def setupModelPreview(self):
+
+        modelPreviewOpenGLWidget = OpenGLWidget()
+        modelPreviewOpenGLWidget.setMinimumSize(255, 255)
+        modelPreviewOpenGLWidget.setMaximumSize(255, 255)
+        self.verticalLayoutModelPreview.addWidget(modelPreviewOpenGLWidget)
 
     def connectActions(self):
         # Menu Bar and Bottom
