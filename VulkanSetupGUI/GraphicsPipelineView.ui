@@ -33,7 +33,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-690</y>
         <width>597</width>
         <height>1234</height>
        </rect>
@@ -2640,7 +2640,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="vertexShaderFileInput_2">
+              <widget class="QLineEdit" name="vertexShaderFileInput">
                <property name="minimumSize">
                 <size>
                  <width>340</width>
@@ -2659,7 +2659,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QToolButton" name="vertexShaderFileToolButton_2">
+              <widget class="QToolButton" name="vertexShaderFileToolButton">
                <property name="toolTip">
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select Vertex Shader file from Explorer&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
@@ -2683,7 +2683,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="vertexShaderEntryFunctionNameInput_2">
+              <widget class="QLineEdit" name="vertexShaderEntryFunctionNameInput">
                <property name="minimumSize">
                 <size>
                  <width>340</width>
@@ -2740,7 +2740,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="fragmentShaderFileInput_2">
+              <widget class="QLineEdit" name="fragmentShaderFileInput">
                <property name="minimumSize">
                 <size>
                  <width>340</width>
@@ -2759,7 +2759,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QToolButton" name="fragmentShaderFileToolButton_2">
+              <widget class="QToolButton" name="fragmentShaderFileToolButton">
                <property name="toolTip">
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select Fragment Shader file from Explorer&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
@@ -2783,7 +2783,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="fragmentShaderEntryFunctionNameInput_3">
+              <widget class="QLineEdit" name="fragmentShaderEntryFunctionNameInput">
                <property name="minimumSize">
                 <size>
                  <width>340</width>
@@ -2831,14 +2831,14 @@
             </layout>
            </item>
            <item>
-            <widget class="QCheckBox" name="reduceSpirvCodeSizeCheckBox_3">
+            <widget class="QCheckBox" name="reduceSpirvCodeSizeCheckBox">
              <property name="text">
               <string>Reduce SPIR-V Code Size</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="useIndexedVerticesCheckBox_3">
+            <widget class="QCheckBox" name="useIndexedVerticesCheckBox">
              <property name="text">
               <string>Use Indexed Vertices</string>
              </property>

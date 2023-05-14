@@ -34,6 +34,10 @@ def convertToVulkanNaming(input: str):
         print(f"Provided input was [{input}]. Unnecessary conversion call.")
         return input
 
+class GraphicsPipelineView(QDialog):
+    def __init__(self):
+        super(GraphicsPipelineView, self).__init__()
+        uic.loadUi("GraphicsPipelineView.ui", self)
 
 class VulkanSetupGUI(QMainWindow):
     def __init__(self):
@@ -61,7 +65,8 @@ class VulkanSetupGUI(QMainWindow):
         # Swapchain
 
         # Model
-        self.modelFileToolButton.clicked.connect(self.fileOpenDialog)
+        self.modelFileToolButton.clicked.connect(lambda: self.setFilePath("modelFileToolButton"))
+        self.textureFileToolButton.clicked.connect(lambda: self.setFilePath("textureFileToolButton"))
 
         # GraphicsPipeline
 
@@ -120,6 +125,10 @@ class VulkanSetupGUI(QMainWindow):
             self.imageColorSpaceInput.currentText()))
 
         # Model
+        print("modelFileInput: [{}]".format(
+            self.modelFileInput.text()))
+        print("textureFileInput: [{}]".format(
+            self.textureFileInput.text()))
 
         # GraphicsPipeline
 
@@ -242,6 +251,36 @@ class VulkanSetupGUI(QMainWindow):
                                                'c:\\', "Model files (*.jpg)")
         # self.modelPreviewOpenGLWidget = glWidget(self)
 
+    def setFilePath(self, fileInput: str):
+        def setInputFilterBasedOnOrigin(fileInput):
+            filterMap = {
+                "modelFileToolButton": "Model files (*.obj)",
+                "textureFileToolButton": "Texture image files (*.jpg, *.png)",
+                "vertexShaderFileToolButton": "Vertex shader files (*.vert)",
+                "fragmentShaderFileToolButton": "fragment shader files (*.frag)"
+            }
+            return filterMap.get(fileInput, "")
+
+        def setParametersBasedOnOrigin(fileInput, fileName):
+            inputMap = {
+                "modelFileToolButton": self.modelFileInput,
+                "textureFileToolButton": self.textureFileInput,
+                "vertexShaderFileToolButton": referenceView.vertexShaderFileInput,
+                "fragmentShaderFileToolButton": referenceView.fragmentShaderFileInput
+            }
+            if fileInput not in inputMap:
+                return
+            inputField = inputMap[fileInput]
+            if inputField != "" and fileName[0] == "":
+                return
+            inputField.setText(fileName[0])
+
+        inputFilter = setInputFilterBasedOnOrigin(fileInput)
+        initialDirectory = 'c:\\'
+        fileName = QFileDialog.getOpenFileName(self, 'Open file', initialDirectory, inputFilter)
+        referenceView = GraphicsPipelineView()
+        setParametersBasedOnOrigin(fileInput, fileName)
+
     ### Validation Section
     def checkInput(self):
         if len(self.applicationNameInput.text()) == 0:
@@ -360,6 +399,11 @@ class VulkanSetupGUI(QMainWindow):
         ET.SubElement(swapchain, 'imageColorSpaceInput',
                       name='imageColorSpaceInput').text = self.imageColorSpaceInput.currentText()
 
+        # Texture and Model
+        model = ET.SubElement(root, 'model')
+        ET.SubElement(model, 'modelFileInput', name='modelFileInput').text = self.modelFileInput.text()
+        ET.SubElement(model, 'textureFileInput', name='textureFileInput').text = self.textureFileInput.text()
+
         # create a new XML file with the results
         mydata = ET.tostring(root)
         with open("VulkanSetup.xml", "wb") as myfile:
@@ -445,6 +489,12 @@ class VulkanSetupGUI(QMainWindow):
             if elem.tag == "imageColorSpaceInput":
                 index = self.imageColorSpaceInput.findText(elem.text)
                 self.imageColorSpaceInput.setCurrentIndex(index)
+
+            ### Model
+            if elem.tag == "modelFileInput":
+                self.modelFileInput.setText(elem.text)
+            if elem.tag == "textureFileInput":
+                self.textureFileInput.setText(elem.text)
 
             for subelem in elem:
                 traverse(subelem)
