@@ -3,6 +3,7 @@ from PyQt5.QtCore import Qt, QByteArray
 from PyQt5.QtGui import QPixmap, QImage, QOpenGLFramebufferObject, QPainter, QSurfaceFormat, \
     QOpenGLFramebufferObjectFormat
 from PyQt5.QtOpenGL import QGLWidget
+from pywavefront import Wavefront
 from PyQt5.QtWidgets import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -39,15 +40,50 @@ def convertToVulkanNaming(input: str):
 class OpenGLWidget(QOpenGLWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.obj_file_path = "C:/Users/Avoccardo/source/repos/VulkanSetup/models/viking_room_blender.obj"  # Replace with the path to your OBJ file
+        self.obj_mesh = None
 
     def initializeGL(self):
         glClearColor(0.0, 0.0, 0.0, 1.0)
+
+        # Load the OBJ file
+        self.obj_mesh = Wavefront(self.obj_file_path, collect_faces=True)
+
+        # Enable lighting
+        glEnable(GL_LIGHTING)
+        glEnable(GL_LIGHT0)
+
+        # Set light position
+        light_position = [1.0, 1.0, 1.0, 0.0]  # Directional light from (1, 1, 1)
+        glLightfv(GL_LIGHT0, GL_POSITION, light_position)
+
+        # Set light properties
+        ambient_color = [0.2, 0.2, 0.2, 1.0]
+        diffuse_color = [0.5, 0.5, 0.5, 1.0]
+        specular_color = [1.0, 1.0, 1.0, 1.0]
+        glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_color)
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_color)
+        glLightfv(GL_LIGHT0, GL_SPECULAR, specular_color)
 
     def resizeGL(self, width, height):
         glViewport(0, 0, width, height)
 
     def paintGL(self):
-        glClear(GL_COLOR_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        glEnable(GL_DEPTH_TEST)
+
+        # Enable lighting
+        glEnable(GL_LIGHTING)
+        glEnable(GL_LIGHT0)
+
+        ambient_color = [0.4, 0.4, 0.4, 1.0]  # Adjust the values as needed
+        glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_color)
+        diffuse_color = [1.2, 1.2, 1.2, 1.0]  # Adjust the values as needed
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_color)
+
+        # Set light position
+        light_position = [1.0, 1.0, 1.0, 1.0]  # Adjust the position values as needed
+        glLightfv(GL_LIGHT0, GL_POSITION, light_position)
 
         glBegin(GL_TRIANGLES)
         glColor3f(1.0, 0.0, 0.0)  # Red color
@@ -56,6 +92,26 @@ class OpenGLWidget(QOpenGLWidget):
         glVertex2f(0.6, -0.4)
         glColor3f(0.0, 0.0, 1.0)  # Blue color
         glVertex2f(0.0, 0.6)
+
+        # Set material properties
+        ambient_material = [0.2, 0.2, 0.2, 1.0]
+        diffuse_material = [1.0, 1.0, 1.0, 1.0]
+        specular_material = [1.0, 1.0, 1.0, 1.0]
+        shininess_material = 32.0
+        glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_material)
+        glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_material)
+        glMaterialfv(GL_FRONT, GL_SPECULAR, specular_material)
+        glMaterialf(GL_FRONT, GL_SHININESS, shininess_material)
+
+        if self.obj_mesh:
+            for mesh in self.obj_mesh.mesh_list:
+
+                for face in mesh.faces:
+                    for vertex_i in face:
+                        vertex = self.obj_mesh.vertices[vertex_i]
+                        glVertex3fv(vertex)
+                glColor3f(1.0, 1.0, 1.0)
+
         glEnd()
 
 
