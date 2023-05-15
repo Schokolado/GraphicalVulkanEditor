@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="add openglwidget for texture and model preview stub">
+    <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="add model preview">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.ui" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.ui" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -105,7 +104,14 @@
       <option name="project" value="LOCAL" />
       <updated>1684095422199</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="add model preview">
+      <created>1684189743039</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1684189743039</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -113,20 +119,16 @@
     <MESSAGE value="minor refactoring for load from xml" />
     <MESSAGE value="added model section" />
     <MESSAGE value="add openglwidget for texture and model preview stub" />
-    <option name="LAST_COMMIT_MESSAGE" value="add openglwidget for texture and model preview stub" />
+    <MESSAGE value="add model preview" />
+    <option name="LAST_COMMIT_MESSAGE" value="add model preview" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
-          <line>214</line>
+          <line>241</line>
           <option name="timeStamp" value="20" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
-          <line>78</line>
-          <option name="timeStamp" value="35" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
