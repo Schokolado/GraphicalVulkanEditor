@@ -896,6 +896,9 @@
                  </property>
                 </widget>
                </item>
+               <item>
+                <widget class="QOpenGLWidget" name="openGLWidget"/>
+               </item>
               </layout>
              </item>
              <item>
@@ -921,6 +924,12 @@
                </item>
                <item>
                 <widget class="QLabel" name="texturePreviewImage">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
                  <property name="maximumSize">
                   <size>
                    <width>255</width>

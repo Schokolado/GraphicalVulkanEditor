@@ -4,9 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="add model preview">
+    <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="clean model preview widget">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.ui" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.ui" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -111,7 +112,14 @@
       <option name="project" value="LOCAL" />
       <updated>1684189743039</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="clean model preview widget">
+      <created>1684190808318</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1684190808318</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -120,14 +128,15 @@
     <MESSAGE value="added model section" />
     <MESSAGE value="add openglwidget for texture and model preview stub" />
     <MESSAGE value="add model preview" />
-    <option name="LAST_COMMIT_MESSAGE" value="add model preview" />
+    <MESSAGE value="clean model preview widget" />
+    <option name="LAST_COMMIT_MESSAGE" value="clean model preview widget" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
-          <line>241</line>
+          <line>268</line>
           <option name="timeStamp" value="20" />
         </line-breakpoint>
       </breakpoints>

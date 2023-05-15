@@ -1,8 +1,5 @@
-from PyQt5 import uic, sip
-from PyQt5.QtCore import Qt, QByteArray
-from PyQt5.QtGui import QPixmap, QImage, QOpenGLFramebufferObject, QPainter, QSurfaceFormat, \
-    QOpenGLFramebufferObjectFormat
-from PyQt5.QtOpenGL import QGLWidget
+from PyQt5 import uic
+from PyQt5.QtGui import QPixmap
 from pywavefront import Wavefront
 from PyQt5.QtWidgets import *
 from OpenGL.GL import *
@@ -41,11 +38,13 @@ from PyQt5.QtGui import QMatrix4x4
 from PyQt5.QtCore import Qt
 
 class OpenGLWidget(QOpenGLWidget):
-    def __init__(self, parent=None):
+    def __init__(self, obj_file_path, parent=None):
         super().__init__(parent)
-        self.obj_file_path = "C:/Users/Avoccardo/source/repos/VulkanSetup/models/viking_room_blender.obj"
+        self.obj_file_path = obj_file_path
         self.obj_mesh = None
-        self.view_matrix = QMatrix4x4()
+
+    def setOBJFilePath(self, path):
+        self.obj_file_path = path
 
     def initializeGL(self):
         glClearColor(0.0, 0.0, 0.0, 1.0)
@@ -55,10 +54,13 @@ class OpenGLWidget(QOpenGLWidget):
     def resizeGL(self, width, height):
         glViewport(0, 0, width, height)
 
+    def updateGL(self):
+        self.obj_mesh = Wavefront(self.obj_file_path, collect_faces=True)
+        self.paintGL()
+
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glEnable(GL_DEPTH_TEST)
-        self.setCameraPosition()
 
         glBegin(GL_TRIANGLES)
         if self.obj_mesh:
@@ -80,11 +82,6 @@ class OpenGLWidget(QOpenGLWidget):
         light_position = [1.0, 1.0, 1.0, 1.0]
         glLightfv(GL_LIGHT0, GL_POSITION, light_position)
 
-    def setCameraPosition(self):
-        self.view_matrix.setToIdentity()
-        self.view_matrix.translate(-0.1, -0.5, 0.0)  # Move the camera down
-        glMatrixMode(GL_MODELVIEW)
-        glLoadMatrixf(self.view_matrix.data())
 
 class GraphicsPipelineView(QDialog):
     def __init__(self):
@@ -99,19 +96,46 @@ class VulkanSetupGUI(QMainWindow):
         # uic.loadUi("pipelineTestView.ui", self)
 
         self.connectActions()
-        self.setupModelPreview()
+        self.loadModelPreview()
         self.loadTexturePreview()
+
+    def updatePreviews(self):
+        self.loadTexturePreview()
+        self.loadModelPreview()
 
     def loadTexturePreview(self):
         self.texturePreviewImage.setPixmap(QPixmap(self.textureFileInput.text()))
         pass
 
-    def setupModelPreview(self):
+    def loadModelPreview(self):
+        # Check if the model file path is empty
+        if not self.modelFileInput.text():
+            return
 
-        modelPreviewOpenGLWidget = OpenGLWidget()
-        modelPreviewOpenGLWidget.setMinimumSize(255, 255)
-        modelPreviewOpenGLWidget.setMaximumSize(255, 255)
-        self.verticalLayoutModelPreview.addWidget(modelPreviewOpenGLWidget)
+        # Get the number of widgets in the vertical layout
+        widgetCount = self.verticalLayoutModelPreview.count()
+
+        # Remove the existing placeholder widget if there is more than one widget
+        if widgetCount > 1:
+            # Retrieve the placeholder widget
+            placeholderWidget = self.verticalLayoutModelPreview.itemAt(1).widget()
+
+            # Remove the placeholder widget from the layout
+            self.verticalLayoutModelPreview.removeWidget(placeholderWidget)
+
+            # Delete the placeholder widget to free up memory
+            placeholderWidget.deleteLater()
+
+        # Retrieve the model file path from the line edit
+        modelFilePath = self.modelFileInput.text()
+
+        # Create a new OpenGLWidget for model preview
+        modelPreviewWidget = OpenGLWidget(modelFilePath)
+        modelPreviewWidget.setMinimumSize(255, 255)
+        modelPreviewWidget.setMaximumSize(255, 255)
+
+        # Add the model preview widget to the vertical layout
+        self.verticalLayoutModelPreview.addWidget(modelPreviewWidget)
 
     def connectActions(self):
         # Menu Bar and Bottom
@@ -120,6 +144,7 @@ class VulkanSetupGUI(QMainWindow):
         self.actionSave_to_File.triggered.connect(self.writeXml)
         self.actionLoad_from_File.triggered.connect(self.readXml)
         self.actionLoad_from_File.triggered.connect(self.loadTexturePreview)
+        self.actionLoad_from_File.triggered.connect(self.loadModelPreview)
 
         # Instance
 
@@ -134,6 +159,8 @@ class VulkanSetupGUI(QMainWindow):
         # Model
         self.modelFileToolButton.clicked.connect(lambda: self.setFilePath("modelFileToolButton"))
         self.textureFileToolButton.clicked.connect(lambda: self.setFilePath("textureFileToolButton"))
+        self.modelFileInput.returnPressed.connect(self.loadModelPreview)
+        self.textureFileInput.returnPressed.connect(self.loadTexturePreview)
 
         # GraphicsPipeline
         self.addPipelineButton.clicked.connect(self.showAddPipelineInput)
@@ -418,7 +445,8 @@ class VulkanSetupGUI(QMainWindow):
         fileName = QFileDialog.getOpenFileName(self, 'Open file', initialDirectory, inputFilter)
         referenceView = GraphicsPipelineView()
         setParametersBasedOnOrigin(fileInput, fileName)
-        self.loadTexturePreview()
+
+        self.updatePreviews()
 
     ### Validation Section
     def checkInput(self):
