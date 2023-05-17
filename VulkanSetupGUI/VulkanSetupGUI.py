@@ -358,30 +358,90 @@ class VulkanSetupGUI(QMainWindow):
             d.setLayout(layout)
             d.show()
 
-        def addPipeline(pipeline: str):
+        def addPipeline(pipeline):
             if not pipeline:
                 self.showNotAllowedInput("empty line")
                 return
-
-            if self.addUniqueItem(self.graphicsPipelinesList, pipeline):
+            pipelineItem = QListWidgetItem(f"Graphics Pipeline {str(self.graphicsPipelinesList.count() + 1)}") # add an increasing ID
+            pipelineItem.setData(Qt.UserRole, pipeline) # Hide data behind roles such that IDs can be displayed on lists without showing all data
+            if self.addUniqueItem(self.graphicsPipelinesList, pipelineItem):
+            #if self.addUniqueItem(self.graphicsPipelinesList, pipeline):
                 print(f"Pipeline Added: {pipeline}")
             else:
                 showPipelineAlreadyPresent(pipeline)
 
-        d = QDialog(self)
-        d.setWindowTitle(" ")
-        d.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
-        layout = QVBoxLayout()
-        label = QLabel(f"Add new Pipeline:\n")
-        layout.addWidget(label)
-        lineEdit = QLineEdit()
-        layout.addWidget(lineEdit)
-        ok_button = QPushButton("Add")
-        ok_button.clicked.connect(lambda: addPipeline(lineEdit.text()))
-        ok_button.clicked.connect(d.accept)
-        layout.addWidget(ok_button)
-        d.setLayout(layout)
-        d.show()
+        def addPipelineParameters():
+
+            parameters = []
+            parameters.append(view.vertexTopologyInput.currentText())
+            parameters.append(view.primitiveRestartInput.currentText())
+            parameters.append(view.depthClampInput.currentText())
+            parameters.append(view.rasterizerDiscardInput.currentText())
+            parameters.append(view.polygonModeInput.currentText())
+            parameters.append(view.lineWidthInput.text())
+            parameters.append(view.cullModeInput.currentText())
+            parameters.append(view.frontFaceInput.currentText())
+            parameters.append(view.depthBiasEnabledInput.currentText())
+            parameters.append(view.slopeFactorInput.text())
+            parameters.append(view.constantFactorInput.text())
+            parameters.append(view.biasClampInput.text())
+            parameters.append(view.depthTestInput.currentText())
+            parameters.append(view.depthWriteInput.currentText())
+            parameters.append(view.depthCompareOperationInput.currentText())
+            parameters.append(view.depthBoundsTestInput.currentText())
+            parameters.append(view.depthBoundsMinInput.text())
+            parameters.append(view.depthBoundsMaxInput.text())
+            parameters.append(view.stencilTestInput.currentText())
+            parameters.append(view.sampleShadingInput.currentText())
+            parameters.append(view.rasterizationSamplesInput.currentText())
+            parameters.append(view.minSampleShadingInput.text())
+            parameters.append(view.alphaToCoverageInput.currentText())
+            parameters.append(view.alphaToOneInput.currentText())
+            parameters.append(view.colorWriteMaskInput.currentText())
+            parameters.append(view.colorBlendInput.currentText())
+            parameters.append(view.sourceColorBlendFactorInput.currentText())
+            parameters.append(view.destinationColorBlendFactorInput.currentText())
+            parameters.append(view.colorBlendOperationInput.currentText())
+            parameters.append(view.sourceAlphaBlendFactorInput.currentText())
+            parameters.append(view.destinationAlphaBlendFactorInput.currentText())
+            parameters.append(view.alphaBlendOperationInput.currentText())
+            parameters.append(view.logicOperationEnabledInput.currentText())
+            parameters.append(view.logicOperationInput.currentText())
+            parameters.append(view.attachmentCountInput.text())
+            parameters.append(view.blendConstant0Input.text())
+            parameters.append(view.blendConstant1Input.text())
+            parameters.append(view.blendConstant2Input.text())
+            parameters.append(view.blendConstant3Input.text())
+            parameters.append(view.vertexShaderFileInput.text())
+            parameters.append(view.vertexShaderEntryFunctionNameInput.text())
+            parameters.append(view.fragmentShaderFileInput.text())
+            parameters.append(view.fragmentShaderEntryFunctionNameInput.text())
+            parameters.append(convertToVulkanNaming(view.reduceSpirvCodeSizeCheckBox.isChecked()))
+            parameters.append(convertToVulkanNaming(view.useIndexedVerticesCheckBox.isChecked()))
+
+            return parameters
+
+        view = GraphicsPipelineView()
+
+
+        #d = QDialog(self)
+        #d.setWindowTitle(" ")
+        view.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
+        #layout = QVBoxLayout()
+        #label = QLabel(f"Add new Pipeline:\n")
+        #layout.addWidget(label)
+        #lineEdit = QLineEdit()
+        #layout.addWidget(lineEdit)
+        #ok_button = QPushButton("Add")
+        #view.addPipelineOKButton.clicked.connect(lambda: addPipeline(lineEdit.text()))
+       # okButton =
+        view.addPipelineOKButton.accepted.connect(lambda: print(addPipelineParameters()))
+        view.addPipelineOKButton.accepted.connect(lambda: addPipeline(str(addPipelineParameters())))
+        #ok_button.clicked.connect(view.accept)
+        #layout.addWidget(ok_button)
+        #d.setLayout(layout)
+        #d.show()
+        view.exec_()
 
     def showRemovePipeline(self):
 
@@ -484,6 +544,8 @@ class VulkanSetupGUI(QMainWindow):
     def addUniqueItem(self, listWidget, item):
         for i in range(listWidget.count()):
             if listWidget.item(i).text() == item:
+                return None
+            if listWidget.item(i).data(Qt.UserRole) == item.data(Qt.UserRole):
                 return None
         listWidget.addItem(item)
         return listWidget.item(listWidget.count() - 1)
