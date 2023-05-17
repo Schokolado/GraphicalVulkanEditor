@@ -1,1 +1,150 @@
-<VulkanSetup><instance><applicationNameInput name="applicationNameInput">Application</applicationNameInput><showValidationLayerDebugInfoCheckBox name="showValidationLayerDebugInfoCheckBox">VK_TRUE</showValidationLayerDebugInfoCheckBox><runOnMacosCheckBox name="runOnMacosCheckBox">VK_FALSE</runOnMacosCheckBox></instance><physicalDevice><chooseGPUOnStartupCheckBox name="chooseGPUOnStartupCheckBox">VK_FALSE</chooseGPUOnStartupCheckBox></physicalDevice><logicalDevice><deviceExtensionsList name="deviceExtensionsList"><extension>VK_KHR_SWAPCHAIN_EXTENSION_NAME</extension><extension>VK_KHR_SWAPCHAIN_EXTENSION_NAME test</extension></deviceExtensionsList></logicalDevice><swapchain><imageDimensions name="imageDimensions"><imageHeightInput name="imageHeightInput">200</imageHeightInput><imageWidthInput name="imageWidthInput">200</imageWidthInput></imageDimensions><lockWindowSizeCheckBox name="lockWindowSizeCheckBox">VK_FALSE</lockWindowSizeCheckBox><imageClearColor name="imageClearColor"><clearColorRInput name="clearColorRInput">0,00</clearColorRInput><clearColorGInput name="clearColorGInput">0,00</clearColorGInput><clearColorBInput name="clearColorBInput">0,00</clearColorBInput><clearColorAInput name="clearColorAInput">1,00</clearColorAInput></imageClearColor><framesInFlightInput name="framesInFlightInput">2</framesInFlightInput><saveEnergyForMobileCheckBox name="saveEnergyForMobileCheckBox">VK_FALSE</saveEnergyForMobileCheckBox><imageUsageInput name="imageUsageInput">VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT</imageUsageInput><presentationModeInput name="presentationModeInput">VK_PRESENT_MODE_MAILBOX_KHR</presentationModeInput><imageFormatInput name="imageFormatInput">VK_FORMAT_B8G8R8A8_SRGB</imageFormatInput><imageColorSpaceInput name="imageColorSpaceInput">VK_COLORSPACE_SRGB_NONLINEAR_KHR</imageColorSpaceInput></swapchain><model><modelFileInput name="modelFileInput">C:/Users/Avoccardo/source/repos/VulkanSetup/models/viking_room.obj</modelFileInput><textureFileInput name="textureFileInput">C:/Users/Avoccardo/source/repos/VulkanSetup/textures/viking_room.png</textureFileInput></model></VulkanSetup>
+<VulkanSetup>
+    <instance>
+        <applicationNameInput name="applicationNameInput">Application</applicationNameInput>
+        <showValidationLayerDebugInfoCheckBox name="showValidationLayerDebugInfoCheckBox">VK_TRUE
+        </showValidationLayerDebugInfoCheckBox>
+        <runOnMacosCheckBox name="runOnMacosCheckBox">VK_FALSE</runOnMacosCheckBox>
+    </instance>
+    <physicalDevice>
+        <chooseGPUOnStartupCheckBox name="chooseGPUOnStartupCheckBox">VK_FALSE</chooseGPUOnStartupCheckBox>
+    </physicalDevice>
+    <logicalDevice>
+        <deviceExtensionsList name="deviceExtensionsList">
+            <extension>VK_KHR_SWAPCHAIN_EXTENSION_NAME</extension>
+            <extension>VK_KHR_SWAPCHAIN_EXTENSION_NAME test</extension>
+        </deviceExtensionsList>
+    </logicalDevice>
+    <swapchain>
+        <imageDimensions name="imageDimensions">
+            <imageHeightInput name="imageHeightInput">200</imageHeightInput>
+            <imageWidthInput name="imageWidthInput">200</imageWidthInput>
+        </imageDimensions>
+        <lockWindowSizeCheckBox name="lockWindowSizeCheckBox">VK_FALSE</lockWindowSizeCheckBox>
+        <imageClearColor name="imageClearColor">
+            <clearColorRInput name="clearColorRInput">0,00</clearColorRInput>
+            <clearColorGInput name="clearColorGInput">0,00</clearColorGInput>
+            <clearColorBInput name="clearColorBInput">0,00</clearColorBInput>
+            <clearColorAInput name="clearColorAInput">1,00</clearColorAInput>
+        </imageClearColor>
+        <framesInFlightInput name="framesInFlightInput">2</framesInFlightInput>
+        <saveEnergyForMobileCheckBox name="saveEnergyForMobileCheckBox">VK_FALSE</saveEnergyForMobileCheckBox>
+        <imageUsageInput name="imageUsageInput">VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT</imageUsageInput>
+        <presentationModeInput name="presentationModeInput">VK_PRESENT_MODE_MAILBOX_KHR</presentationModeInput>
+        <imageFormatInput name="imageFormatInput">VK_FORMAT_B8G8R8A8_SRGB</imageFormatInput>
+        <imageColorSpaceInput name="imageColorSpaceInput">VK_COLORSPACE_SRGB_NONLINEAR_KHR</imageColorSpaceInput>
+    </swapchain>
+    <model>
+        <modelFileInput name="modelFileInput">C:/Users/Avoccardo/source/repos/VulkanSetup/models/viking_room.obj
+        </modelFileInput>
+        <textureFileInput name="textureFileInput">C:/Users/Avoccardo/source/repos/VulkanSetup/textures/viking_room.png
+        </textureFileInput>
+    </model>
+    <graphicsPipelines>
+        <pipeline name="Graphics Pipeline 1">
+            <vertexTopologyInput name="vertexTopologyInput">VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST</vertexTopologyInput>
+            <primitiveRestartInput name="primitiveRestartInput">VK_FALSE</primitiveRestartInput>
+            <depthClampInput name="depthClampInput">VK_FALSE</depthClampInput>
+            <rasterizerDiscardInput name="rasterizerDiscardInput">VK_FALSE</rasterizerDiscardInput>
+            <polygonModeInput name="polygonModeInput">VK_POLYGON_MODE_FILL</polygonModeInput>
+            <lineWidthInput name="lineWidthInput">0,00</lineWidthInput>
+            <cullModeInput name="cullModeInput">VK_CULL_MODE_NONE</cullModeInput>
+            <frontFaceInput name="frontFaceInput">VK_FRONT_FACE_COUNTER_CLOCKWISE</frontFaceInput>
+            <depthBiasEnabledInput name="depthBiasEnabledInput">VK_FALSE</depthBiasEnabledInput>
+            <slopeFactorInput name="slopeFactorInput">0,00</slopeFactorInput>
+            <constantFactorInput name="constantFactorInput">0,00</constantFactorInput>
+            <biasClampInput name="biasClampInput">0,00</biasClampInput>
+            <depthTestInput name="depthTestInput">VK_TRUE</depthTestInput>
+            <depthWriteInput name="depthWriteInput">VK_TRUE</depthWriteInput>
+            <depthCompareOperationInput name="depthCompareOperationInput">VK_COMPARE_OP_LESS
+            </depthCompareOperationInput>
+            <depthBoundsTestInput name="depthBoundsTestInput">VK_FALSE</depthBoundsTestInput>
+            <depthBoundsMinInput name="depthBoundsMinInput">0,00</depthBoundsMinInput>
+            <depthBoundsMaxInput name="depthBoundsMaxInput">0,00</depthBoundsMaxInput>
+            <stencilTestInput name="stencilTestInput">VK_FALSE</stencilTestInput>
+            <sampleShadingInput name="sampleShadingInput">VK_FALSE</sampleShadingInput>
+            <rasterizationSamplesInput name="rasterizationSamplesInput">VK_SAMPLE_COUNT_1_BIT
+            </rasterizationSamplesInput>
+            <minSampleShadingInput name="minSampleShadingInput">0,00</minSampleShadingInput>
+            <alphaToCoverageInput name="alphaToCoverageInput">VK_FALSE</alphaToCoverageInput>
+            <alphaToOneInput name="alphaToOneInput">VK_FALSE</alphaToOneInput>
+            <colorWriteMaskInput name="colorWriteMaskInput">RGBA</colorWriteMaskInput>
+            <colorBlendInput name="colorBlendInput">VK_FALSE</colorBlendInput>
+            <sourceColorBlendFactorInput name="sourceColorBlendFactorInput">VK_BLEND_FACTOR_ONE
+            </sourceColorBlendFactorInput>
+            <destinationColorBlendFactorInput name="destinationColorBlendFactorInput">VK_BLEND_FACTOR_ZERO
+            </destinationColorBlendFactorInput>
+            <colorBlendOperationInput name="colorBlendOperationInput">VK_BLEND_OP_ADD</colorBlendOperationInput>
+            <sourceAlphaBlendFactorInput name="sourceAlphaBlendFactorInput">VK_BLEND_FACTOR_ONE
+            </sourceAlphaBlendFactorInput>
+            <destinationAlphaBlendFactorInput name="destinationAlphaBlendFactorInput">VK_BLEND_FACTOR_ZERO
+            </destinationAlphaBlendFactorInput>
+            <alphaBlendOperationInput name="alphaBlendOperationInput">VK_BLEND_OP_ADD</alphaBlendOperationInput>
+            <logicOperationEnabledInput name="logicOperationEnabledInput">VK_FALSE</logicOperationEnabledInput>
+            <logicOperationInput name="logicOperationInput">VK_LOGIC_OP_COPY</logicOperationInput>
+            <attachmentCountInput name="attachmentCountInput">1</attachmentCountInput>
+            <blendConstant0Input name="blendConstant0Input">0,00</blendConstant0Input>
+            <blendConstant1Input name="blendConstant1Input">0,00</blendConstant1Input>
+            <blendConstant2Input name="blendConstant2Input">0,00</blendConstant2Input>
+            <blendConstant3Input name="blendConstant3Input">0,00</blendConstant3Input>
+            <vertexShaderFileInput name="vertexShaderFileInput"/>
+            <vertexShaderEntryFunctionNameInput name="vertexShaderEntryFunctionNameInput"/>
+            <fragmentShaderFileInput name="fragmentShaderFileInput"/>
+            <fragmentShaderEntryFunctionNameInput name="fragmentShaderEntryFunctionNameInput"/>
+            <reduceSpirvCodeSizeCheckBox name="reduceSpirvCodeSizeCheckBox">VK_FALSE</reduceSpirvCodeSizeCheckBox>
+            <useIndexedVerticesCheckBox name="useIndexedVerticesCheckBox">VK_FALSE</useIndexedVerticesCheckBox>
+        </pipeline>
+        <pipeline name="Graphics Pipeline 2">
+            <vertexTopologyInput name="vertexTopologyInput">VK_PRIMITIVE_TOPOLOGY_POINT_LIST</vertexTopologyInput>
+            <primitiveRestartInput name="primitiveRestartInput">VK_FALSE</primitiveRestartInput>
+            <depthClampInput name="depthClampInput">VK_FALSE</depthClampInput>
+            <rasterizerDiscardInput name="rasterizerDiscardInput">VK_FALSE</rasterizerDiscardInput>
+            <polygonModeInput name="polygonModeInput">VK_POLYGON_MODE_FILL</polygonModeInput>
+            <lineWidthInput name="lineWidthInput">0,00</lineWidthInput>
+            <cullModeInput name="cullModeInput">VK_CULL_MODE_NONE</cullModeInput>
+            <frontFaceInput name="frontFaceInput">VK_FRONT_FACE_COUNTER_CLOCKWISE</frontFaceInput>
+            <depthBiasEnabledInput name="depthBiasEnabledInput">VK_FALSE</depthBiasEnabledInput>
+            <slopeFactorInput name="slopeFactorInput">0,00</slopeFactorInput>
+            <constantFactorInput name="constantFactorInput">0,00</constantFactorInput>
+            <biasClampInput name="biasClampInput">0,00</biasClampInput>
+            <depthTestInput name="depthTestInput">VK_TRUE</depthTestInput>
+            <depthWriteInput name="depthWriteInput">VK_TRUE</depthWriteInput>
+            <depthCompareOperationInput name="depthCompareOperationInput">VK_COMPARE_OP_LESS
+            </depthCompareOperationInput>
+            <depthBoundsTestInput name="depthBoundsTestInput">VK_FALSE</depthBoundsTestInput>
+            <depthBoundsMinInput name="depthBoundsMinInput">0,00</depthBoundsMinInput>
+            <depthBoundsMaxInput name="depthBoundsMaxInput">0,00</depthBoundsMaxInput>
+            <stencilTestInput name="stencilTestInput">VK_FALSE</stencilTestInput>
+            <sampleShadingInput name="sampleShadingInput">VK_FALSE</sampleShadingInput>
+            <rasterizationSamplesInput name="rasterizationSamplesInput">VK_SAMPLE_COUNT_1_BIT
+            </rasterizationSamplesInput>
+            <minSampleShadingInput name="minSampleShadingInput">0,00</minSampleShadingInput>
+            <alphaToCoverageInput name="alphaToCoverageInput">VK_FALSE</alphaToCoverageInput>
+            <alphaToOneInput name="alphaToOneInput">VK_FALSE</alphaToOneInput>
+            <colorWriteMaskInput name="colorWriteMaskInput">RGBA</colorWriteMaskInput>
+            <colorBlendInput name="colorBlendInput">VK_FALSE</colorBlendInput>
+            <sourceColorBlendFactorInput name="sourceColorBlendFactorInput">VK_BLEND_FACTOR_ONE
+            </sourceColorBlendFactorInput>
+            <destinationColorBlendFactorInput name="destinationColorBlendFactorInput">VK_BLEND_FACTOR_ZERO
+            </destinationColorBlendFactorInput>
+            <colorBlendOperationInput name="colorBlendOperationInput">VK_BLEND_OP_ADD</colorBlendOperationInput>
+            <sourceAlphaBlendFactorInput name="sourceAlphaBlendFactorInput">VK_BLEND_FACTOR_ONE
+            </sourceAlphaBlendFactorInput>
+            <destinationAlphaBlendFactorInput name="destinationAlphaBlendFactorInput">VK_BLEND_FACTOR_ZERO
+            </destinationAlphaBlendFactorInput>
+            <alphaBlendOperationInput name="alphaBlendOperationInput">VK_BLEND_OP_ADD</alphaBlendOperationInput>
+            <logicOperationEnabledInput name="logicOperationEnabledInput">VK_FALSE</logicOperationEnabledInput>
+            <logicOperationInput name="logicOperationInput">VK_LOGIC_OP_COPY</logicOperationInput>
+            <attachmentCountInput name="attachmentCountInput">1</attachmentCountInput>
+            <blendConstant0Input name="blendConstant0Input">0,00</blendConstant0Input>
+            <blendConstant1Input name="blendConstant1Input">0,00</blendConstant1Input>
+            <blendConstant2Input name="blendConstant2Input">0,00</blendConstant2Input>
+            <blendConstant3Input name="blendConstant3Input">0,00</blendConstant3Input>
+            <vertexShaderFileInput name="vertexShaderFileInput"/>
+            <vertexShaderEntryFunctionNameInput name="vertexShaderEntryFunctionNameInput"/>
+            <fragmentShaderFileInput name="fragmentShaderFileInput"/>
+            <fragmentShaderEntryFunctionNameInput name="fragmentShaderEntryFunctionNameInput"/>
+            <reduceSpirvCodeSizeCheckBox name="reduceSpirvCodeSizeCheckBox">VK_FALSE</reduceSpirvCodeSizeCheckBox>
+            <useIndexedVerticesCheckBox name="useIndexedVerticesCheckBox">VK_FALSE</useIndexedVerticesCheckBox>
+        </pipeline>
+    </graphicsPipelines>
+</VulkanSetup>

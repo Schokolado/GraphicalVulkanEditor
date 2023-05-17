@@ -1,3 +1,5 @@
+import ast
+
 from PyQt5 import uic
 from PyQt5.QtGui import QPixmap
 from pywavefront import Wavefront
@@ -36,6 +38,7 @@ def convertToVulkanNaming(input: str):
 
 from PyQt5.QtGui import QMatrix4x4
 from PyQt5.QtCore import Qt
+
 
 class OpenGLWidget(QOpenGLWidget):
     def __init__(self, obj_file_path, parent=None):
@@ -229,6 +232,10 @@ class VulkanSetupGUI(QMainWindow):
             self.textureFileInput.text()))
 
         # GraphicsPipeline
+        print("graphicsPipelinesList: ")
+        for i in range(self.graphicsPipelinesList.count()):
+            print("[{}]: [{}]".format(self.graphicsPipelinesList.item(i).data(0),
+                self.graphicsPipelinesList.item(i).data(Qt.UserRole)))
 
         print()
 
@@ -362,10 +369,12 @@ class VulkanSetupGUI(QMainWindow):
             if not pipeline:
                 self.showNotAllowedInput("empty line")
                 return
-            pipelineItem = QListWidgetItem(f"Graphics Pipeline {str(self.graphicsPipelinesList.count() + 1)}") # add an increasing ID
-            pipelineItem.setData(Qt.UserRole, pipeline) # Hide data behind roles such that IDs can be displayed on lists without showing all data
+            pipelineItem = QListWidgetItem(
+                f"Graphics Pipeline {str(self.graphicsPipelinesList.count() + 1)}")  # add an increasing ID
+            pipelineItem.setData(Qt.UserRole,
+                                 pipeline)  # Hide data behind roles such that IDs can be displayed on lists without showing all data
             if self.addUniqueItem(self.graphicsPipelinesList, pipelineItem):
-            #if self.addUniqueItem(self.graphicsPipelinesList, pipeline):
+                # if self.addUniqueItem(self.graphicsPipelinesList, pipeline):
                 print(f"Pipeline Added: {pipeline}")
             else:
                 showPipelineAlreadyPresent(pipeline)
@@ -422,25 +431,8 @@ class VulkanSetupGUI(QMainWindow):
             return parameters
 
         view = GraphicsPipelineView()
-
-
-        #d = QDialog(self)
-        #d.setWindowTitle(" ")
         view.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
-        #layout = QVBoxLayout()
-        #label = QLabel(f"Add new Pipeline:\n")
-        #layout.addWidget(label)
-        #lineEdit = QLineEdit()
-        #layout.addWidget(lineEdit)
-        #ok_button = QPushButton("Add")
-        #view.addPipelineOKButton.clicked.connect(lambda: addPipeline(lineEdit.text()))
-       # okButton =
-        view.addPipelineOKButton.accepted.connect(lambda: print(addPipelineParameters()))
         view.addPipelineOKButton.accepted.connect(lambda: addPipeline(str(addPipelineParameters())))
-        #ok_button.clicked.connect(view.accept)
-        #layout.addWidget(ok_button)
-        #d.setLayout(layout)
-        #d.show()
         view.exec_()
 
     def showRemovePipeline(self):
@@ -545,7 +537,7 @@ class VulkanSetupGUI(QMainWindow):
         for i in range(listWidget.count()):
             if listWidget.item(i).text() == item:
                 return None
-            if listWidget.item(i).data(Qt.UserRole) == item.data(Qt.UserRole):
+            if listWidget.item(i).data(Qt.UserRole) == item.data(Qt.UserRole):  # user roles can be used to hide data
                 return None
         listWidget.addItem(item)
         return listWidget.item(listWidget.count() - 1)
@@ -632,6 +624,39 @@ class VulkanSetupGUI(QMainWindow):
         model = ET.SubElement(root, 'model')
         ET.SubElement(model, 'modelFileInput', name='modelFileInput').text = self.modelFileInput.text()
         ET.SubElement(model, 'textureFileInput', name='textureFileInput').text = self.textureFileInput.text()
+
+        # Graphics Pipeline
+        graphicsPipelines = ET.SubElement(root, 'graphicsPipelines')
+
+        for i in range(self.graphicsPipelinesList.count()):
+            item = self.graphicsPipelinesList.item(i)
+            pipeline = ET.SubElement(graphicsPipelines, 'pipeline', name=f'{item.data(0)}')
+            data = ast.literal_eval(item.data(Qt.UserRole))
+
+            pipeline_inputs = [
+                'vertexTopologyInput', 'primitiveRestartInput', 'depthClampInput',
+                'rasterizerDiscardInput', 'polygonModeInput', 'lineWidthInput',
+                'cullModeInput', 'frontFaceInput', 'depthBiasEnabledInput',
+                'slopeFactorInput', 'constantFactorInput', 'biasClampInput',
+                'depthTestInput', 'depthWriteInput', 'depthCompareOperationInput',
+                'depthBoundsTestInput', 'depthBoundsMinInput', 'depthBoundsMaxInput',
+                'stencilTestInput', 'sampleShadingInput', 'rasterizationSamplesInput',
+                'minSampleShadingInput', 'alphaToCoverageInput', 'alphaToOneInput',
+                'colorWriteMaskInput', 'colorBlendInput',
+                'sourceColorBlendFactorInput', 'destinationColorBlendFactorInput',
+                'colorBlendOperationInput', 'sourceAlphaBlendFactorInput',
+                'destinationAlphaBlendFactorInput', 'alphaBlendOperationInput',
+                'logicOperationEnabledInput', 'logicOperationInput',
+                'attachmentCountInput', 'blendConstant0Input', 'blendConstant1Input',
+                'blendConstant2Input', 'blendConstant3Input', 'vertexShaderFileInput',
+                'vertexShaderEntryFunctionNameInput', 'fragmentShaderFileInput',
+                'fragmentShaderEntryFunctionNameInput', 'reduceSpirvCodeSizeCheckBox',
+                'useIndexedVerticesCheckBox'
+            ]
+
+            for index, input_name in enumerate(pipeline_inputs):
+                ET.SubElement(pipeline, input_name, name=input_name).text = data[index]
+
 
         # create a new XML file with the results
         mydata = ET.tostring(root)
@@ -725,10 +750,19 @@ class VulkanSetupGUI(QMainWindow):
             if elem.tag == "textureFileInput":
                 self.textureFileInput.setText(elem.text)
 
+            # Graphics Pipeline
+            if elem.tag == "pipeline":
+                pipeline = []
+                if elem.tag == "vertexTopologyInput":
+                    pipeline.append(elem.text)
+                item = self.addUniqueItem(self.graphicsPipelinesList, elem.text)
+
+
             for subelem in elem:
                 traverse(subelem)
 
         traverse(root)
+
 
 
 class glWidget(QOpenGLWidget):
