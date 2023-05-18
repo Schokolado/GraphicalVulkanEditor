@@ -4,11 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="write graphics pipelines to xml">
+    <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="read graphics pipelines from xml">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetup.xml" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetup.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.ui" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.ui" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -134,7 +133,14 @@
       <option name="project" value="LOCAL" />
       <updated>1684367278563</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="read graphics pipelines from xml">
+      <created>1684410797243</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1684410797243</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -146,15 +152,26 @@
     <MESSAGE value="clean model preview widget" />
     <MESSAGE value="add graphics pipelines and hide behind identifier in list" />
     <MESSAGE value="write graphics pipelines to xml" />
-    <option name="LAST_COMMIT_MESSAGE" value="write graphics pipelines to xml" />
+    <MESSAGE value="read graphics pipelines from xml" />
+    <option name="LAST_COMMIT_MESSAGE" value="read graphics pipelines from xml" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
-          <line>274</line>
+          <line>280</line>
           <option name="timeStamp" value="20" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
+          <line>249</line>
+          <option name="timeStamp" value="26" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
+          <line>359</line>
+          <option name="timeStamp" value="27" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

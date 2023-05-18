@@ -35,8 +35,14 @@ def convertToVulkanNaming(input: str):
         print(f"Provided input was [{input}]. Unnecessary conversion call.")
         return input
 
+def convertFromVulkanNaming(input):
+    if input == "VK_TRUE":
+        return True
+    elif input == "VK_FALSE":
+        return False
+    else:
+        return input
 
-from PyQt5.QtGui import QMatrix4x4
 from PyQt5.QtCore import Qt
 
 
@@ -167,7 +173,7 @@ class VulkanSetupGUI(QMainWindow):
 
         # GraphicsPipeline
         self.addPipelineButton.clicked.connect(self.showAddPipelineInput)
-        # self.editPipelineButton.clicked.connect(self.showEditPipelineInput)
+        self.editPipelineButton.clicked.connect(self.showEditPipelineInput)
         self.deletePipelineButton.clicked.connect(self.showRemovePipeline)
         # self.pipelinePreviewButton.clicked.connect(self.showPreview)
 
@@ -440,6 +446,126 @@ class VulkanSetupGUI(QMainWindow):
         view.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
         view.addPipelineOKButton.accepted.connect(lambda: addPipeline(str(addPipelineParameters())))
         view.exec_()
+
+    def showEditPipelineInput(self):
+
+
+        def updateGraphicsPipelineView(item):
+
+            def editPipeline():
+                selected_item = self.graphicsPipelinesList.currentItem()
+                if selected_item is not None:
+                    pipeline_data = editPipelineParameters()
+                    selected_item.setData(Qt.UserRole, pipeline_data)
+                    view.close()
+
+            def editPipelineParameters():
+                parameters = []
+                parameters.append(view.vertexTopologyInput.currentText())
+                parameters.append(view.primitiveRestartInput.currentText())
+                parameters.append(view.depthClampInput.currentText())
+                parameters.append(view.rasterizerDiscardInput.currentText())
+                parameters.append(view.polygonModeInput.currentText())
+                parameters.append(view.lineWidthInput.text())
+                parameters.append(view.cullModeInput.currentText())
+                parameters.append(view.frontFaceInput.currentText())
+                parameters.append(view.depthBiasEnabledInput.currentText())
+                parameters.append(view.slopeFactorInput.text())
+                parameters.append(view.constantFactorInput.text())
+                parameters.append(view.biasClampInput.text())
+                parameters.append(view.depthTestInput.currentText())
+                parameters.append(view.depthWriteInput.currentText())
+                parameters.append(view.depthCompareOperationInput.currentText())
+                parameters.append(view.depthBoundsTestInput.currentText())
+                parameters.append(view.depthBoundsMinInput.text())
+                parameters.append(view.depthBoundsMaxInput.text())
+                parameters.append(view.stencilTestInput.currentText())
+                parameters.append(view.sampleShadingInput.currentText())
+                parameters.append(view.rasterizationSamplesInput.currentText())
+                parameters.append(view.minSampleShadingInput.text())
+                parameters.append(view.alphaToCoverageInput.currentText())
+                parameters.append(view.alphaToOneInput.currentText())
+                parameters.append(view.colorWriteMaskInput.currentText())
+                parameters.append(view.colorBlendInput.currentText())
+                parameters.append(view.sourceColorBlendFactorInput.currentText())
+                parameters.append(view.destinationColorBlendFactorInput.currentText())
+                parameters.append(view.colorBlendOperationInput.currentText())
+                parameters.append(view.sourceAlphaBlendFactorInput.currentText())
+                parameters.append(view.destinationAlphaBlendFactorInput.currentText())
+                parameters.append(view.alphaBlendOperationInput.currentText())
+                parameters.append(view.logicOperationEnabledInput.currentText())
+                parameters.append(view.logicOperationInput.currentText())
+                parameters.append(view.attachmentCountInput.text())
+                parameters.append(view.blendConstant0Input.text())
+                parameters.append(view.blendConstant1Input.text())
+                parameters.append(view.blendConstant2Input.text())
+                parameters.append(view.blendConstant3Input.text())
+                parameters.append(view.vertexShaderFileInput.text())
+                parameters.append(view.vertexShaderEntryFunctionNameInput.text())
+                parameters.append(view.fragmentShaderFileInput.text())
+                parameters.append(view.fragmentShaderEntryFunctionNameInput.text())
+                parameters.append(convertToVulkanNaming(view.reduceSpirvCodeSizeCheckBox.isChecked()))
+                parameters.append(convertToVulkanNaming(view.useIndexedVerticesCheckBox.isChecked()))
+
+                return parameters
+
+            view = GraphicsPipelineView()
+            view.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
+            pipeline_data = self.graphicsPipelinesList.currentItem().data(Qt.UserRole)
+
+            # Update the pipeline data in the view's fields
+            view.vertexTopologyInput.setCurrentText(pipeline_data[0])
+            view.primitiveRestartInput.setCurrentText(pipeline_data[1])
+            view.depthClampInput.setCurrentText(pipeline_data[2])
+            view.rasterizerDiscardInput.setCurrentText(pipeline_data[3])
+            view.polygonModeInput.setCurrentText(pipeline_data[4])
+            view.lineWidthInput.setValue(float(pipeline_data[5].replace(',', '.')))
+            view.cullModeInput.setCurrentText(pipeline_data[6])
+            view.frontFaceInput.setCurrentText(pipeline_data[7])
+            view.depthBiasEnabledInput.setCurrentText(pipeline_data[8])
+            view.slopeFactorInput.setValue(float(pipeline_data[9].replace(',', '.')))
+            view.constantFactorInput.setValue(float(pipeline_data[10].replace(',', '.')))
+            view.biasClampInput.setValue(float(pipeline_data[11].replace(',', '.')))
+            view.depthTestInput.setCurrentText(pipeline_data[12])
+            view.depthWriteInput.setCurrentText(pipeline_data[13])
+            view.depthCompareOperationInput.setCurrentText(pipeline_data[14])
+            view.depthBoundsTestInput.setCurrentText(pipeline_data[15])
+            view.depthBoundsMinInput.setValue(float(pipeline_data[16].replace(',', '.')))
+            view.depthBoundsMaxInput.setValue(float(pipeline_data[17].replace(',', '.')))
+            view.stencilTestInput.setCurrentText(pipeline_data[18])
+            view.sampleShadingInput.setCurrentText(pipeline_data[19])
+            view.rasterizationSamplesInput.setCurrentText(pipeline_data[20])
+            view.minSampleShadingInput.setValue(float(pipeline_data[21].replace(',', '.')))
+            view.alphaToCoverageInput.setCurrentText(pipeline_data[22])
+            view.alphaToOneInput.setCurrentText(pipeline_data[23])
+            view.colorWriteMaskInput.setCurrentText(pipeline_data[24])
+            view.colorBlendInput.setCurrentText(pipeline_data[25])
+            view.sourceColorBlendFactorInput.setCurrentText(pipeline_data[26])
+            view.destinationColorBlendFactorInput.setCurrentText(pipeline_data[27])
+            view.colorBlendOperationInput.setCurrentText(pipeline_data[28])
+            view.sourceAlphaBlendFactorInput.setCurrentText(pipeline_data[29])
+            view.destinationAlphaBlendFactorInput.setCurrentText(pipeline_data[30])
+            view.alphaBlendOperationInput.setCurrentText(pipeline_data[31])
+            view.logicOperationEnabledInput.setCurrentText(pipeline_data[32])
+            view.logicOperationInput.setCurrentText(pipeline_data[33])
+            view.attachmentCountInput.setValue(int(pipeline_data[34]))
+            view.blendConstant0Input.setValue(float(pipeline_data[35].replace(',', '.')))
+            view.blendConstant1Input.setValue(float(pipeline_data[36].replace(',', '.')))
+            view.blendConstant2Input.setValue(float(pipeline_data[37].replace(',', '.')))
+            view.blendConstant3Input.setValue(float(pipeline_data[38].replace(',', '.')))
+            view.vertexShaderFileInput.setText(pipeline_data[39])
+            view.vertexShaderEntryFunctionNameInput.setText(pipeline_data[40])
+            view.fragmentShaderFileInput.setText(pipeline_data[41])
+            view.fragmentShaderEntryFunctionNameInput.setText(pipeline_data[42])
+            view.reduceSpirvCodeSizeCheckBox.setChecked(convertFromVulkanNaming(pipeline_data[43]))
+            view.useIndexedVerticesCheckBox.setChecked(convertFromVulkanNaming(pipeline_data[44]))
+
+            view.addPipelineOKButton.accepted.connect(editPipeline)
+            view.exec_()
+
+        selected_item = self.graphicsPipelinesList.currentItem()
+        if selected_item is not None:
+            updateGraphicsPipelineView(selected_item)
 
     def showRemovePipeline(self):
 
