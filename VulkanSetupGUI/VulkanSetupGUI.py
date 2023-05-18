@@ -369,12 +369,18 @@ class VulkanSetupGUI(QMainWindow):
             if not pipeline:
                 self.showNotAllowedInput("empty line")
                 return
-            pipelineItem = QListWidgetItem(
-                f"Graphics Pipeline {str(self.graphicsPipelinesList.count() + 1)}")  # add an increasing ID
-            pipelineItem.setData(Qt.UserRole,
-                                 pipeline)  # Hide data behind roles such that IDs can be displayed on lists without showing all data
+
+            # Convert pipeline to a list object using ast.literal_eval
+            try:
+                pipeline = ast.literal_eval(pipeline)
+            except (ValueError, SyntaxError) as e:
+                print(f"Error converting pipeline: {e}")
+                return
+
+            pipelineItem = QListWidgetItem(f"Graphics Pipeline {str(self.graphicsPipelinesList.count() + 1)}")
+            pipelineItem.setData(Qt.UserRole, pipeline)
+
             if self.addUniqueItem(self.graphicsPipelinesList, pipelineItem):
-                # if self.addUniqueItem(self.graphicsPipelinesList, pipeline):
                 print(f"Pipeline Added: {pipeline}")
             else:
                 showPipelineAlreadyPresent(pipeline)
@@ -631,7 +637,7 @@ class VulkanSetupGUI(QMainWindow):
         for i in range(self.graphicsPipelinesList.count()):
             item = self.graphicsPipelinesList.item(i)
             pipeline = ET.SubElement(graphicsPipelines, 'pipeline', name=f'{item.data(0)}')
-            data = ast.literal_eval(item.data(Qt.UserRole))
+            data = item.data(Qt.UserRole)
 
             pipeline_inputs = [
                 'vertexTopologyInput', 'primitiveRestartInput', 'depthClampInput',
@@ -654,8 +660,9 @@ class VulkanSetupGUI(QMainWindow):
                 'useIndexedVerticesCheckBox'
             ]
 
-            for index, input_name in enumerate(pipeline_inputs):
-                ET.SubElement(pipeline, input_name, name=input_name).text = data[index]
+            for index, value in enumerate(data):
+                input_name = pipeline_inputs[index]
+                ET.SubElement(pipeline, input_name, name=input_name).text = str(value)
 
 
         # create a new XML file with the results
@@ -752,11 +759,23 @@ class VulkanSetupGUI(QMainWindow):
 
             # Graphics Pipeline
             if elem.tag == "pipeline":
+                pipelineName = elem.attrib["name"]
                 pipeline = []
-                if elem.tag == "vertexTopologyInput":
-                    pipeline.append(elem.text)
-                item = self.addUniqueItem(self.graphicsPipelinesList, elem.text)
 
+                for child in elem:
+                    if child.tag in {"vertexShaderFileInput", "vertexShaderEntryFunctionNameInput", "fragmentShaderFileInput", "fragmentShaderEntryFunctionNameInput" }:
+                        if child.text is None:
+                            pipeline.append("")
+                    else:
+                        pipeline.append(child.text)
+
+                pipelineItem = QListWidgetItem(pipelineName)
+                pipelineItem.setData(Qt.UserRole, pipeline)
+                if self.addUniqueItem(self.graphicsPipelinesList, pipelineItem):
+                    print(f"Pipeline Added: {pipeline}")
+
+            for subelem in elem:
+                traverse(subelem)
 
             for subelem in elem:
                 traverse(subelem)

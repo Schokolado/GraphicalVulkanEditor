@@ -47,7 +47,7 @@
          </size>
         </property>
         <property name="currentIndex">
-         <number>4</number>
+         <number>5</number>
         </property>
         <widget class="QWidget" name="instance">
          <property name="enabled">
@@ -983,16 +983,6 @@
             <height>401</height>
            </rect>
           </property>
-          <item>
-           <property name="text">
-            <string>Graphics Pipeline 1</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Graphics Pipeline 2</string>
-           </property>
-          </item>
          </widget>
          <widget class="QWidget" name="layoutWidget_2">
           <property name="geometry">
@@ -1000,7 +990,7 @@
             <x>280</x>
             <y>141</y>
             <width>257</width>
-            <height>312</height>
+            <height>291</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayoutPipelinePreview">
