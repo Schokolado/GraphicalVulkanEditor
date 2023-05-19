@@ -1,4 +1,5 @@
 import ast
+import re
 
 from PyQt5 import uic
 from PyQt5.QtGui import QPixmap
@@ -175,6 +176,7 @@ class VulkanSetupGUI(QMainWindow):
         self.addPipelineButton.clicked.connect(self.showAddPipelineInput)
         self.editPipelineButton.clicked.connect(self.showEditPipelineInput)
         self.deletePipelineButton.clicked.connect(self.showRemovePipeline)
+        self.graphicsPipelinesList.itemDoubleClicked.connect(self.showEditPipelineInput)
         # self.pipelinePreviewButton.clicked.connect(self.showPreview)
 
     ### Print and Output Section
@@ -941,9 +943,9 @@ class VulkanSetupGUI(QMainWindow):
 
             ### Model
             if elem.tag == "modelFileInput":
-                self.modelFileInput.setText(elem.text)
+                self.modelFileInput.setText(elem.text.strip())
             if elem.tag == "textureFileInput":
-                self.textureFileInput.setText(elem.text)
+                self.textureFileInput.setText(elem.text.strip())
 
             # Graphics Pipeline
             if elem.tag == "pipeline":
@@ -951,11 +953,10 @@ class VulkanSetupGUI(QMainWindow):
                 pipeline = []
 
                 for child in elem:
-                    if child.tag in {"vertexShaderFileInput", "vertexShaderEntryFunctionNameInput", "fragmentShaderFileInput", "fragmentShaderEntryFunctionNameInput" }:
-                        if child.text is None:
-                            pipeline.append("")
+                    if child.tag in {"vertexShaderFileInput", "vertexShaderEntryFunctionNameInput", "fragmentShaderFileInput", "fragmentShaderEntryFunctionNameInput"} and child.text is None:
+                        pipeline.append("")
                     else:
-                        pipeline.append(child.text)
+                        pipeline.append(child.text.strip())
 
                 pipelineItem = QListWidgetItem(pipelineName)
                 pipelineItem.setData(Qt.UserRole, pipeline)
@@ -968,6 +969,7 @@ class VulkanSetupGUI(QMainWindow):
             for subelem in elem:
                 traverse(subelem)
 
+        self.graphicsPipelinesList.clear()
         traverse(root)
 
 
