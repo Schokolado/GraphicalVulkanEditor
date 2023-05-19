@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>715</width>
-    <height>564</height>
+    <width>711</width>
+    <height>563</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,8 +33,8 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-347</y>
-        <width>597</width>
+        <y>0</y>
+        <width>593</width>
         <height>1234</height>
        </rect>
       </property>
@@ -2701,6 +2701,9 @@
                  <kerning>true</kerning>
                 </font>
                </property>
+               <property name="text">
+                <string>main</string>
+               </property>
                <property name="alignment">
                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
                </property>
@@ -2800,6 +2803,9 @@
                 <font>
                  <kerning>true</kerning>
                 </font>
+               </property>
+               <property name="text">
+                <string>main</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>

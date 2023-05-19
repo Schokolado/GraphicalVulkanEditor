@@ -47,7 +47,7 @@
          </size>
         </property>
         <property name="currentIndex">
-         <number>5</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="instance">
          <property name="enabled">
@@ -188,11 +188,6 @@
                <item>
                 <property name="text">
                  <string>VK_KHR_SWAPCHAIN_EXTENSION_NAME</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>VK_KHR_SWAPCHAIN_EXTENSION_NAME test</string>
                 </property>
                </item>
               </widget>
@@ -940,7 +935,7 @@
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap>../textures/viking_room.png</pixmap>
+                  <pixmap>../../../../.designer/textures/viking_room.png</pixmap>
                  </property>
                  <property name="scaledContents">
                   <bool>true</bool>
@@ -958,116 +953,99 @@
          <attribute name="title">
           <string>Graphics Pipeline</string>
          </attribute>
-         <widget class="QLabel" name="rasterizerLabel">
+         <widget class="QWidget" name="">
           <property name="geometry">
            <rect>
             <x>10</x>
             <y>10</y>
-            <width>51</width>
-            <height>16</height>
+            <width>521</width>
+            <height>422</height>
            </rect>
           </property>
-          <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Rasterizer creates fragments out of vertices and also performs depth testing, face culling and scissor test.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-          </property>
-          <property name="text">
-           <string>Pipelines</string>
-          </property>
-         </widget>
-         <widget class="QListWidget" name="graphicsPipelinesList">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>30</y>
-            <width>256</width>
-            <height>401</height>
-           </rect>
-          </property>
-         </widget>
-         <widget class="QWidget" name="layoutWidget_2">
-          <property name="geometry">
-           <rect>
-            <x>280</x>
-            <y>141</y>
-            <width>257</width>
-            <height>291</height>
-           </rect>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayoutPipelinePreview">
-           <item>
-            <widget class="QLabel" name="pipelinePreviewLabel">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>20</height>
-              </size>
+          <layout class="QGridLayout" name="gridLayout_2">
+           <item row="0" column="0">
+            <widget class="QLabel" name="rasterizerLabel">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Rasterizer creates fragments out of vertices and also performs depth testing, face culling and scissor test.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
-              <string>Pipeline Preview:</string>
+              <string>Pipelines</string>
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QPushButton" name="pipelinePreviewButton">
-             <property name="text">
-              <string>Reload Preview</string>
-             </property>
-            </widget>
+           <item row="1" column="0" rowspan="2">
+            <widget class="QListWidget" name="graphicsPipelinesList"/>
            </item>
-           <item>
-            <widget class="QOpenGLWidget" name="pipelinePreviewOpenGLWidget">
-             <property name="minimumSize">
-              <size>
-               <width>255</width>
-               <height>255</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>255</width>
-               <height>255</height>
-              </size>
-             </property>
-            </widget>
+           <item row="1" column="1">
+            <layout class="QVBoxLayout" name="verticalLayoutPipelineActionButtons">
+             <item>
+              <widget class="QPushButton" name="addPipelineButton">
+               <property name="text">
+                <string>Add Pipeline</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="editPipelineButton">
+               <property name="text">
+                <string>Edit Pipeline</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="deletePipelineButton">
+               <property name="text">
+                <string>Delete Pipeline</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="layoutWidget">
-          <property name="geometry">
-           <rect>
-            <x>280</x>
-            <y>30</y>
-            <width>80</width>
-            <height>83</height>
-           </rect>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayoutPipelineActionButtons">
-           <item>
-            <widget class="QPushButton" name="addPipelineButton">
-             <property name="text">
-              <string>Add Pipeline</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="editPipelineButton">
-             <property name="text">
-              <string>Edit Pipeline</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="deletePipelineButton">
-             <property name="text">
-              <string>Delete Pipeline</string>
-             </property>
-            </widget>
+           <item row="2" column="1">
+            <layout class="QVBoxLayout" name="verticalLayoutPipelinePreview">
+             <item>
+              <widget class="QLabel" name="pipelinePreviewLabel">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>20</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>20</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Pipeline Preview:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pipelinePreviewButton">
+               <property name="text">
+                <string>Reload Preview</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QOpenGLWidget" name="pipelinePreviewOpenGLWidget">
+               <property name="minimumSize">
+                <size>
+                 <width>255</width>
+                 <height>255</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>255</width>
+                 <height>255</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </widget>

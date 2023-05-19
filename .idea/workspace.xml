@@ -6,8 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="read graphics pipelines from xml">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/GraphicsPipelineView.ui" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/GraphicsPipelineView.ui" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetup.xml" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetup.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.ui" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.ui" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -167,11 +169,6 @@
           <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
           <line>249</line>
           <option name="timeStamp" value="26" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
-          <line>359</line>
-          <option name="timeStamp" value="27" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

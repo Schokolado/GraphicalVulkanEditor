@@ -166,8 +166,8 @@ class VulkanSetupGUI(QMainWindow):
         # Swapchain
 
         # Model
-        self.modelFileToolButton.clicked.connect(lambda: self.setFilePath("modelFileToolButton"))
-        self.textureFileToolButton.clicked.connect(lambda: self.setFilePath("textureFileToolButton"))
+        self.modelFileToolButton.clicked.connect(lambda: self.setFilePath("modelFileToolButton", None))
+        self.textureFileToolButton.clicked.connect(lambda: self.setFilePath("textureFileToolButton", None))
         self.modelFileInput.returnPressed.connect(self.loadModelPreview)
         self.textureFileInput.returnPressed.connect(self.loadTexturePreview)
 
@@ -329,18 +329,27 @@ class VulkanSetupGUI(QMainWindow):
         d.setLayout(layout)
         d.show()
 
-    def showMissingInput(self, missing):
+    def showMissingInput(self, missing_inputs):
         d = QDialog(self)
-        d.setWindowTitle(" ")
+        d.setWindowTitle("Missing Inputs")
         d.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
         layout = QVBoxLayout()
-        label = QLabel(f"Input was missing:\n\n{missing}\n")
+        label = QLabel("The following inputs were missing:")
         layout.addWidget(label)
+
+        if isinstance(missing_inputs, str):
+            missing_inputs = [missing_inputs]
+
+        for missing in missing_inputs:
+            missing_label = QLabel(missing)
+            layout.addWidget(missing_label)
+
         ok_button = QPushButton("OK")
         ok_button.clicked.connect(d.accept)
         layout.addWidget(ok_button)
+
         d.setLayout(layout)
-        d.show()
+        d.exec_()
 
     def showDefaultExtensionsUsed(self):
         d = QDialog(self)
@@ -386,8 +395,10 @@ class VulkanSetupGUI(QMainWindow):
             pipelineItem = QListWidgetItem(f"Graphics Pipeline {str(self.graphicsPipelinesList.count() + 1)}")
             pipelineItem.setData(Qt.UserRole, pipeline)
 
-            if self.addUniqueItem(self.graphicsPipelinesList, pipelineItem):
+            if self.addUniquePipeline(self.graphicsPipelinesList, pipelineItem):
                 print(f"Pipeline Added: {pipeline}")
+                self.checkPipelineInput() # Perform validation
+
             else:
                 showPipelineAlreadyPresent(pipeline)
 
@@ -445,19 +456,19 @@ class VulkanSetupGUI(QMainWindow):
         view = GraphicsPipelineView()
         view.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
         view.addPipelineOKButton.accepted.connect(lambda: addPipeline(str(addPipelineParameters())))
+        view.vertexShaderFileToolButton.clicked.connect(lambda: self.setFilePath("vertexShaderFileToolButton", view))
+        view.fragmentShaderFileToolButton.clicked.connect(lambda: self.setFilePath("fragmentShaderFileToolButton", view))
         view.exec_()
 
     def showEditPipelineInput(self):
-
-
         def updateGraphicsPipelineView(item):
-
             def editPipeline():
                 selected_item = self.graphicsPipelinesList.currentItem()
                 if selected_item is not None:
                     pipeline_data = editPipelineParameters()
                     selected_item.setData(Qt.UserRole, pipeline_data)
-                    view.close()
+                    if self.checkPipelineInput():  # Perform validation
+                        view.close()
 
             def editPipelineParameters():
                 parameters = []
@@ -561,6 +572,11 @@ class VulkanSetupGUI(QMainWindow):
             view.useIndexedVerticesCheckBox.setChecked(convertFromVulkanNaming(pipeline_data[44]))
 
             view.addPipelineOKButton.accepted.connect(editPipeline)
+            view.setWindowTitle("Edit Graphics Pipeline")
+            view.vertexShaderFileToolButton.clicked.connect(
+                lambda: self.setFilePath("vertexShaderFileToolButton", view))
+            view.fragmentShaderFileToolButton.clicked.connect(
+                lambda: self.setFilePath("fragmentShaderFileToolButton", view))
             view.exec_()
 
         selected_item = self.graphicsPipelinesList.currentItem()
@@ -600,7 +616,7 @@ class VulkanSetupGUI(QMainWindow):
                                                'c:\\', "Model files (*.jpg)")
         # self.modelPreviewOpenGLWidget = glWidget(self)
 
-    def setFilePath(self, fileInput: str):
+    def setFilePath(self, fileInput: str, referenceView):
         def setInputFilterBasedOnOrigin(fileInput):
             filterMap = {
                 "modelFileToolButton": "Model files (*.obj)",
@@ -614,8 +630,8 @@ class VulkanSetupGUI(QMainWindow):
             inputMap = {
                 "modelFileToolButton": self.modelFileInput,
                 "textureFileToolButton": self.textureFileInput,
-                "vertexShaderFileToolButton": referenceView.vertexShaderFileInput,
-                "fragmentShaderFileToolButton": referenceView.fragmentShaderFileInput
+                "vertexShaderFileToolButton": getattr(referenceView, "vertexShaderFileInput", None),
+                "fragmentShaderFileToolButton": getattr(referenceView, "fragmentShaderFileInput", None)
             }
             if fileInput not in inputMap:
                 return
@@ -627,19 +643,27 @@ class VulkanSetupGUI(QMainWindow):
         inputFilter = setInputFilterBasedOnOrigin(fileInput)
         initialDirectory = 'c:\\'
         fileName = QFileDialog.getOpenFileName(self, 'Open file', initialDirectory, inputFilter)
-        referenceView = GraphicsPipelineView()
         setParametersBasedOnOrigin(fileInput, fileName)
 
         self.updatePreviews()
 
     ### Validation Section
     def checkInput(self):
+        missing_inputs = []
+
         if len(self.applicationNameInput.text()) == 0:
-            self.showMissingInput((self.applicationNameLabel.text()).replace(":", ""))
-            return False
+            missing_inputs.append((self.applicationNameLabel.text()).replace(":", ""))
 
         if not self.checkDeviceExtensions():
             return False
+
+        if not self.checkPipelineInput():
+            return False
+
+        if missing_inputs:
+            self.showMissingInput(missing_inputs)
+            return False
+
         # Input checked, all OK
         return True
 
@@ -657,6 +681,40 @@ class VulkanSetupGUI(QMainWindow):
         else:
             return True
 
+    def checkPipelineInput(self):
+        # Iterate through all graphics pipelines
+        graphicsPipelines = self.graphicsPipelinesList
+        missing_inputs = []
+
+        for i in range(graphicsPipelines.count()):
+            item = graphicsPipelines.item(i)
+            data = item.data(Qt.UserRole)
+            pipelineName = item.data(0)
+
+            vertexShaderFileInput = data[39]
+            vertexShaderEntryFunctionNameInput = data[40]
+            fragmentShaderFileInput = data[41]
+            fragmentShaderEntryFunctionNameInput = data[42]
+
+            if len(vertexShaderFileInput) == 0:
+                missing_inputs.append(f"{pipelineName}: Vertex Shader File")
+
+            if len(fragmentShaderFileInput) == 0:
+                missing_inputs.append(f"{pipelineName}: Fragment Shader File")
+
+            if len(vertexShaderEntryFunctionNameInput) == 0:
+                missing_inputs.append(f"{pipelineName}: Vertex Shader Entry Function Name")
+
+            if len(fragmentShaderEntryFunctionNameInput) == 0:
+                missing_inputs.append(f"{pipelineName}: Fragment Shader Entry Function Name")
+
+
+        if missing_inputs:
+            self.showMissingInput(missing_inputs)
+            return False
+
+        return True
+
     ### Items and List section
 
     def selectMultipleItems(self, listWidget, itemTexts):
@@ -669,6 +727,10 @@ class VulkanSetupGUI(QMainWindow):
         for i in range(listWidget.count()):
             if listWidget.item(i).text() == item:
                 return None
+        listWidget.addItem(item)
+        return listWidget.item(listWidget.count() - 1)
+    def addUniquePipeline(self, listWidget, item):
+        for i in range(listWidget.count()):
             if listWidget.item(i).data(Qt.UserRole) == item.data(Qt.UserRole):  # user roles can be used to hide data
                 return None
         listWidget.addItem(item)
@@ -897,7 +959,7 @@ class VulkanSetupGUI(QMainWindow):
 
                 pipelineItem = QListWidgetItem(pipelineName)
                 pipelineItem.setData(Qt.UserRole, pipeline)
-                if self.addUniqueItem(self.graphicsPipelinesList, pipelineItem):
+                if self.addUniquePipeline(self.graphicsPipelinesList, pipelineItem):
                     print(f"Pipeline Added: {pipeline}")
 
             for subelem in elem:
