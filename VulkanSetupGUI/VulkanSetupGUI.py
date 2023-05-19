@@ -1,4 +1,5 @@
 import ast
+import os
 import re
 
 from PyQt5 import uic
@@ -104,6 +105,8 @@ class VulkanSetupGUI(QMainWindow):
         super(VulkanSetupGUI, self).__init__()
         uic.loadUi("VulkanSetupGUI.ui", self)
         # uic.loadUi("pipelineTestView.ui", self)
+        self.loadFile = ""
+        self.saveFile = ""
 
         self.connectActions()
         self.loadModelPreview()
@@ -151,10 +154,10 @@ class VulkanSetupGUI(QMainWindow):
         # Menu Bar and Bottom
         self.actionExport_to_Vulkan.triggered.connect(self.setOutput)
         self.generateVulkanCodeButton.clicked.connect(self.setOutput)
-        self.actionSave_to_File.triggered.connect(self.writeXml)
-        self.actionLoad_from_File.triggered.connect(self.readXml)
-        self.actionLoad_from_File.triggered.connect(self.loadTexturePreview)
-        self.actionLoad_from_File.triggered.connect(self.loadModelPreview)
+        self.actionSaveToFile.triggered.connect(self.saveToFile)
+        self.actionLoadFromFile.triggered.connect(self.loadFromFile)
+        self.actionLoadFromFile.triggered.connect(self.loadTexturePreview)
+        self.actionLoadFromFile.triggered.connect(self.loadModelPreview)
 
         # Instance
 
@@ -243,7 +246,7 @@ class VulkanSetupGUI(QMainWindow):
         print("graphicsPipelinesList: ")
         for i in range(self.graphicsPipelinesList.count()):
             print("[{}]: [{}]".format(self.graphicsPipelinesList.item(i).data(0),
-                self.graphicsPipelinesList.item(i).data(Qt.UserRole)))
+                                      self.graphicsPipelinesList.item(i).data(Qt.UserRole)))
 
         print()
 
@@ -399,7 +402,7 @@ class VulkanSetupGUI(QMainWindow):
 
             if self.addUniquePipeline(self.graphicsPipelinesList, pipelineItem):
                 print(f"Pipeline Added: {pipeline}")
-                self.checkPipelineInput() # Perform validation
+                self.checkPipelineInput()  # Perform validation
 
             else:
                 showPipelineAlreadyPresent(pipeline)
@@ -459,7 +462,8 @@ class VulkanSetupGUI(QMainWindow):
         view.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
         view.addPipelineOKButton.accepted.connect(lambda: addPipeline(str(addPipelineParameters())))
         view.vertexShaderFileToolButton.clicked.connect(lambda: self.setFilePath("vertexShaderFileToolButton", view))
-        view.fragmentShaderFileToolButton.clicked.connect(lambda: self.setFilePath("fragmentShaderFileToolButton", view))
+        view.fragmentShaderFileToolButton.clicked.connect(
+            lambda: self.setFilePath("fragmentShaderFileToolButton", view))
         view.exec_()
 
     def showEditPipelineInput(self):
@@ -624,7 +628,8 @@ class VulkanSetupGUI(QMainWindow):
                 "modelFileToolButton": "Model files (*.obj)",
                 "textureFileToolButton": "Texture image files (*.jpg, *.png)",
                 "vertexShaderFileToolButton": "Vertex shader files (*.vert)",
-                "fragmentShaderFileToolButton": "fragment shader files (*.frag)"
+                "fragmentShaderFileToolButton": "fragment shader files (*.frag)",
+                "actionLoadFromFile": "Vulkan Setup GUI files (*.xml)"
             }
             return filterMap.get(fileInput, "")
 
@@ -633,18 +638,22 @@ class VulkanSetupGUI(QMainWindow):
                 "modelFileToolButton": self.modelFileInput,
                 "textureFileToolButton": self.textureFileInput,
                 "vertexShaderFileToolButton": getattr(referenceView, "vertexShaderFileInput", None),
-                "fragmentShaderFileToolButton": getattr(referenceView, "fragmentShaderFileInput", None)
+                "fragmentShaderFileToolButton": getattr(referenceView, "fragmentShaderFileInput", None),
+                "actionLoadFromFile": "loadFile"  # assign value to self.loadFile
             }
             if fileInput not in inputMap:
                 return
             inputField = inputMap[fileInput]
             if inputField != "" and fileName[0] == "":
                 return
-            inputField.setText(fileName[0])
+            if isinstance(inputField, QLineEdit):
+                inputField.setText(fileName[0])
+            else:
+                setattr(self, inputMap[fileInput], fileName[0])  # assign value to e.g. self.loadFile
 
         inputFilter = setInputFilterBasedOnOrigin(fileInput)
-        initialDirectory = 'c:\\'
-        fileName = QFileDialog.getOpenFileName(self, 'Open file', initialDirectory, inputFilter)
+        placeholderFilename = ''
+        fileName = QFileDialog.getOpenFileName(self, 'Open file', placeholderFilename, inputFilter)
         setParametersBasedOnOrigin(fileInput, fileName)
 
         self.updatePreviews()
@@ -710,7 +719,6 @@ class VulkanSetupGUI(QMainWindow):
             if len(fragmentShaderEntryFunctionNameInput) == 0:
                 missing_inputs.append(f"{pipelineName}: Fragment Shader Entry Function Name")
 
-
         if missing_inputs:
             self.showMissingInput(missing_inputs)
             return False
@@ -731,6 +739,7 @@ class VulkanSetupGUI(QMainWindow):
                 return None
         listWidget.addItem(item)
         return listWidget.item(listWidget.count() - 1)
+
     def addUniquePipeline(self, listWidget, item):
         for i in range(listWidget.count()):
             if listWidget.item(i).data(Qt.UserRole) == item.data(Qt.UserRole):  # user roles can be used to hide data
@@ -758,7 +767,25 @@ class VulkanSetupGUI(QMainWindow):
                 return item
                 print(f"Found item with text 'extension': {item.text()}")
 
-    def writeXml(self):
+    ### XML section
+    def loadFromFile(self):
+        self.setFilePath("actionLoadFromFile", None)
+        fileName = self.loadFile
+        if fileName:
+            self.readXml(fileName)
+
+    def saveToFile(self):
+        # Show file dialog to select file storage location
+        filePath, _ = QFileDialog.getSaveFileName(self, 'Save file', self.saveFile,
+                                                  'Vulkan Setup GUI files (*.xml)')
+
+        if filePath:
+            # Append the specified filename to the file path
+            filePath = os.path.join(os.path.dirname(filePath), self.saveFile + ".xml")
+
+            self.writeXml(filePath)
+
+    def writeXml(self, fileName):
         # create the file structure
         root = ET.Element('VulkanSetup')
 
@@ -854,17 +881,17 @@ class VulkanSetupGUI(QMainWindow):
                 input_name = pipeline_inputs[index]
                 ET.SubElement(pipeline, input_name, name=input_name).text = str(value)
 
-
         # create a new XML file with the results
         mydata = ET.tostring(root)
-        with open("VulkanSetup.xml", "wb") as myfile:
+        with open(fileName, "wb") as myfile:
             myfile.write(mydata)
 
         print("XML File created with parameters:")
         self.printInputs()
 
-    def readXml(self):
-        tree = ET.parse('VulkanSetup.xml')
+    def readXml(self, fileName):
+        # tree = ET.parse('VulkanSetup.xml')
+        tree = ET.parse(fileName)
         root = tree.getroot()
 
         # recursively iterate over all elements and sub-elements
@@ -953,7 +980,9 @@ class VulkanSetupGUI(QMainWindow):
                 pipeline = []
 
                 for child in elem:
-                    if child.tag in {"vertexShaderFileInput", "vertexShaderEntryFunctionNameInput", "fragmentShaderFileInput", "fragmentShaderEntryFunctionNameInput"} and child.text is None:
+                    if child.tag in {"vertexShaderFileInput", "vertexShaderEntryFunctionNameInput",
+                                     "fragmentShaderFileInput",
+                                     "fragmentShaderEntryFunctionNameInput"} and child.text is None:
                         pipeline.append("")
                     else:
                         pipeline.append(child.text.strip())
@@ -971,7 +1000,6 @@ class VulkanSetupGUI(QMainWindow):
 
         self.graphicsPipelinesList.clear()
         traverse(root)
-
 
 
 class glWidget(QOpenGLWidget):

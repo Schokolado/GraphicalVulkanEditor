@@ -47,7 +47,7 @@
          </size>
         </property>
         <property name="currentIndex">
-         <number>2</number>
+         <number>4</number>
         </property>
         <widget class="QWidget" name="instance">
          <property name="enabled">
@@ -935,7 +935,7 @@
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap>../../../../.designer/textures/viking_room.png</pixmap>
+                  <pixmap>../../../../../../.designer/textures/viking_room.png</pixmap>
                  </property>
                  <property name="scaledContents">
                   <bool>true</bool>
@@ -953,7 +953,7 @@
          <attribute name="title">
           <string>Graphics Pipeline</string>
          </attribute>
-         <widget class="QWidget" name="">
+         <widget class="QWidget" name="layoutWidget">
           <property name="geometry">
            <rect>
             <x>10</x>
@@ -1076,9 +1076,8 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionNew_File"/>
-    <addaction name="actionLoad_from_File"/>
-    <addaction name="actionSave_to_File"/>
+    <addaction name="actionLoadFromFile"/>
+    <addaction name="actionSaveToFile"/>
     <addaction name="separator"/>
     <addaction name="actionClose"/>
    </widget>
@@ -1096,12 +1095,12 @@
     <bool>true</bool>
    </property>
   </widget>
-  <action name="actionLoad_from_File">
+  <action name="actionLoadFromFile">
    <property name="text">
     <string>Load from File</string>
    </property>
   </action>
-  <action name="actionSave_to_File">
+  <action name="actionSaveToFile">
    <property name="text">
     <string>Save to File</string>
    </property>
