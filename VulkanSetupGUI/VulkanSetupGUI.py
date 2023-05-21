@@ -1,52 +1,14 @@
 import ast
-import os
-import re
 
 from PyQt5 import uic
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 from pywavefront import Wavefront
 from PyQt5.QtWidgets import *
 from OpenGL.GL import *
-from OpenGL.GLU import *
 import xml.etree.ElementTree as ET
 
-
-# Form, Window = uic.loadUiType("VulkanSetupGUI.ui")
-
-# app = QApplication([])
-# window = Window()
-# form = Form()
-# form.setupUi(window)
-# window.show()
-# app.exec()
-
-class VulkanSetupGUI:
-    pass
-
-
 DEFAULT_DEVICE_EXTENSIONS = ["VK_KHR_SWAPCHAIN_EXTENSION_NAME"]
-
-
-def convertToVulkanNaming(input: str):
-    if type(input) == bool:
-        if input:
-            return "VK_TRUE"
-        if not input:
-            return "VK_FALSE"
-    else:
-        print(f"Provided input was [{input}]. Unnecessary conversion call.")
-        return input
-
-def convertFromVulkanNaming(input):
-    if input == "VK_TRUE":
-        return True
-    elif input == "VK_FALSE":
-        return False
-    else:
-        return input
-
-from PyQt5.QtCore import Qt
-
 
 class OpenGLWidget(QOpenGLWidget):
     def __init__(self, OBJFilePath, parent=None):
@@ -93,7 +55,6 @@ class OpenGLWidget(QOpenGLWidget):
         light_position = [1.0, 1.0, 1.0, 1.0]
         glLightfv(GL_LIGHT0, GL_POSITION, light_position)
 
-
 class GraphicsPipelineView(QDialog):
     def __init__(self):
         super(GraphicsPipelineView, self).__init__()
@@ -104,13 +65,30 @@ class VulkanSetupGUI(QMainWindow):
     def __init__(self):
         super(VulkanSetupGUI, self).__init__()
         uic.loadUi("VulkanSetupGUI.ui", self)
-        # uic.loadUi("pipelineTestView.ui", self)
         self.loadFile = ""
         self.saveFile = ""
 
         self.connectActions()
         self.loadModelPreview()
         self.loadTexturePreview()
+
+    def convertToVulkanNaming(self, input: str):
+        if type(input) == bool:
+            if input:
+                return "VK_TRUE"
+            if not input:
+                return "VK_FALSE"
+        else:
+            print(f"Provided input was [{input}]. Unnecessary conversion call.")
+            return input
+
+    def convertFromVulkanNaming(self, input):
+        if input == "VK_TRUE":
+            return True
+        elif input == "VK_FALSE":
+            return False
+        else:
+            return input
 
     def updatePreviews(self):
         self.loadTexturePreview()
@@ -196,13 +174,13 @@ class VulkanSetupGUI(QMainWindow):
         print("applicationNameInput: [{}]".format(
             self.applicationNameInput.text()))
         print("showValidationLayerDebugInfoCheckBox: [{}]".format(
-            convertToVulkanNaming(self.showValidationLayerDebugInfoCheckBox.isChecked())))
+            self.convertToVulkanNaming(self.showValidationLayerDebugInfoCheckBox.isChecked())))
         print("runOnMacosCheckBox: [{}]".format(
-            convertToVulkanNaming(self.runOnMacosCheckBox.isChecked())))
+            self.convertToVulkanNaming(self.runOnMacosCheckBox.isChecked())))
 
         # Physical Device
         print("chooseGPUOnStartupCheckBox: [{}]".format(
-            convertToVulkanNaming(self.chooseGPUOnStartupCheckBox.isChecked())))
+            self.convertToVulkanNaming(self.chooseGPUOnStartupCheckBox.isChecked())))
 
         # Logical Device
         print("deviceExtensionsList: [{}]".format(
@@ -214,7 +192,7 @@ class VulkanSetupGUI(QMainWindow):
         print("imageWidthInput: [{}]".format(
             self.imageWidthInput.text()))
         print("lockWindowSizeCheckBox: [{}]".format(
-            convertToVulkanNaming(self.lockWindowSizeCheckBox.isChecked())))
+            self.convertToVulkanNaming(self.lockWindowSizeCheckBox.isChecked())))
         print("clearColorRInput: [{}]".format(
             self.clearColorRInput.text()))
         print("clearColorGInput: [{}]".format(
@@ -226,7 +204,7 @@ class VulkanSetupGUI(QMainWindow):
         print("framesInFlightInput: [{}]".format(
             self.framesInFlightInput.text()))
         print("saveEnergyForMobileCheckBox: [{}]".format(
-            convertToVulkanNaming(self.saveEnergyForMobileCheckBox.isChecked())))
+            self.convertToVulkanNaming(self.saveEnergyForMobileCheckBox.isChecked())))
         print("imageUsageInput: [{}]".format(
             self.imageUsageInput.currentText()))
         print("presentationModeInput: [{}]".format(
@@ -453,8 +431,8 @@ class VulkanSetupGUI(QMainWindow):
             parameters.append(view.vertexShaderEntryFunctionNameInput.text())
             parameters.append(view.fragmentShaderFileInput.text())
             parameters.append(view.fragmentShaderEntryFunctionNameInput.text())
-            parameters.append(convertToVulkanNaming(view.reduceSpirvCodeSizeCheckBox.isChecked()))
-            parameters.append(convertToVulkanNaming(view.useIndexedVerticesCheckBox.isChecked()))
+            parameters.append(self.convertToVulkanNaming(view.reduceSpirvCodeSizeCheckBox.isChecked()))
+            parameters.append(self.convertToVulkanNaming(view.useIndexedVerticesCheckBox.isChecked()))
 
             return parameters
 
@@ -521,8 +499,8 @@ class VulkanSetupGUI(QMainWindow):
                 parameters.append(view.vertexShaderEntryFunctionNameInput.text())
                 parameters.append(view.fragmentShaderFileInput.text())
                 parameters.append(view.fragmentShaderEntryFunctionNameInput.text())
-                parameters.append(convertToVulkanNaming(view.reduceSpirvCodeSizeCheckBox.isChecked()))
-                parameters.append(convertToVulkanNaming(view.useIndexedVerticesCheckBox.isChecked()))
+                parameters.append(self.convertToVulkanNaming(view.reduceSpirvCodeSizeCheckBox.isChecked()))
+                parameters.append(self.convertToVulkanNaming(view.useIndexedVerticesCheckBox.isChecked()))
 
                 return parameters
 
@@ -574,8 +552,8 @@ class VulkanSetupGUI(QMainWindow):
             view.vertexShaderEntryFunctionNameInput.setText(pipelineData[40])
             view.fragmentShaderFileInput.setText(pipelineData[41])
             view.fragmentShaderEntryFunctionNameInput.setText(pipelineData[42])
-            view.reduceSpirvCodeSizeCheckBox.setChecked(convertFromVulkanNaming(pipelineData[43]))
-            view.useIndexedVerticesCheckBox.setChecked(convertFromVulkanNaming(pipelineData[44]))
+            view.reduceSpirvCodeSizeCheckBox.setChecked(self.convertFromVulkanNaming(pipelineData[43]))
+            view.useIndexedVerticesCheckBox.setChecked(self.convertFromVulkanNaming(pipelineData[44]))
 
             view.addPipelineOKButton.accepted.connect(editPipeline)
             view.setWindowTitle("Edit Graphics Pipeline")
@@ -789,15 +767,15 @@ class VulkanSetupGUI(QMainWindow):
                       name='applicationNameInput').text = \
             self.applicationNameInput.text()
         ET.SubElement(instance, 'showValidationLayerDebugInfoCheckBox',
-                      name='showValidationLayerDebugInfoCheckBox').text = convertToVulkanNaming(
+                      name='showValidationLayerDebugInfoCheckBox').text = self.convertToVulkanNaming(
             self.showValidationLayerDebugInfoCheckBox.isChecked())
-        ET.SubElement(instance, 'runOnMacosCheckBox', name='runOnMacosCheckBox').text = convertToVulkanNaming(
+        ET.SubElement(instance, 'runOnMacosCheckBox', name='runOnMacosCheckBox').text = self.convertToVulkanNaming(
             self.runOnMacosCheckBox.isChecked())
 
         # Physical Device
         physicalDevice = ET.SubElement(root, 'physicalDevice')
         ET.SubElement(physicalDevice, 'chooseGPUOnStartupCheckBox',
-                      name='chooseGPUOnStartupCheckBox').text = convertToVulkanNaming(
+                      name='chooseGPUOnStartupCheckBox').text = self.convertToVulkanNaming(
             self.chooseGPUOnStartupCheckBox.isChecked())
 
         # Logical Device
@@ -814,7 +792,7 @@ class VulkanSetupGUI(QMainWindow):
         ET.SubElement(imageDimensions, 'imageWidthInput', name='imageWidthInput').text = self.imageWidthInput.text()
 
         ET.SubElement(swapchain, 'lockWindowSizeCheckBox',
-                      name='lockWindowSizeCheckBox').text = convertToVulkanNaming(
+                      name='lockWindowSizeCheckBox').text = self.convertToVulkanNaming(
             self.lockWindowSizeCheckBox.isChecked())
 
         imageClearColor = ET.SubElement(swapchain, 'imageClearColor', name='imageClearColor')
@@ -826,7 +804,7 @@ class VulkanSetupGUI(QMainWindow):
         ET.SubElement(swapchain, 'framesInFlightInput',
                       name='framesInFlightInput').text = self.framesInFlightInput.text()
         ET.SubElement(swapchain, 'saveEnergyForMobileCheckBox',
-                      name='saveEnergyForMobileCheckBox').text = convertToVulkanNaming(
+                      name='saveEnergyForMobileCheckBox').text = self.convertToVulkanNaming(
             self.saveEnergyForMobileCheckBox.isChecked())
         ET.SubElement(swapchain, 'imageUsageInput',
                       name='imageUsageInput').text = self.imageUsageInput.currentText()
@@ -889,8 +867,6 @@ class VulkanSetupGUI(QMainWindow):
 
         # recursively iterate over all elements and sub-elements
         def traverse(elem):
-            #print(f"\nElement: {elem.tag}, attributes: {elem.attrib}, text: {elem.text}")
-
             ### Instance
             if elem.tag == "applicationNameInput":
                 self.applicationNameInput.setText(elem.text)
@@ -993,6 +969,7 @@ class VulkanSetupGUI(QMainWindow):
 
         self.graphicsPipelinesList.clear()
         traverse(root)
+
 
 def main():
     app = QApplication([])
