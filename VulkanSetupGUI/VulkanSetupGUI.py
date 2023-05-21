@@ -49,24 +49,24 @@ from PyQt5.QtCore import Qt
 
 
 class OpenGLWidget(QOpenGLWidget):
-    def __init__(self, obj_file_path, parent=None):
+    def __init__(self, OBJFilePath, parent=None):
         super().__init__(parent)
-        self.obj_file_path = obj_file_path
-        self.obj_mesh = None
+        self.OBJFilePath = OBJFilePath
+        self.OBJMesh = None
 
     def setOBJFilePath(self, path):
-        self.obj_file_path = path
+        self.OBJFilePath = path
 
     def initializeGL(self):
         glClearColor(0.0, 0.0, 0.0, 1.0)
-        self.obj_mesh = Wavefront(self.obj_file_path, collect_faces=True)
+        self.OBJMesh = Wavefront(self.OBJFilePath, collect_faces=True)
         self.setupLighting()
 
     def resizeGL(self, width, height):
         glViewport(0, 0, width, height)
 
     def updateGL(self):
-        self.obj_mesh = Wavefront(self.obj_file_path, collect_faces=True)
+        self.OBJMesh = Wavefront(self.OBJFilePath, collect_faces=True)
         self.paintGL()
 
     def paintGL(self):
@@ -74,11 +74,11 @@ class OpenGLWidget(QOpenGLWidget):
         glEnable(GL_DEPTH_TEST)
 
         glBegin(GL_TRIANGLES)
-        if self.obj_mesh:
-            for mesh in self.obj_mesh.mesh_list:
+        if self.OBJMesh:
+            for mesh in self.OBJMesh.mesh_list:
                 for face in mesh.faces:
                     for vertex_i in face:
-                        vertex = self.obj_mesh.vertices[vertex_i]
+                        vertex = self.OBJMesh.vertices[vertex_i]
                         glVertex3fv(vertex)
                 glColor3f(1.0, 1.0, 1.0)
         glEnd()
@@ -152,7 +152,7 @@ class VulkanSetupGUI(QMainWindow):
 
     def connectActions(self):
         # Menu Bar and Bottom
-        self.actionExport_to_Vulkan.triggered.connect(self.setOutput)
+        self.actionExportToVulkan.triggered.connect(self.setOutput)
         self.generateVulkanCodeButton.clicked.connect(self.setOutput)
         self.actionSaveToFile.triggered.connect(self.saveToFile)
         self.actionLoadFromFile.triggered.connect(self.loadFromFile)
@@ -275,10 +275,10 @@ class VulkanSetupGUI(QMainWindow):
         extensionsText = "\n".join(self.getListContents(self.deviceExtensionsList))
         label = QLabel(f"Remove Extensions?:\n{extensionsText}")
         layout.addWidget(label)
-        ok_button = QPushButton("OK")
-        ok_button.clicked.connect(lambda: removeExtensions(self.deviceExtensionsList.selectedItems()))
-        ok_button.clicked.connect(d.accept)
-        layout.addWidget(ok_button)
+        OKButton = QPushButton("OK")
+        OKButton.clicked.connect(lambda: removeExtensions(self.deviceExtensionsList.selectedItems()))
+        OKButton.clicked.connect(d.accept)
+        layout.addWidget(OKButton)
         d.setLayout(layout)
         d.show()
 
@@ -290,9 +290,9 @@ class VulkanSetupGUI(QMainWindow):
             layout = QVBoxLayout()
             label = QLabel(f"Extension already present:\n{extension}")
             layout.addWidget(label)
-            ok_button = QPushButton("OK")
-            ok_button.clicked.connect(d.accept)
-            layout.addWidget(ok_button)
+            OKButton = QPushButton("OK")
+            OKButton.clicked.connect(d.accept)
+            layout.addWidget(OKButton)
             d.setLayout(layout)
             d.show()
 
@@ -314,10 +314,10 @@ class VulkanSetupGUI(QMainWindow):
         layout.addWidget(label)
         lineEdit = QLineEdit()
         layout.addWidget(lineEdit)
-        ok_button = QPushButton("Add")
-        ok_button.clicked.connect(lambda: addExtension(lineEdit.text()))
-        ok_button.clicked.connect(d.accept)
-        layout.addWidget(ok_button)
+        OKButton = QPushButton("Add")
+        OKButton.clicked.connect(lambda: addExtension(lineEdit.text()))
+        OKButton.clicked.connect(d.accept)
+        layout.addWidget(OKButton)
         d.setLayout(layout)
         d.show()
 
@@ -328,13 +328,13 @@ class VulkanSetupGUI(QMainWindow):
         layout = QVBoxLayout()
         label = QLabel(f"Input not allowed:\n\n\"{notAllowed}\"\n")
         layout.addWidget(label)
-        ok_button = QPushButton("OK")
-        ok_button.clicked.connect(d.accept)
-        layout.addWidget(ok_button)
+        OKButton = QPushButton("OK")
+        OKButton.clicked.connect(d.accept)
+        layout.addWidget(OKButton)
         d.setLayout(layout)
         d.show()
 
-    def showMissingInput(self, missing_inputs):
+    def showMissingInput(self, missingInputs):
         d = QDialog(self)
         d.setWindowTitle("Missing Inputs")
         d.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
@@ -342,16 +342,16 @@ class VulkanSetupGUI(QMainWindow):
         label = QLabel("The following inputs were missing:")
         layout.addWidget(label)
 
-        if isinstance(missing_inputs, str):
-            missing_inputs = [missing_inputs]
+        if isinstance(missingInputs, str):
+            missingInputs = [missingInputs]
 
-        for missing in missing_inputs:
-            missing_label = QLabel(missing)
-            layout.addWidget(missing_label)
+        for missing in missingInputs:
+            missingLabel = QLabel(missing)
+            layout.addWidget(missingLabel)
 
-        ok_button = QPushButton("OK")
-        ok_button.clicked.connect(d.accept)
-        layout.addWidget(ok_button)
+        OKButton = QPushButton("OK")
+        OKButton.clicked.connect(d.accept)
+        layout.addWidget(OKButton)
 
         d.setLayout(layout)
         d.exec_()
@@ -365,9 +365,9 @@ class VulkanSetupGUI(QMainWindow):
         label = QLabel(f"No Extensions selected. Using default Extensions:\n\n{extensionsText}\n"
                        f"\nPlease Generate Vulkan Code again.")
         layout.addWidget(label)
-        ok_button = QPushButton("OK")
-        ok_button.clicked.connect(d.accept)
-        layout.addWidget(ok_button)
+        OKButton = QPushButton("OK")
+        OKButton.clicked.connect(d.accept)
+        layout.addWidget(OKButton)
         d.setLayout(layout)
         d.show()
 
@@ -379,9 +379,9 @@ class VulkanSetupGUI(QMainWindow):
             layout = QVBoxLayout()
             label = QLabel(f"Pipeline already present:\n{extension}")
             layout.addWidget(label)
-            ok_button = QPushButton("OK")
-            ok_button.clicked.connect(d.accept)
-            layout.addWidget(ok_button)
+            OKButton = QPushButton("OK")
+            OKButton.clicked.connect(d.accept)
+            layout.addWidget(OKButton)
             d.setLayout(layout)
             d.show()
 
@@ -469,10 +469,10 @@ class VulkanSetupGUI(QMainWindow):
     def showEditPipelineInput(self):
         def updateGraphicsPipelineView(item):
             def editPipeline():
-                selected_item = self.graphicsPipelinesList.currentItem()
-                if selected_item is not None:
-                    pipeline_data = editPipelineParameters()
-                    selected_item.setData(Qt.UserRole, pipeline_data)
+                selectedItem = self.graphicsPipelinesList.currentItem()
+                if selectedItem is not None:
+                    data = editPipelineParameters()
+                    selectedItem.setData(Qt.UserRole, data)
                     if self.checkPipelineInput():  # Perform validation
                         view.close()
 
@@ -528,54 +528,54 @@ class VulkanSetupGUI(QMainWindow):
 
             view = GraphicsPipelineView()
             view.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
-            pipeline_data = self.graphicsPipelinesList.currentItem().data(Qt.UserRole)
+            pipelineData = self.graphicsPipelinesList.currentItem().data(Qt.UserRole)
 
             # Update the pipeline data in the view's fields
-            view.vertexTopologyInput.setCurrentText(pipeline_data[0])
-            view.primitiveRestartInput.setCurrentText(pipeline_data[1])
-            view.depthClampInput.setCurrentText(pipeline_data[2])
-            view.rasterizerDiscardInput.setCurrentText(pipeline_data[3])
-            view.polygonModeInput.setCurrentText(pipeline_data[4])
-            view.lineWidthInput.setValue(float(pipeline_data[5].replace(',', '.')))
-            view.cullModeInput.setCurrentText(pipeline_data[6])
-            view.frontFaceInput.setCurrentText(pipeline_data[7])
-            view.depthBiasEnabledInput.setCurrentText(pipeline_data[8])
-            view.slopeFactorInput.setValue(float(pipeline_data[9].replace(',', '.')))
-            view.constantFactorInput.setValue(float(pipeline_data[10].replace(',', '.')))
-            view.biasClampInput.setValue(float(pipeline_data[11].replace(',', '.')))
-            view.depthTestInput.setCurrentText(pipeline_data[12])
-            view.depthWriteInput.setCurrentText(pipeline_data[13])
-            view.depthCompareOperationInput.setCurrentText(pipeline_data[14])
-            view.depthBoundsTestInput.setCurrentText(pipeline_data[15])
-            view.depthBoundsMinInput.setValue(float(pipeline_data[16].replace(',', '.')))
-            view.depthBoundsMaxInput.setValue(float(pipeline_data[17].replace(',', '.')))
-            view.stencilTestInput.setCurrentText(pipeline_data[18])
-            view.sampleShadingInput.setCurrentText(pipeline_data[19])
-            view.rasterizationSamplesInput.setCurrentText(pipeline_data[20])
-            view.minSampleShadingInput.setValue(float(pipeline_data[21].replace(',', '.')))
-            view.alphaToCoverageInput.setCurrentText(pipeline_data[22])
-            view.alphaToOneInput.setCurrentText(pipeline_data[23])
-            view.colorWriteMaskInput.setCurrentText(pipeline_data[24])
-            view.colorBlendInput.setCurrentText(pipeline_data[25])
-            view.sourceColorBlendFactorInput.setCurrentText(pipeline_data[26])
-            view.destinationColorBlendFactorInput.setCurrentText(pipeline_data[27])
-            view.colorBlendOperationInput.setCurrentText(pipeline_data[28])
-            view.sourceAlphaBlendFactorInput.setCurrentText(pipeline_data[29])
-            view.destinationAlphaBlendFactorInput.setCurrentText(pipeline_data[30])
-            view.alphaBlendOperationInput.setCurrentText(pipeline_data[31])
-            view.logicOperationEnabledInput.setCurrentText(pipeline_data[32])
-            view.logicOperationInput.setCurrentText(pipeline_data[33])
-            view.attachmentCountInput.setValue(int(pipeline_data[34]))
-            view.blendConstant0Input.setValue(float(pipeline_data[35].replace(',', '.')))
-            view.blendConstant1Input.setValue(float(pipeline_data[36].replace(',', '.')))
-            view.blendConstant2Input.setValue(float(pipeline_data[37].replace(',', '.')))
-            view.blendConstant3Input.setValue(float(pipeline_data[38].replace(',', '.')))
-            view.vertexShaderFileInput.setText(pipeline_data[39])
-            view.vertexShaderEntryFunctionNameInput.setText(pipeline_data[40])
-            view.fragmentShaderFileInput.setText(pipeline_data[41])
-            view.fragmentShaderEntryFunctionNameInput.setText(pipeline_data[42])
-            view.reduceSpirvCodeSizeCheckBox.setChecked(convertFromVulkanNaming(pipeline_data[43]))
-            view.useIndexedVerticesCheckBox.setChecked(convertFromVulkanNaming(pipeline_data[44]))
+            view.vertexTopologyInput.setCurrentText(pipelineData[0])
+            view.primitiveRestartInput.setCurrentText(pipelineData[1])
+            view.depthClampInput.setCurrentText(pipelineData[2])
+            view.rasterizerDiscardInput.setCurrentText(pipelineData[3])
+            view.polygonModeInput.setCurrentText(pipelineData[4])
+            view.lineWidthInput.setValue(float(pipelineData[5].replace(',', '.')))
+            view.cullModeInput.setCurrentText(pipelineData[6])
+            view.frontFaceInput.setCurrentText(pipelineData[7])
+            view.depthBiasEnabledInput.setCurrentText(pipelineData[8])
+            view.slopeFactorInput.setValue(float(pipelineData[9].replace(',', '.')))
+            view.constantFactorInput.setValue(float(pipelineData[10].replace(',', '.')))
+            view.biasClampInput.setValue(float(pipelineData[11].replace(',', '.')))
+            view.depthTestInput.setCurrentText(pipelineData[12])
+            view.depthWriteInput.setCurrentText(pipelineData[13])
+            view.depthCompareOperationInput.setCurrentText(pipelineData[14])
+            view.depthBoundsTestInput.setCurrentText(pipelineData[15])
+            view.depthBoundsMinInput.setValue(float(pipelineData[16].replace(',', '.')))
+            view.depthBoundsMaxInput.setValue(float(pipelineData[17].replace(',', '.')))
+            view.stencilTestInput.setCurrentText(pipelineData[18])
+            view.sampleShadingInput.setCurrentText(pipelineData[19])
+            view.rasterizationSamplesInput.setCurrentText(pipelineData[20])
+            view.minSampleShadingInput.setValue(float(pipelineData[21].replace(',', '.')))
+            view.alphaToCoverageInput.setCurrentText(pipelineData[22])
+            view.alphaToOneInput.setCurrentText(pipelineData[23])
+            view.colorWriteMaskInput.setCurrentText(pipelineData[24])
+            view.colorBlendInput.setCurrentText(pipelineData[25])
+            view.sourceColorBlendFactorInput.setCurrentText(pipelineData[26])
+            view.destinationColorBlendFactorInput.setCurrentText(pipelineData[27])
+            view.colorBlendOperationInput.setCurrentText(pipelineData[28])
+            view.sourceAlphaBlendFactorInput.setCurrentText(pipelineData[29])
+            view.destinationAlphaBlendFactorInput.setCurrentText(pipelineData[30])
+            view.alphaBlendOperationInput.setCurrentText(pipelineData[31])
+            view.logicOperationEnabledInput.setCurrentText(pipelineData[32])
+            view.logicOperationInput.setCurrentText(pipelineData[33])
+            view.attachmentCountInput.setValue(int(pipelineData[34]))
+            view.blendConstant0Input.setValue(float(pipelineData[35].replace(',', '.')))
+            view.blendConstant1Input.setValue(float(pipelineData[36].replace(',', '.')))
+            view.blendConstant2Input.setValue(float(pipelineData[37].replace(',', '.')))
+            view.blendConstant3Input.setValue(float(pipelineData[38].replace(',', '.')))
+            view.vertexShaderFileInput.setText(pipelineData[39])
+            view.vertexShaderEntryFunctionNameInput.setText(pipelineData[40])
+            view.fragmentShaderFileInput.setText(pipelineData[41])
+            view.fragmentShaderEntryFunctionNameInput.setText(pipelineData[42])
+            view.reduceSpirvCodeSizeCheckBox.setChecked(convertFromVulkanNaming(pipelineData[43]))
+            view.useIndexedVerticesCheckBox.setChecked(convertFromVulkanNaming(pipelineData[44]))
 
             view.addPipelineOKButton.accepted.connect(editPipeline)
             view.setWindowTitle("Edit Graphics Pipeline")
@@ -585,9 +585,9 @@ class VulkanSetupGUI(QMainWindow):
                 lambda: self.setFilePath("fragmentShaderFileToolButton", view))
             view.exec_()
 
-        selected_item = self.graphicsPipelinesList.currentItem()
-        if selected_item is not None:
-            updateGraphicsPipelineView(selected_item)
+        selectedItem = self.graphicsPipelinesList.currentItem()
+        if selectedItem is not None:
+            updateGraphicsPipelineView(selectedItem)
 
     def showRemovePipeline(self):
 
@@ -610,17 +610,16 @@ class VulkanSetupGUI(QMainWindow):
         pipelinesText = "\n".join(self.getListContents(self.graphicsPipelinesList))
         label = QLabel(f"Remove Pipeline?:\n{pipelinesText}")
         layout.addWidget(label)
-        ok_button = QPushButton("OK")
-        ok_button.clicked.connect(lambda: removePipelines(self.graphicsPipelinesList.selectedItems()))
-        ok_button.clicked.connect(d.accept)
-        layout.addWidget(ok_button)
+        OKButton = QPushButton("OK")
+        OKButton.clicked.connect(lambda: removePipelines(self.graphicsPipelinesList.selectedItems()))
+        OKButton.clicked.connect(d.accept)
+        layout.addWidget(OKButton)
         d.setLayout(layout)
         d.show()
 
     def fileOpenDialog(self):
         fileName = QFileDialog.getOpenFileName(self, 'Open file',
                                                'c:\\', "Model files (*.jpg)")
-        # self.modelPreviewOpenGLWidget = glWidget(self)
 
     def setFilePath(self, fileInput: str, referenceView):
         def setInputFilterBasedOnOrigin(fileInput):
@@ -660,10 +659,10 @@ class VulkanSetupGUI(QMainWindow):
 
     ### Validation Section
     def checkInput(self):
-        missing_inputs = []
+        missingInputs = []
 
         if len(self.applicationNameInput.text()) == 0:
-            missing_inputs.append((self.applicationNameLabel.text()).replace(":", ""))
+            missingInputs.append((self.applicationNameLabel.text()).replace(":", ""))
 
         if not self.checkDeviceExtensions():
             return False
@@ -671,8 +670,8 @@ class VulkanSetupGUI(QMainWindow):
         if not self.checkPipelineInput():
             return False
 
-        if missing_inputs:
-            self.showMissingInput(missing_inputs)
+        if missingInputs:
+            self.showMissingInput(missingInputs)
             return False
 
         # Input checked, all OK
@@ -695,7 +694,7 @@ class VulkanSetupGUI(QMainWindow):
     def checkPipelineInput(self):
         # Iterate through all graphics pipelines
         graphicsPipelines = self.graphicsPipelinesList
-        missing_inputs = []
+        missingInputs = []
 
         for i in range(graphicsPipelines.count()):
             item = graphicsPipelines.item(i)
@@ -708,19 +707,19 @@ class VulkanSetupGUI(QMainWindow):
             fragmentShaderEntryFunctionNameInput = data[42]
 
             if len(vertexShaderFileInput) == 0:
-                missing_inputs.append(f"{pipelineName}: Vertex Shader File")
+                missingInputs.append(f"{pipelineName}: Vertex Shader File")
 
             if len(fragmentShaderFileInput) == 0:
-                missing_inputs.append(f"{pipelineName}: Fragment Shader File")
+                missingInputs.append(f"{pipelineName}: Fragment Shader File")
 
             if len(vertexShaderEntryFunctionNameInput) == 0:
-                missing_inputs.append(f"{pipelineName}: Vertex Shader Entry Function Name")
+                missingInputs.append(f"{pipelineName}: Vertex Shader Entry Function Name")
 
             if len(fragmentShaderEntryFunctionNameInput) == 0:
-                missing_inputs.append(f"{pipelineName}: Fragment Shader Entry Function Name")
+                missingInputs.append(f"{pipelineName}: Fragment Shader Entry Function Name")
 
-        if missing_inputs:
-            self.showMissingInput(missing_inputs)
+        if missingInputs:
+            self.showMissingInput(missingInputs)
             return False
 
         return True
@@ -763,9 +762,7 @@ class VulkanSetupGUI(QMainWindow):
         for i in range(self.deviceExtensionsList.count()):
             item = self.deviceExtensionsList.item(i)
             if item.text() == extension:
-                # Do something with the item
                 return item
-                print(f"Found item with text 'extension': {item.text()}")
 
     ### XML section
     def loadFromFile(self):
@@ -780,9 +777,6 @@ class VulkanSetupGUI(QMainWindow):
                                                   'Vulkan Setup GUI files (*.xml)')
 
         if filePath:
-            # Append the specified filename to the file path
-            filePath = os.path.join(os.path.dirname(filePath), self.saveFile + ".xml")
-
             self.writeXml(filePath)
 
     def writeXml(self, fileName):
@@ -856,7 +850,7 @@ class VulkanSetupGUI(QMainWindow):
             pipeline = ET.SubElement(graphicsPipelines, 'pipeline', name=f'{item.data(0)}')
             data = item.data(Qt.UserRole)
 
-            pipeline_inputs = [
+            pipelineInputs = [
                 'vertexTopologyInput', 'primitiveRestartInput', 'depthClampInput',
                 'rasterizerDiscardInput', 'polygonModeInput', 'lineWidthInput',
                 'cullModeInput', 'frontFaceInput', 'depthBiasEnabledInput',
@@ -878,25 +872,24 @@ class VulkanSetupGUI(QMainWindow):
             ]
 
             for index, value in enumerate(data):
-                input_name = pipeline_inputs[index]
-                ET.SubElement(pipeline, input_name, name=input_name).text = str(value)
+                inputName = pipelineInputs[index]
+                ET.SubElement(pipeline, inputName, name=inputName).text = str(value)
 
         # create a new XML file with the results
         mydata = ET.tostring(root)
         with open(fileName, "wb") as myfile:
             myfile.write(mydata)
-
+        print(f"File created under: [{fileName}]")
         print("XML File created with parameters:")
         self.printInputs()
 
     def readXml(self, fileName):
-        # tree = ET.parse('VulkanSetup.xml')
         tree = ET.parse(fileName)
         root = tree.getroot()
 
         # recursively iterate over all elements and sub-elements
         def traverse(elem):
-            print(f"\nElement: {elem.tag}, attributes: {elem.attrib}, text: {elem.text}")
+            #print(f"\nElement: {elem.tag}, attributes: {elem.attrib}, text: {elem.text}")
 
             ### Instance
             if elem.tag == "applicationNameInput":
@@ -1000,36 +993,6 @@ class VulkanSetupGUI(QMainWindow):
 
         self.graphicsPipelinesList.clear()
         traverse(root)
-
-
-class glWidget(QOpenGLWidget):
-
-    def __init__(self, parent):
-        QOpenGLWidget.__init__(self, parent)
-
-    def paintGL(self):
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        glLoadIdentity()
-        glTranslatef(-2.5, 0.5, -6.0)
-        glColor3f(1.0, 1.5, 0.0)
-        glPolygonMode(GL_FRONT, GL_FILL)
-        glBegin(GL_TRIANGLES)
-        glVertex3f(2.0, -1.2, 0.0)
-        glVertex3f(2.6, 0.0, 0.0)
-        glVertex3f(2.9, -1.2, 0.0)
-        glEnd()
-        glFlush()
-
-    def initializeGL(self):
-        glClearDepth(1.0)
-        glDepthFunc(GL_LESS)
-        glEnable(GL_DEPTH_TEST)
-        glShadeModel(GL_SMOOTH)
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        gluPerspective(45.0, 1.33, 0.1, 100.0)
-        glMatrixMode(GL_MODELVIEW)
-
 
 def main():
     app = QApplication([])

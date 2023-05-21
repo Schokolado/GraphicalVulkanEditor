@@ -47,7 +47,7 @@
          </size>
         </property>
         <property name="currentIndex">
-         <number>4</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="instance">
          <property name="enabled">
@@ -1085,7 +1085,7 @@
     <property name="title">
      <string>Generate</string>
     </property>
-    <addaction name="actionExport_to_Vulkan"/>
+    <addaction name="actionExportToVulkan"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuExport"/>
@@ -1110,7 +1110,7 @@
     <string>Close</string>
    </property>
   </action>
-  <action name="actionExport_to_Vulkan">
+  <action name="actionExportToVulkan">
    <property name="text">
     <string>Export to Vulkan</string>
    </property>
