@@ -229,7 +229,7 @@ class VulkanSetupGUI(QMainWindow):
             self.convertToVulkanNaming(self.reduceSpirvCodeSizeCheckBox.isChecked())))
         print("graphicsPipelinesList: ")
         for i in range(self.graphicsPipelinesList.count()):
-            print("[{}]: [{}]".format(self.graphicsPipelinesList.item(i).data(0),
+            print("[{}]: [{}]".format(self.graphicsPipelinesList.item(i).data(Qt.DisplayRole),
                                       self.graphicsPipelinesList.item(i).data(Qt.UserRole)))
 
         print()
@@ -677,7 +677,7 @@ class VulkanSetupGUI(QMainWindow):
         for i in range(graphicsPipelines.count()):
             item = graphicsPipelines.item(i)
             data = item.data(Qt.UserRole)
-            pipelineName = item.data(0)
+            pipelineName = item.data(Qt.DisplayRole)
 
             vertexShaderFileInput = data[39]
             vertexShaderEntryFunctionNameInput = data[40]
@@ -831,7 +831,7 @@ class VulkanSetupGUI(QMainWindow):
 
         for i in range(self.graphicsPipelinesList.count()):
             item = self.graphicsPipelinesList.item(i)
-            pipeline = ET.SubElement(graphicsPipelines, 'pipeline', name=f'{item.data(0)}')
+            pipeline = ET.SubElement(graphicsPipelines, 'pipeline', name=f'{item.data(Qt.DisplayRole)}')
             data = item.data(Qt.UserRole)
 
             pipelineInputs = [
@@ -986,7 +986,136 @@ class VulkanSetupGUI(QMainWindow):
         self.graphicsPipelinesList.clear()
         traverse(root)
 
+    def prepareGraphicsPipelineOutput(self):
+        def convertColorBlendAttachment_colorWriteMask(mask: str):
+            if mask == "R":
+                return "VK_COLOR_COMPONENT_R_BIT"
+            elif mask == "G":
+                return "VK_COLOR_COMPONENT_G_BIT"
+            elif mask == "B":
+                return "VK_COLOR_COMPONENT_B_BIT"
+            elif mask == "A":
+                return "VK_COLOR_COMPONENT_A_BIT"
+            elif mask == "RG":
+                return "VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT"
+            elif mask == "RB":
+                return "VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_B_BIT"
+            elif mask == "RA":
+                return "VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_A_BIT"
+            elif mask == "GB":
+                return "VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT"
+            elif mask == "GA":
+                return "VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_A_BIT"
+            elif mask == "BA":
+                return "VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT"
+            elif mask == "RGB":
+                return "VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT"
+            elif mask == "RGA":
+                return "VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_A_BIT"
+            elif mask == "RBA":
+                return "VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT"
+            elif mask == "GBA":
+                return "VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT"
+            elif mask == "RGBA":
+                return "VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT"
+
+        def appendFixedFunctionParameters(pipelineName: str, pipeline: list):
+            params = f'''FixedFunctionStageParameters {pipelineName}{{
+			//////////////////////// INPUT ASSEMBLY
+			{pipeline[0]}, // inputAssemblyInfo_topology
+			{pipeline[1]}, // inputAssemblyInfo_primitiveRestartEnable
+
+			//////////////////////// RASTERIZER
+			{pipeline[2]}, // rasterizerInfo_depthClampEnable
+			{pipeline[3]}, // rasterizerInfo_rasterizerDiscardEnable
+			{pipeline[4]}, // rasterizerInfo_polygonMode 
+			{pipeline[5].replace(",", ".")}f, // rasterizerInfo_lineWidth
+			{pipeline[6]}, // rasterizerInfo_cullMode
+			{pipeline[7]}, // rasterizerInfo_frontFace
+			{pipeline[8]}, // rasterizerInfodepthBiasEnable
+			{pipeline[9].replace(",", ".")}f, // rasterizerInfo_depthBiasConstantFactor
+			{pipeline[10].replace(",", ".")}f, // rasterizerInfo_depthBiasClamp
+			{pipeline[11].replace(",", ".")}f, // rasterizerInfo_depthBiasSlopeFactor
+
+			//////////////////////// DEPTH AND STENCIL
+			{pipeline[12]}, // depthStencilInfo_depthTestEnable
+			{pipeline[13]}, // depthStencilInfo_depthWriteEnable
+			{pipeline[14]}, // depthStencilInfo_depthCompareOp
+			{pipeline[15]}, // depthStencilInfo_depthBoundsTestEnable
+			{pipeline[16].replace(",", ".")}f, // depthStencilInfo_minDepthBounds
+			{pipeline[17].replace(",", ".")}f, // depthStencilInfo_maxDepthBounds
+			{pipeline[18]}, // depthStencilInfo_stencilTestEnable
+
+			//////////////////////// MULTISAMPLING
+			{pipeline[19]}, // multisamplingInfo_sampleShadingEnable
+			{pipeline[20]}, // multisamplingInfo_rasterizationSamples
+			{pipeline[21].replace(",", ".")}f, // multisamplingInfo_minSampleShading
+			{pipeline[22]}, // multisamplingInfo_alphaToCoverageEnable
+			{pipeline[23]}, // multisamplingInfo_alphaToOneEnable
+
+			//////////////////////// COLOR BLENDING
+			{convertColorBlendAttachment_colorWriteMask(pipeline[24])}, // colorBlendAttachment_colorWriteMask
+			{pipeline[25]}, // colorBlendAttachment_blendEnable
+			{pipeline[26]}, // colorBlendAttachment_srcColorBlendFactor
+			{pipeline[27]}, // colorBlendAttachment_dstColorBlendFactor
+			{pipeline[28]}, // colorBlendAttachment_colorBlendOp
+			{pipeline[29]}, // colorBlendAttachment_srcAlphaBlendFactor
+			{pipeline[30]}, // colorBlendAttachment_dstAlphaBlendFactor
+			{pipeline[31]}, // colorBlendAttachment_alphaBlendOp
+
+			{pipeline[32]}, // colorBlendingInfo_logicOpEnable
+			{pipeline[33]}, // colorBlendingInfo_logicOp
+			{pipeline[34]}, // colorBlendingInfo_attachmentCount
+			{pipeline[35].replace(",", ".")}f, // colorBlendingInfo_blendConstants_0
+			{pipeline[36].replace(",", ".")}f, // colorBlendingInfo_blendConstants_1
+			{pipeline[37].replace(",", ".")}f, // colorBlendingInfo_blendConstants_2
+			{pipeline[38].replace(",", ".")}f // colorBlendingInfo_blendConstants_3
+		}};\n
+        '''
+            return params
+
+        def appendShaderStageParameters(pipelineName: str, pipeline: list):
+            shaders = f'''ShaderStageParameters {pipelineName + "_shaders"}{{
+			 "{pipeline[39]}", // vertexShaderText
+			 "{pipeline[41]}", // fragmentShaderText
+			 "{pipeline[40]}", // vertexShaderEntryFunctionName
+			 "{pipeline[42]}" // fragmentShaderEntryFunctionName
+		}};
+        '''
+            return shaders
+
+
+
+        pipelines = []
+        pipelineNames = []
+        pipelineText = []
+        pipelineDict = {}
+        for i in range(self.graphicsPipelinesList.count()):
+            pipeline = self.graphicsPipelinesList.item(i).data(Qt.UserRole)
+            pipelineName = self.graphicsPipelinesList.item(i).data(Qt.DisplayRole).lower().replace(" ", "_")
+            pipelineCode = appendFixedFunctionParameters(pipelineName,pipeline)
+            shaderCode = appendShaderStageParameters(pipelineName, pipeline)
+            pipelines.append(self.graphicsPipelinesList.item(i).data(Qt.UserRole))
+            pipelineNames.append(pipelineName)
+            pipelineText.append(pipelineCode)# may be removed
+            pipelineDict[pipelineName] = (pipelineCode, shaderCode)
+
+        print(pipelines)
+
+        return pipelineDict
+
+
     def createVulkanHeader(self):
+        pipelineCodeDictionary = self.prepareGraphicsPipelineOutput()
+        pipelineCode = ""
+        shaderCode = ""
+        pipelineNames = list(pipelineCodeDictionary.keys())
+        shaderNames = [name + "_shaders" for name in pipelineNames]
+        for code in pipelineCodeDictionary.values():
+            pipelineCode += code[0]
+            shaderCode += code[1]
+
+        #self.prepareGraphicsPipelineOutput()
         headerContent = f'''// This header includes all changeable but constant variables for the VulkanProject Header.
 // Any changes should be made inside this header-file such that the original implementation can be kept untouched.
 // DO NOT TOUCH THIS FILE. Any changes will be overridden on next save of Vulkan Setup GUI.
@@ -1095,128 +1224,13 @@ namespace VulkanProject {{
 		}};
 		
 		// Functional Parameters 
-		FixedFunctionStageParameters pipelineParameters_1{{
-			//////////////////////// INPUT ASSEMBLY
-			VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, // VERTEX_TOPOLOGY, // inputAssemblyInfo_topology
-			VK_FALSE, // inputAssemblyInfo_primitiveRestartEnable
-
-			//////////////////////// RASTERIZER
-			VK_FALSE, // rasterizerInfo_depthClampEnable
-			VK_FALSE, // rasterizerInfo_rasterizerDiscardEnable
-			VK_POLYGON_MODE_LINE, //POLYGON_MODE, // rasterizerInfo_polygonMode 
-			1.0f, // rasterizerInfo_lineWidth
-			VK_CULL_MODE_NONE, // CULL_MODE // rasterizerInfo_cullMode
-			VK_FRONT_FACE_COUNTER_CLOCKWISE, // rasterizerInfo_frontFace
-			VK_FALSE, // rasterizerInfodepthBiasEnable
-			0.0f, // rasterizerInfo_depthBiasConstantFactor
-			0.0f, // rasterizerInfo_depthBiasClamp
-			0.0f, // rasterizerInfo_depthBiasSlopeFactor
-
-			//////////////////////// DEPTH AND STENCIL
-			VK_TRUE, // depthStencilInfo_depthTestEnable
-			VK_TRUE, // depthStencilInfo_depthWriteEnable
-			VK_COMPARE_OP_LESS, // depthStencilInfo_depthCompareOp
-			VK_FALSE, // depthStencilInfo_depthBoundsTestEnable
-			0.0f, // depthStencilInfo_minDepthBounds
-			1.0f, // depthStencilInfo_maxDepthBounds
-			VK_FALSE, // depthStencilInfo_stencilTestEnable
-
-			//////////////////////// MULTISAMPLING
-			VK_FALSE, // multisamplingInfo_sampleShadingEnable
-			VK_SAMPLE_COUNT_1_BIT, // multisamplingInfo_rasterizationSamples
-			1.0f, // multisamplingInfo_minSampleShading
-			VK_FALSE, // multisamplingInfo_alphaToCoverageEnable
-			VK_FALSE, // multisamplingInfo_alphaToOneEnable
-
-			//////////////////////// COLOR BLENDING
-			VK_COLOR_COMPONENT_R_BIT, // | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT, // colorBlendAttachment_colorWriteMask
-			VK_FALSE, // colorBlendAttachment_blendEnable
-			VK_BLEND_FACTOR_ONE, // colorBlendAttachment_srcColorBlendFactor
-			VK_BLEND_FACTOR_ZERO, // colorBlendAttachment_dstColorBlendFactor
-			VK_BLEND_OP_ADD, // colorBlendAttachment_colorBlendOp
-			VK_BLEND_FACTOR_ONE, // colorBlendAttachment_srcAlphaBlendFactor
-			VK_BLEND_FACTOR_ZERO, // colorBlendAttachment_dstAlphaBlendFactor
-			VK_BLEND_OP_ADD, // colorBlendAttachment_alphaBlendOp
-
-			VK_FALSE, // colorBlendingInfo_logicOpEnable
-			VK_LOGIC_OP_COPY, // colorBlendingInfo_logicOp
-			1, // colorBlendingInfo_attachmentCount
-			0.0f, // colorBlendingInfo_blendConstants_0
-			0.0f, // colorBlendingInfo_blendConstants_1
-			0.0f, // colorBlendingInfo_blendConstants_2
-			0.0f // colorBlendingInfo_blendConstants_3
-		}};
-
-		FixedFunctionStageParameters pipelineParameters_2{{
-			//////////////////////// INPUT ASSEMBLY
-			VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, // VERTEX_TOPOLOGY, // inputAssemblyInfo_topology
-			VK_FALSE, // inputAssemblyInfo_primitiveRestartEnable
-
-			//////////////////////// RASTERIZER
-			VK_FALSE, // rasterizerInfo_depthClampEnable
-			VK_FALSE, // rasterizerInfo_rasterizerDiscardEnable
-			VK_POLYGON_MODE_FILL, // POLYGON_MODE, // rasterizerInfo_polygonMode 
-			1.0f, // rasterizerInfo_lineWidth
-			// CULL_MODE, // rasterizerInfo_cullMode
-			VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE, // rasterizerInfo_frontFace
-			VK_FALSE, // rasterizerInfodepthBiasEnable
-			0.0f, // rasterizerInfo_depthBiasConstantFactor
-			0.0f, // rasterizerInfo_depthBiasClamp
-			0.0f, // rasterizerInfo_depthBiasSlopeFactor
-
-			//////////////////////// DEPTH AND STENCIL
-			VK_TRUE, // depthStencilInfo_depthTestEnable
-			VK_TRUE, // depthStencilInfo_depthWriteEnable
-			VK_COMPARE_OP_LESS, // depthStencilInfo_depthCompareOp
-			VK_FALSE, // depthStencilInfo_depthBoundsTestEnable
-			0.0f, // depthStencilInfo_minDepthBounds
-			1.0f, // depthStencilInfo_maxDepthBounds
-			VK_FALSE, // depthStencilInfo_stencilTestEnable
-
-			//////////////////////// MULTISAMPLING
-			VK_FALSE, // multisamplingInfo_sampleShadingEnable
-			VK_SAMPLE_COUNT_1_BIT, // multisamplingInfo_rasterizationSamples
-			1.0f, // multisamplingInfo_minSampleShading
-			VK_FALSE, // multisamplingInfo_alphaToCoverageEnable
-			VK_FALSE, // multisamplingInfo_alphaToOneEnable
-
-			//////////////////////// COLOR BLENDING
-			VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT, // colorBlendAttachment_colorWriteMask
-			VK_FALSE, // colorBlendAttachment_blendEnable
-			VK_BLEND_FACTOR_ONE, // colorBlendAttachment_srcColorBlendFactor
-			VK_BLEND_FACTOR_ZERO, // colorBlendAttachment_dstColorBlendFactor
-			VK_BLEND_OP_ADD, // colorBlendAttachment_colorBlendOp
-			VK_BLEND_FACTOR_ONE, // colorBlendAttachment_srcAlphaBlendFactor
-			VK_BLEND_FACTOR_ZERO, // colorBlendAttachment_dstAlphaBlendFactor
-			VK_BLEND_OP_ADD, // colorBlendAttachment_alphaBlendOp
-
-			VK_FALSE, // colorBlendingInfo_logicOpEnable
-			VK_LOGIC_OP_COPY, // colorBlendingInfo_logicOp
-			1, // colorBlendingInfo_attachmentCount
-			0.0f, // colorBlendingInfo_blendConstants_0
-			0.0f, // colorBlendingInfo_blendConstants_1
-			0.0f, // colorBlendingInfo_blendConstants_2
-			0.0f // colorBlendingInfo_blendConstants_3
-		}};
-
+		{pipelineCode}
 		// Shader Parameters
-		ShaderStageParameters pipelineShaders_1{{
-			 "shaders/raw_shaders/shader.vert", // vertexShaderText
-			 "shaders/raw_shaders/shader.frag", // fragmentShaderText
-			 "main", // vertexShaderEntryFunctionName
-			 "main" // fragmentShaderEntryFunctionName
-		}};
+		{shaderCode}
 
-		ShaderStageParameters pipelineShaders_2{{
-			 "shaders/raw_shaders/shader.vert", // vertexShaderText
-			 "shaders/raw_shaders/shader-debug.frag", // fragmentShaderText
-			 "main", // vertexShaderEntryFunctionName
-			 "main" // fragmentShaderEntryFunctionName
-		}};
+		const std::vector<FixedFunctionStageParameters> PIPELINE_PARAMETERS{{ {','.join(pipelineNames)} }};
 
-		const std::vector<FixedFunctionStageParameters> PIPELINE_PARAMETERS{{ pipelineParameters_1, pipelineParameters_2 }};
-
-		const std::vector<ShaderStageParameters> PIPELINE_SHADERS{{ pipelineShaders_1, pipelineShaders_2 }};
+		const std::vector<ShaderStageParameters> PIPELINE_SHADERS{{ {', '.join(shaderNames)} }};
 
 		const int PIPELINE_COUNT = PIPELINE_PARAMETERS.size();
 

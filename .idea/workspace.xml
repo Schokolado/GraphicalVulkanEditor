@@ -4,13 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="basic setup for vulkan header export">
+    <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="continue header export until graphics pipeline add, refactored some checkboxes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/VulkanProjectVariables.h" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanProjectVariables.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/GraphicsPipelineView.ui" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/GraphicsPipelineView.ui" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetup.xml" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetup.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.ui" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.ui" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -164,7 +162,14 @@
       <option name="project" value="LOCAL" />
       <updated>1684686321981</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="continue header export until graphics pipeline add, refactored some checkboxes">
+      <created>1684764306260</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1684764306260</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -180,7 +185,8 @@
     <MESSAGE value="fix pipeline loading, add doubleclick action to edit pipelines" />
     <MESSAGE value="fixed extensions error - issue was @file saving.&#10;refactoring/renaming" />
     <MESSAGE value="basic setup for vulkan header export" />
-    <option name="LAST_COMMIT_MESSAGE" value="basic setup for vulkan header export" />
+    <MESSAGE value="continue header export until graphics pipeline add, refactored some checkboxes" />
+    <option name="LAST_COMMIT_MESSAGE" value="continue header export until graphics pipeline add, refactored some checkboxes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -194,16 +200,6 @@
           <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
           <line>729</line>
           <option name="timeStamp" value="32" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
-          <line>866</line>
-          <option name="timeStamp" value="40" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
-          <line>787</line>
-          <option name="timeStamp" value="51" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
