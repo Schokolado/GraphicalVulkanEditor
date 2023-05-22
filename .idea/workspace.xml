@@ -4,11 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="working dynamically output for multiple pipelines">
+    <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="final code refactoring, comments and added success/failure view for generating vulkan header">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/VulkanProjectVariables.h" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanProjectVariables.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.ui" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.ui" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -176,7 +175,14 @@
       <option name="project" value="LOCAL" />
       <updated>1684774261560</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="final code refactoring, comments and added success/failure view for generating vulkan header">
+      <created>1684777829467</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1684777829467</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -194,14 +200,15 @@
     <MESSAGE value="basic setup for vulkan header export" />
     <MESSAGE value="continue header export until graphics pipeline add, refactored some checkboxes" />
     <MESSAGE value="working dynamically output for multiple pipelines" />
-    <option name="LAST_COMMIT_MESSAGE" value="working dynamically output for multiple pipelines" />
+    <MESSAGE value="final code refactoring, comments and added success/failure view for generating vulkan header" />
+    <option name="LAST_COMMIT_MESSAGE" value="final code refactoring, comments and added success/failure view for generating vulkan header" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
-          <line>315</line>
+          <line>325</line>
           <option name="timeStamp" value="20" />
         </line-breakpoint>
       </breakpoints>

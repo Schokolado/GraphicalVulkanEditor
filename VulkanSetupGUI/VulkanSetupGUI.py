@@ -2,7 +2,7 @@ import ast
 
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QVector3D
 from pywavefront import Wavefront
 from PyQt5.QtWidgets import *
 from OpenGL.GL import *
@@ -35,6 +35,16 @@ class OpenGLWidget(QOpenGLWidget):
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glEnable(GL_DEPTH_TEST)
+
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+
+        rotation_angle = 90  # Rotation angle in degrees
+        rotation_axis = QVector3D(-1, 0, 0)  # Rotation axis (e.g., Y-axis)
+        glRotatef(rotation_angle, rotation_axis.x(), rotation_axis.y(), rotation_axis.z())
+
+        translation = QVector3D(0, 0, -0.3)  # Translation vector (e.g., move 0.2 units down on the Y-axis)
+        glTranslate(translation.x(), translation.y(), translation.z())
 
         glBegin(GL_TRIANGLES)
         if self.OBJMesh:
@@ -646,7 +656,7 @@ class VulkanSetupGUI(QMainWindow):
         def setInputFilterBasedOnOrigin(fileInput):
             filterMap = {
                 "modelFileToolButton": "Model files (*.obj)",
-                "textureFileToolButton": "Texture image files (*.jpg, *.png)",
+                "textureFileToolButton": "Texture image files (*.jpg *.jpeg *.png)",
                 "vertexShaderFileToolButton": "Vertex shader files (*.vert)",
                 "fragmentShaderFileToolButton": "fragment shader files (*.frag)",
                 "actionLoadFromFile": "Vulkan Setup GUI files (*.xml)"

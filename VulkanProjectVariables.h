@@ -38,8 +38,8 @@ namespace VulkanProject {
 	// Shader
 
 	// Model
-	const std::string MODEL_FILE = "C:/Users/Avoccardo/source/repos/VulkanSetup/models/viking_room.obj";
-	const std::string TEXTURE_FILE = "C:/Users/Avoccardo/source/repos/VulkanSetup/textures/viking_room.png";
+	const std::string MODEL_FILE = "C:/Users/Avoccardo/source/repos/VulkanSetup/models/viking_room_blender.obj";
+	const std::string TEXTURE_FILE = "C:/Users/Avoccardo/source/repos/VulkanSetup/textures/texture.jpg";
 
 	// Graphics Pipeline
     const bool USE_INDEXED_VERTICES = VK_TRUE;
@@ -114,58 +114,6 @@ namespace VulkanProject {
 			//////////////////////// RASTERIZER
 			VK_FALSE, // rasterizerInfo_depthClampEnable
 			VK_FALSE, // rasterizerInfo_rasterizerDiscardEnable
-			VK_POLYGON_MODE_LINE, // rasterizerInfo_polygonMode 
-			0.00f, // rasterizerInfo_lineWidth
-			VK_CULL_MODE_NONE, // rasterizerInfo_cullMode
-			VK_FRONT_FACE_COUNTER_CLOCKWISE, // rasterizerInfo_frontFace
-			VK_FALSE, // rasterizerInfodepthBiasEnable
-			0.00f, // rasterizerInfo_depthBiasConstantFactor
-			0.00f, // rasterizerInfo_depthBiasClamp
-			0.00f, // rasterizerInfo_depthBiasSlopeFactor
-
-			//////////////////////// DEPTH AND STENCIL
-			VK_TRUE, // depthStencilInfo_depthTestEnable
-			VK_TRUE, // depthStencilInfo_depthWriteEnable
-			VK_COMPARE_OP_LESS, // depthStencilInfo_depthCompareOp
-			VK_FALSE, // depthStencilInfo_depthBoundsTestEnable
-			0.00f, // depthStencilInfo_minDepthBounds
-			0.00f, // depthStencilInfo_maxDepthBounds
-			VK_FALSE, // depthStencilInfo_stencilTestEnable
-
-			//////////////////////// MULTISAMPLING
-			VK_FALSE, // multisamplingInfo_sampleShadingEnable
-			VK_SAMPLE_COUNT_1_BIT, // multisamplingInfo_rasterizationSamples
-			0.00f, // multisamplingInfo_minSampleShading
-			VK_FALSE, // multisamplingInfo_alphaToCoverageEnable
-			VK_FALSE, // multisamplingInfo_alphaToOneEnable
-
-			//////////////////////// COLOR BLENDING
-			VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT, // colorBlendAttachment_colorWriteMask
-			VK_FALSE, // colorBlendAttachment_blendEnable
-			VK_BLEND_FACTOR_ONE, // colorBlendAttachment_srcColorBlendFactor
-			VK_BLEND_FACTOR_ZERO, // colorBlendAttachment_dstColorBlendFactor
-			VK_BLEND_OP_ADD, // colorBlendAttachment_colorBlendOp
-			VK_BLEND_FACTOR_ONE, // colorBlendAttachment_srcAlphaBlendFactor
-			VK_BLEND_FACTOR_ZERO, // colorBlendAttachment_dstAlphaBlendFactor
-			VK_BLEND_OP_ADD, // colorBlendAttachment_alphaBlendOp
-
-			VK_FALSE, // colorBlendingInfo_logicOpEnable
-			VK_LOGIC_OP_COPY, // colorBlendingInfo_logicOp
-			1, // colorBlendingInfo_attachmentCount
-			0.00f, // colorBlendingInfo_blendConstants_0
-			0.00f, // colorBlendingInfo_blendConstants_1
-			0.00f, // colorBlendingInfo_blendConstants_2
-			0.00f // colorBlendingInfo_blendConstants_3
-		};
-
-        FixedFunctionStageParameters graphics_pipeline_2{
-			//////////////////////// INPUT ASSEMBLY
-			VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, // inputAssemblyInfo_topology
-			VK_FALSE, // inputAssemblyInfo_primitiveRestartEnable
-
-			//////////////////////// RASTERIZER
-			VK_FALSE, // rasterizerInfo_depthClampEnable
-			VK_FALSE, // rasterizerInfo_rasterizerDiscardEnable
 			VK_POLYGON_MODE_FILL, // rasterizerInfo_polygonMode 
 			0.00f, // rasterizerInfo_lineWidth
 			VK_CULL_MODE_NONE, // rasterizerInfo_cullMode
@@ -218,17 +166,11 @@ namespace VulkanProject {
 			 "main", // vertexShaderEntryFunctionName
 			 "main" // fragmentShaderEntryFunctionName
 		};
-        ShaderStageParameters graphics_pipeline_2_shaders{
-			 "C:/Users/Avoccardo/source/repos/VulkanSetup/shaders/raw_shaders/shader.vert", // vertexShaderText
-			 "C:/Users/Avoccardo/source/repos/VulkanSetup/shaders/raw_shaders/shader-debug.frag", // fragmentShaderText
-			 "main", // vertexShaderEntryFunctionName
-			 "main" // fragmentShaderEntryFunctionName
-		};
         
 
-		const std::vector<FixedFunctionStageParameters> PIPELINE_PARAMETERS{ graphics_pipeline_1,graphics_pipeline_2 };
+		const std::vector<FixedFunctionStageParameters> PIPELINE_PARAMETERS{ graphics_pipeline_1 };
 
-		const std::vector<ShaderStageParameters> PIPELINE_SHADERS{ graphics_pipeline_1_shaders, graphics_pipeline_2_shaders };
+		const std::vector<ShaderStageParameters> PIPELINE_SHADERS{ graphics_pipeline_1_shaders };
 
 		const int PIPELINE_COUNT = PIPELINE_PARAMETERS.size();
 
