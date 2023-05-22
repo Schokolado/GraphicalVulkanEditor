@@ -9,6 +9,7 @@ from OpenGL.GL import *
 import xml.etree.ElementTree as ET
 
 DEFAULT_DEVICE_EXTENSIONS = ["VK_KHR_SWAPCHAIN_EXTENSION_NAME"]
+VULKAN_HEADER_OUTPUT_LOCATION = "../VulkanProjectVariables.h"
 
 class OpenGLWidget(QOpenGLWidget):
     def __init__(self, OBJFilePath, parent=None):
@@ -72,6 +73,11 @@ class VulkanSetupGUI(QMainWindow):
         self.loadModelPreview()
         self.loadTexturePreview()
 
+    #################################
+    ######## Utility section ########
+    #################################
+
+    # Conversion Functions
     def convertToVulkanNaming(self, input: str):
         if type(input) == bool:
             if input:
@@ -90,6 +96,7 @@ class VulkanSetupGUI(QMainWindow):
         else:
             return input
 
+    # Preview functions
     def updatePreviews(self):
         self.loadTexturePreview()
         self.loadModelPreview()
@@ -128,14 +135,16 @@ class VulkanSetupGUI(QMainWindow):
         # Add the model preview widget to the vertical layout
         self.verticalLayoutModelPreview.addWidget(modelPreviewWidget)
 
+    #################################
+    ##### Connection Section ########
+    #################################
+
     def connectActions(self):
         # Menu Bar and Bottom
         self.actionExportToVulkan.triggered.connect(self.setOutput)
-        #self.generateVulkanCodeButton.clicked.connect(self.setOutput)
-        self.generateVulkanCodeButton.clicked.connect(self.createVulkanHeader)
-        #self.generateVulkanCodeButton.clicked.connect(self.generate_pipeline_code)
-        self.actionSaveToFile.triggered.connect(self.saveToFile)
-        self.actionLoadFromFile.triggered.connect(self.loadFromFile)
+        self.generateVulkanCodeButton.clicked.connect(self.setOutput)
+        self.actionSaveToFile.triggered.connect(self.saveToXMLFile)
+        self.actionLoadFromFile.triggered.connect(self.loadFromXMLFile)
         self.actionLoadFromFile.triggered.connect(self.loadTexturePreview)
         self.actionLoadFromFile.triggered.connect(self.loadModelPreview)
 
@@ -162,7 +171,9 @@ class VulkanSetupGUI(QMainWindow):
         self.graphicsPipelinesList.itemDoubleClicked.connect(self.showEditPipelineInput)
         # self.pipelinePreviewButton.clicked.connect(self.showPreview)
 
-    ### Print and Output Section
+    #################################
+    ######## Print section ##########
+    #################################
 
     def setOutput(self):
         # Check if all input is set and checked
@@ -170,6 +181,11 @@ class VulkanSetupGUI(QMainWindow):
             return
 
         self.printInputs()
+        if self.writeVulkanHeader():
+            self.showHeaderFileCreated()
+        else:
+            self.showHeaderFileCreationFailed()
+
 
     def printInputs(self):
         # Instance
@@ -234,8 +250,35 @@ class VulkanSetupGUI(QMainWindow):
 
         print()
 
-    ### Show Views Section
+    #################################
+    ###### Show views section #######
+    #################################
 
+    def showHeaderFileCreated(self):
+        d = QDialog()
+        d.setWindowTitle("")
+        d.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
+        layout = QVBoxLayout()
+        label = QLabel(f"Vulkan project header file has been created under\n{VULKAN_HEADER_OUTPUT_LOCATION}")
+        layout.addWidget(label)
+        okButton = QPushButton("OK")
+        okButton.clicked.connect(d.accept)
+        layout.addWidget(okButton)
+        d.setLayout(layout)
+        d.exec_()
+
+    def showHeaderFileCreationFailed(self):
+        d = QDialog()
+        d.setWindowTitle("")
+        d.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
+        layout = QVBoxLayout()
+        label = QLabel(f"Failed to create Vulkan project header file under\n{VULKAN_HEADER_OUTPUT_LOCATION}")
+        layout.addWidget(label)
+        okButton = QPushButton("OK")
+        okButton.clicked.connect(d.accept)
+        layout.addWidget(okButton)
+        d.setLayout(layout)
+        d.exec_()
     def showRemoveExtension(self):
         def checkValidRemoval(item):
             return item not in DEFAULT_DEVICE_EXTENSIONS
@@ -635,7 +678,10 @@ class VulkanSetupGUI(QMainWindow):
 
         self.updatePreviews()
 
-    ### Validation Section
+    #################################
+    ###### Validation section #######
+    #################################
+
     def checkInput(self):
         missingInputs = []
 
@@ -702,7 +748,9 @@ class VulkanSetupGUI(QMainWindow):
 
         return True
 
-    ### Items and List section
+    #################################
+    # Widget List and Items section #
+    #################################
 
     def selectMultipleItems(self, listWidget, itemTexts):
         for i in range(listWidget.count()):
@@ -742,22 +790,24 @@ class VulkanSetupGUI(QMainWindow):
             if item.text() == extension:
                 return item
 
-    ### XML section
-    def loadFromFile(self):
+    #################################
+    ##### XML In/Output section #####
+    #################################
+    def loadFromXMLFile(self):
         self.setFilePath("actionLoadFromFile", None)
         fileName = self.loadFile
         if fileName:
-            self.readXml(fileName)
+            self.readXML(fileName)
 
-    def saveToFile(self):
+    def saveToXMLFile(self):
         # Show file dialog to select file storage location
         filePath, _ = QFileDialog.getSaveFileName(self, 'Save file', self.saveFile,
                                                   'Vulkan Setup GUI files (*.xml)')
 
         if filePath:
-            self.writeXml(filePath)
+            self.writeXML(filePath)
 
-    def writeXml(self, fileName):
+    def writeXML(self, fileName):
         # create the file structure
         root = ET.Element('VulkanSetup')
 
@@ -866,7 +916,7 @@ class VulkanSetupGUI(QMainWindow):
         print("XML File created with parameters:")
         self.printInputs()
 
-    def readXml(self, fileName):
+    def readXML(self, fileName):
         tree = ET.parse(fileName)
         root = tree.getroot()
 
@@ -986,7 +1036,17 @@ class VulkanSetupGUI(QMainWindow):
         self.graphicsPipelinesList.clear()
         traverse(root)
 
-    def prepareGraphicsPipelineOutput(self):
+    #################################
+    ### CPP Header Output section ###
+    #################################
+    def generatePipelineCode(self):
+        """
+        Prepares the graphics pipeline output by generating pipeline and shader code for each pipeline.
+
+        Returns:
+            dict: A dictionary mapping pipeline names to their respective pipeline and shader code.
+        """
+
         def convertColorBlendAttachment_colorWriteMask(mask: str):
             if mask == "R":
                 return "VK_COLOR_COMPONENT_R_BIT"
@@ -1084,33 +1144,31 @@ class VulkanSetupGUI(QMainWindow):
         '''
             return shaders
 
-
-
-        pipelines = []
-        pipelineNames = []
-        pipelineText = []
         pipelineDict = {}
         for i in range(self.graphicsPipelinesList.count()):
             pipeline = self.graphicsPipelinesList.item(i).data(Qt.UserRole)
             pipelineName = self.graphicsPipelinesList.item(i).data(Qt.DisplayRole).lower().replace(" ", "_")
-            pipelineCode = appendFixedFunctionParameters(pipelineName,pipeline)
+            pipelineCode = appendFixedFunctionParameters(pipelineName, pipeline)
             shaderCode = appendShaderStageParameters(pipelineName, pipeline)
-            pipelines.append(self.graphicsPipelinesList.item(i).data(Qt.UserRole))
-            pipelineNames.append(pipelineName)
-            pipelineText.append(pipelineCode)# may be removed
             pipelineDict[pipelineName] = (pipelineCode, shaderCode)
-
-        print(pipelines)
 
         return pipelineDict
 
+    def writeVulkanHeader(self):
+        """
+        Generates the Vulkan header file containing all the changeable but constant variables.
 
-    def createVulkanHeader(self):
-        pipelineCodeDictionary = self.prepareGraphicsPipelineOutput()
-        pipelineCode = ""
-        shaderCode = ""
+        This function generates the content for the VulkanProjectVariables.h header file.
+
+        Returns:
+            None
+        """
+        pipelineCodeDictionary = self.generatePipelineCode()
         pipelineNames = list(pipelineCodeDictionary.keys())
         shaderNames = [name + "_shaders" for name in pipelineNames]
+        pipelineCode = ""
+        shaderCode = ""
+
         for code in pipelineCodeDictionary.values():
             pipelineCode += code[0]
             shaderCode += code[1]
@@ -1242,11 +1300,12 @@ namespace VulkanProject {{
 }}
         '''
 
-        with open("VulkanProjectVariables.h", "w") as myfile:
-            myfile.write(headerContent)
-
-
-
+        try:
+            with open(VULKAN_HEADER_OUTPUT_LOCATION, "w") as myfile:
+                myfile.write(headerContent)
+            return True
+        except IOError:
+            return False
 
 def main():
     app = QApplication([])
