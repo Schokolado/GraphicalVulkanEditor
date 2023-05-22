@@ -33,9 +33,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-645</y>
         <width>593</width>
-        <height>1234</height>
+        <height>1188</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout">
@@ -2835,20 +2835,6 @@
               </spacer>
              </item>
             </layout>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="reduceSpirvCodeSizeCheckBox">
-             <property name="text">
-              <string>Reduce SPIR-V Code Size</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="useIndexedVerticesCheckBox">
-             <property name="text">
-              <string>Use Indexed Vertices</string>
-             </property>
-            </widget>
            </item>
           </layout>
          </item>

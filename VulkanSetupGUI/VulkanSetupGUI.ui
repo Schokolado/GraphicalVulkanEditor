@@ -47,7 +47,7 @@
          </size>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>5</number>
         </property>
         <widget class="QWidget" name="instance">
          <property name="enabled">
@@ -959,7 +959,7 @@
             <x>10</x>
             <y>10</y>
             <width>521</width>
-            <height>422</height>
+            <height>468</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_2">
@@ -1003,6 +1003,26 @@
            </item>
            <item row="2" column="1">
             <layout class="QVBoxLayout" name="verticalLayoutPipelinePreview">
+             <item>
+              <widget class="QCheckBox" name="useIndexedVerticesCheckBox">
+               <property name="text">
+                <string>Use Indexed Vertices</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+               <property name="tristate">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="reduceSpirvCodeSizeCheckBox">
+               <property name="text">
+                <string>Reduce SPIR-V Code Size</string>
+               </property>
+              </widget>
+             </item>
              <item>
               <widget class="QLabel" name="pipelinePreviewLabel">
                <property name="minimumSize">

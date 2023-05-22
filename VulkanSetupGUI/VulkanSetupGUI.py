@@ -223,6 +223,10 @@ class VulkanSetupGUI(QMainWindow):
             self.textureFileInput.text()))
 
         # GraphicsPipeline
+        print("useIndexedVerticesCheckBox: [{}]".format(
+            self.convertToVulkanNaming(self.useIndexedVerticesCheckBox.isChecked())))
+        print("reduceSpirvCodeSizeCheckBox: [{}]".format(
+            self.convertToVulkanNaming(self.reduceSpirvCodeSizeCheckBox.isChecked())))
         print("graphicsPipelinesList: ")
         for i in range(self.graphicsPipelinesList.count()):
             print("[{}]: [{}]".format(self.graphicsPipelinesList.item(i).data(0),
@@ -433,8 +437,6 @@ class VulkanSetupGUI(QMainWindow):
             parameters.append(view.vertexShaderEntryFunctionNameInput.text())
             parameters.append(view.fragmentShaderFileInput.text())
             parameters.append(view.fragmentShaderEntryFunctionNameInput.text())
-            parameters.append(self.convertToVulkanNaming(view.reduceSpirvCodeSizeCheckBox.isChecked()))
-            parameters.append(self.convertToVulkanNaming(view.useIndexedVerticesCheckBox.isChecked()))
 
             return parameters
 
@@ -501,8 +503,6 @@ class VulkanSetupGUI(QMainWindow):
                 parameters.append(view.vertexShaderEntryFunctionNameInput.text())
                 parameters.append(view.fragmentShaderFileInput.text())
                 parameters.append(view.fragmentShaderEntryFunctionNameInput.text())
-                parameters.append(self.convertToVulkanNaming(view.reduceSpirvCodeSizeCheckBox.isChecked()))
-                parameters.append(self.convertToVulkanNaming(view.useIndexedVerticesCheckBox.isChecked()))
 
                 return parameters
 
@@ -554,8 +554,6 @@ class VulkanSetupGUI(QMainWindow):
             view.vertexShaderEntryFunctionNameInput.setText(pipelineData[40])
             view.fragmentShaderFileInput.setText(pipelineData[41])
             view.fragmentShaderEntryFunctionNameInput.setText(pipelineData[42])
-            view.reduceSpirvCodeSizeCheckBox.setChecked(self.convertFromVulkanNaming(pipelineData[43]))
-            view.useIndexedVerticesCheckBox.setChecked(self.convertFromVulkanNaming(pipelineData[44]))
 
             view.addPipelineOKButton.accepted.connect(editPipeline)
             view.setWindowTitle("Edit Graphics Pipeline")
@@ -823,7 +821,13 @@ class VulkanSetupGUI(QMainWindow):
         ET.SubElement(model, 'textureFileInput', name='textureFileInput').text = self.textureFileInput.text()
 
         # Graphics Pipeline
-        graphicsPipelines = ET.SubElement(root, 'graphicsPipelines')
+        graphicsPipeline = ET.SubElement(root, 'graphicsPipeline')
+        ET.SubElement(graphicsPipeline, 'useIndexedVerticesCheckBox', name='useIndexedVerticesCheckBox').text = self.convertToVulkanNaming(
+            self.useIndexedVerticesCheckBox.isChecked())
+        ET.SubElement(graphicsPipeline, 'reduceSpirvCodeSizeCheckBox', name='reduceSpirvCodeSizeCheckBox').text = self.convertToVulkanNaming(
+            self.reduceSpirvCodeSizeCheckBox.isChecked())
+
+        graphicsPipelines = ET.SubElement(graphicsPipeline, 'graphicsPipelines')
 
         for i in range(self.graphicsPipelinesList.count()):
             item = self.graphicsPipelinesList.item(i)
@@ -847,8 +851,7 @@ class VulkanSetupGUI(QMainWindow):
                 'attachmentCountInput', 'blendConstant0Input', 'blendConstant1Input',
                 'blendConstant2Input', 'blendConstant3Input', 'vertexShaderFileInput',
                 'vertexShaderEntryFunctionNameInput', 'fragmentShaderFileInput',
-                'fragmentShaderEntryFunctionNameInput', 'reduceSpirvCodeSizeCheckBox',
-                'useIndexedVerticesCheckBox'
+                'fragmentShaderEntryFunctionNameInput'
             ]
 
             for index, value in enumerate(data):
@@ -946,6 +949,17 @@ class VulkanSetupGUI(QMainWindow):
                 self.textureFileInput.setText(elem.text.strip())
 
             # Graphics Pipeline
+            if elem.tag == "useIndexedVerticesCheckBox":
+                if elem.text == "VK_FALSE":
+                    self.useIndexedVerticesCheckBox.setChecked(False)
+                if elem.text == "VK_TRUE":
+                    self.useIndexedVerticesCheckBox.setChecked(True)
+            if elem.tag == "reduceSpirvCodeSizeCheckBox":
+                if elem.text == "VK_FALSE":
+                    self.reduceSpirvCodeSizeCheckBox.setChecked(False)
+                if elem.text == "VK_TRUE":
+                    self.reduceSpirvCodeSizeCheckBox.setChecked(True)
+
             if elem.tag == "pipeline":
                 pipelineName = elem.attrib["name"]
                 pipeline = []
@@ -983,7 +997,7 @@ class VulkanSetupGUI(QMainWindow):
 namespace VulkanProject {{
 
 	// Instance
-	const char* APPLICATION_NAME = {self.applicationNameInput.text()};
+	const char* APPLICATION_NAME = "{self.applicationNameInput.text()}";
 	const bool SHOW_VALIDATION_LAYER_DEBUG_INFO = {self.convertToVulkanNaming(self.showValidationLayerDebugInfoCheckBox.isChecked())};
 	const bool RUN_ON_MACOS = {self.convertToVulkanNaming(self.runOnMacosCheckBox.isChecked())};
 
@@ -999,25 +1013,26 @@ namespace VulkanProject {{
 	// Swapchain
 	const uint32_t WIDTH = {self.imageHeightInput.text()};
 	const uint32_t HEIGHT = {self.imageWidthInput.text()};
-	VkClearColorValue CLEAR_COLOR = {{ {{0.0f, 0.0f, 0.0f, 1.0f}} }};
-	const int MAX_FRAMES_IN_FLIGHT = 5;
-	const bool LOCK_WINDOW_SIZE = VK_FALSE;
-	const VkImageUsageFlagBits IMAGE_USAGE = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-	const VkPresentModeKHR PRESENTATION_MODE = VK_PRESENT_MODE_MAILBOX_KHR;
-	const bool SAVE_ENERGY_FOR_MOBILE = VK_FALSE;
-	const VkFormat IMAGE_FORMAT = VK_FORMAT_B8G8R8A8_SRGB;
-	const VkColorSpaceKHR IMAGE_COLOR_SPACE = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+	VkClearColorValue CLEAR_COLOR = {{ {{{self.clearColorRInput.text().replace(",", ".")}f, {self.clearColorGInput.text().replace(",", ".")}f, {self.clearColorBInput.text().replace(",", ".")}f, {self.clearColorAInput.text().replace(",", ".")}f}} }};
+	const int MAX_FRAMES_IN_FLIGHT = {self.framesInFlightInput.text()};
+	const bool LOCK_WINDOW_SIZE = {self.convertToVulkanNaming(self.lockWindowSizeCheckBox.isChecked())};
+	const VkImageUsageFlagBits IMAGE_USAGE = {self.imageUsageInput.currentText()};
+	const VkPresentModeKHR PRESENTATION_MODE = {self.presentationModeInput.currentText()};
+	const bool SAVE_ENERGY_FOR_MOBILE = {self.convertToVulkanNaming(self.saveEnergyForMobileCheckBox.isChecked())};
+	const VkFormat IMAGE_FORMAT = {self.imageFormatInput.currentText()};
+	const VkColorSpaceKHR IMAGE_COLOR_SPACE = {self.imageColorSpaceInput.currentText()};
+	
 	// Descriptor
 
 	// Shader
-	const bool USE_INDEXED_VERTICES = VK_TRUE;
-	const bool REDUCE_SPIRV_CODE_SIZE = VK_FALSE;
 
 	// Model
-	const std::string MODEL_FILE = "models/viking_room.obj";
-	const std::string TEXTURE_FILE = "textures/viking_room.png";
+	const std::string MODEL_FILE = "{self.modelFileInput.text()}";
+	const std::string TEXTURE_FILE = "{self.textureFileInput.text()}";
 
 	// Graphics Pipeline
+    const bool USE_INDEXED_VERTICES = {self.convertToVulkanNaming(self.useIndexedVerticesCheckBox.isChecked())};
+	const bool REDUCE_SPIRV_CODE_SIZE = {self.convertToVulkanNaming(self.reduceSpirvCodeSizeCheckBox.isChecked())};
 
 		// Pipeline
 		struct FixedFunctionStageParameters {{

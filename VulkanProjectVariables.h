@@ -35,22 +35,14 @@ namespace VulkanProject {
 	// Descriptor
 
 	// Shader
-	//const std::string VERTEX_SHADER_FILE = "shaders/raw_shaders/shader.vert";
-	//const std::string FRAGMENT_SHADER_FILE = "shaders/raw_shaders/shader.frag";
 	const bool USE_INDEXED_VERTICES = VK_TRUE;
 	const bool REDUCE_SPIRV_CODE_SIZE = VK_FALSE;
-	//const char* SHADER_ENTRY_FUNCTION_NAME = "main";
-	//const VkPrimitiveTopology VERTEX_TOPOLOGY = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
 	// Model
 	const std::string MODEL_FILE = "models/viking_room.obj";
 	const std::string TEXTURE_FILE = "textures/viking_room.png";
 
 	// Graphics Pipeline
-	 
-		// Rasterizer
-		// const VkCullModeFlagBits CULL_MODE = VK_CULL_MODE_NONE; //VK_CULL_MODE_BACK_BIT;
-		// const VkPolygonMode POLYGON_MODE = VK_POLYGON_MODE_FILL;
 
 		// Pipeline
 		struct FixedFunctionStageParameters {
