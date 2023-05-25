@@ -6,8 +6,17 @@
   <component name="ChangeListManager">
     <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="final code refactoring, comments and added success/failure view for generating vulkan header">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/VulkanProject.h" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanProject.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/VulkanProjectVariables.h" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanProjectVariables.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetup.xml" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetup.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/readme.txt" beforeDir="false" afterPath="$PROJECT_DIR$/readme.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shaders/not_needed/compile_win.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shaders/not_needed/compiled_shaders/frag.spv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shaders/not_needed/compiled_shaders/vert.spv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shaders/not_needed/glslc.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shaders/not_needed/raw_shaders/shader.frag" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shaders/not_needed/raw_shaders/shader.vert" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,6 +32,18 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings">
+    <option name="selectedUrlAndAccountId">
+      <UrlAndAccount>
+        <option name="accountId" value="0934f543-a4c0-4cc1-9dd3-fe6d8389f7f0" />
+        <option name="url" value="https://github.com/Schokolado/VulkanSetup" />
+      </UrlAndAccount>
+    </option>
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -185,6 +206,17 @@
     <option name="localTasksCounter" value="16" />
     <servers />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="load from xml added" />
     <MESSAGE value="minor refactoring for load from xml" />
@@ -208,10 +240,17 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/VulkanSetupGUI/VulkanSetupGUI.py</url>
-          <line>325</line>
+          <line>748</line>
           <option name="timeStamp" value="20" />
         </line-breakpoint>
       </breakpoints>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="PythonConfigurationType">

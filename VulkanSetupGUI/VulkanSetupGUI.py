@@ -43,8 +43,8 @@ class OpenGLWidget(QOpenGLWidget):
         rotation_axis = QVector3D(-1, 0, 0)  # Rotation axis (e.g., Y-axis)
         glRotatef(rotation_angle, rotation_axis.x(), rotation_axis.y(), rotation_axis.z())
 
-        translation = QVector3D(0, 0, -0.3)  # Translation vector (e.g., move 0.2 units down on the Y-axis)
-        glTranslate(translation.x(), translation.y(), translation.z())
+        #translation = QVector3D(0, 0, -0.3)  # Translation vector (e.g., move 0.2 units down on the Y-axis)
+        #glTranslate(translation.x(), translation.y(), translation.z())
 
         glBegin(GL_TRIANGLES)
         if self.OBJMesh:
@@ -65,6 +65,366 @@ class OpenGLWidget(QOpenGLWidget):
         glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_color)
         light_position = [1.0, 1.0, 1.0, 1.0]
         glLightfv(GL_LIGHT0, GL_POSITION, light_position)
+
+class OpenGLPreviewWidget(QOpenGLWidget):
+    def __init__(self, OBJFilePath, parent=None,
+                 rasterizerInfo_depthClampEnable=False,
+                 rasterizerInfo_polygonMode=GL_FILL,
+                 rasterizerInfo_lineWidth=1.0,
+                 rasterizerInfo_cullMode=GL_BACK,
+                 rasterizerInfo_frontFace=GL_CCW,
+                 depthStencilInfo_depthTestEnable=True,
+                 depthStencilInfo_depthWriteEnable=True,
+                 depthStencilInfo_depthCompareOp=GL_LESS,
+                 multisamplingInfo_sampleShadingEnable=False,
+                 multisamplingInfo_rasterizationSamples=1,
+                 colorBlendAttachment_colorWriteMask=GL_TRUE,
+                 colorBlendAttachment_blendEnable=False,
+                 colorBlendAttachment_srcColorBlendFactor=GL_ONE,
+                 colorBlendAttachment_dstColorBlendFactor=GL_ZERO,
+                 colorBlendAttachment_colorBlendOp=GL_FUNC_ADD,
+                 colorBlendingInfo_logicOpEnable=False,
+                 colorBlendingInfo_logicOp=GL_COPY,
+                 colorBlendingInfo_blendConstants_0=0.0,
+                 colorBlendingInfo_blendConstants_1=0.0,
+                 colorBlendingInfo_blendConstants_2=0.0,
+                 colorBlendingInfo_blendConstants_3=0.0):
+        super().__init__(parent)
+        self.OBJFilePath = OBJFilePath
+        self.OBJMesh = None
+
+        self.rasterizerInfo_depthClampEnable = rasterizerInfo_depthClampEnable
+        self.rasterizerInfo_polygonMode = self.mapPolygonMode(rasterizerInfo_polygonMode)
+        self.rasterizerInfo_lineWidth = rasterizerInfo_lineWidth
+        self.rasterizerInfo_cullMode = self.mapCullMode(rasterizerInfo_cullMode)
+        self.rasterizerInfo_frontFace = self.mapFrontFace(rasterizerInfo_frontFace)
+        self.depthStencilInfo_depthTestEnable = self.convertFromVulkanNaming(depthStencilInfo_depthTestEnable)
+        self.depthStencilInfo_depthWriteEnable = self.convertFromVulkanNaming(depthStencilInfo_depthWriteEnable)
+        self.depthStencilInfo_depthCompareOp = self.mapCompareOp(depthStencilInfo_depthCompareOp)
+        self.multisamplingInfo_sampleShadingEnable = self.convertFromVulkanNaming(multisamplingInfo_sampleShadingEnable)
+        self.multisamplingInfo_rasterizationSamples = self.mapSampleCount(multisamplingInfo_rasterizationSamples)
+        self.colorBlendAttachment_colorWriteMask = self.convertColorBlendAttachment_colorWriteMask(colorBlendAttachment_colorWriteMask)
+        self.colorBlendAttachment_blendEnable = self.convertFromVulkanNaming(colorBlendAttachment_blendEnable)
+        self.colorBlendAttachment_srcColorBlendFactor = self.mapBlendFactor(colorBlendAttachment_srcColorBlendFactor)
+        self.colorBlendAttachment_dstColorBlendFactor = self.mapBlendFactor(colorBlendAttachment_dstColorBlendFactor)
+        self.colorBlendAttachment_colorBlendOp = self.mapBlendOp(colorBlendAttachment_colorBlendOp)
+        self.colorBlendingInfo_logicOpEnable = self.convertFromVulkanNaming(colorBlendingInfo_logicOpEnable)
+        self.colorBlendingInfo_logicOp = self.mapLogicOp(colorBlendingInfo_logicOp)
+        self.colorBlendingInfo_blendConstants_0 = colorBlendingInfo_blendConstants_0
+        self.colorBlendingInfo_blendConstants_1 = colorBlendingInfo_blendConstants_1
+        self.colorBlendingInfo_blendConstants_2 = colorBlendingInfo_blendConstants_2
+        self.colorBlendingInfo_blendConstants_3 = colorBlendingInfo_blendConstants_3
+
+    def initializeGL(self):
+        glClearColor(0.0, 0.0, 0.0, 1.0)
+        self.OBJMesh = Wavefront(self.OBJFilePath, collect_faces=True)
+        self.setupLighting()
+
+    def resizeGL(self, width, height):
+        glViewport(0, 0, width, height)
+
+    def updateGL(self):
+        self.OBJMesh = Wavefront(self.OBJFilePath, collect_faces=True)
+        self.paintGL()
+
+    def paintGL(self):
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        glEnable(GL_DEPTH_TEST)
+
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+
+        rotation_angle = 90  # Rotation angle in degrees
+        rotation_axis = QVector3D(-1, 0, 0)  # Rotation axis (e.g., Y-axis)
+        glRotatef(rotation_angle, rotation_axis.x(), rotation_axis.y(), rotation_axis.z())
+
+        if self.rasterizerInfo_depthClampEnable:
+            glEnable(GL_DEPTH_CLAMP)
+        else:
+            glDisable(GL_DEPTH_CLAMP)
+
+        glPolygonMode(GL_FRONT_AND_BACK, self.rasterizerInfo_polygonMode)
+        glLineWidth(self.rasterizerInfo_lineWidth)
+
+        if self.rasterizerInfo_cullMode == GL_NONE:
+            glDisable(GL_CULL_FACE)
+        else:
+            glEnable(GL_CULL_FACE)
+            glCullFace(self.rasterizerInfo_cullMode)
+
+        glFrontFace(self.rasterizerInfo_frontFace)
+
+        if self.depthStencilInfo_depthTestEnable:
+            glEnable(GL_DEPTH_TEST)
+        else:
+            glDisable(GL_DEPTH_TEST)
+
+        glDepthMask(self.depthStencilInfo_depthWriteEnable)
+
+        glDepthFunc(self.depthStencilInfo_depthCompareOp)
+
+        if self.multisamplingInfo_sampleShadingEnable:
+            glEnable(GL_SAMPLE_SHADING)
+        else:
+            glDisable(GL_SAMPLE_SHADING)
+
+        glSampleCoverage(1.0, self.multisamplingInfo_rasterizationSamples)
+
+        colorMask = self.colorBlendAttachment_colorWriteMask
+        glColorMask(*colorMask)
+
+        if self.colorBlendAttachment_blendEnable:
+            glEnable(GL_BLEND)
+        else:
+            glDisable(GL_BLEND)
+
+        glBlendFunc(
+            self.colorBlendAttachment_srcColorBlendFactor,
+            self.colorBlendAttachment_dstColorBlendFactor
+        )
+
+        glBlendEquation(self.colorBlendAttachment_colorBlendOp)
+
+        if self.colorBlendingInfo_logicOpEnable:
+            glEnable(GL_COLOR_LOGIC_OP)
+        else:
+            glDisable(GL_COLOR_LOGIC_OP)
+
+        glLogicOp(self.colorBlendingInfo_logicOp)
+
+        glBlendColor(
+            self.colorBlendingInfo_blendConstants_0,
+            self.colorBlendingInfo_blendConstants_1,
+            self.colorBlendingInfo_blendConstants_2,
+            self.colorBlendingInfo_blendConstants_3
+        )
+
+        glBegin(GL_TRIANGLES)
+        if self.OBJMesh:
+            for mesh in self.OBJMesh.mesh_list:
+                for face in mesh.faces:
+                    for vertex_i in face:
+                        vertex = self.OBJMesh.vertices[vertex_i]
+                        glVertex3fv(vertex)
+                glColor3f(1.0, 1.0, 1.0)
+        glEnd()
+
+    def setupLighting(self):
+        glEnable(GL_LIGHTING)
+        glEnable(GL_LIGHT0)
+        ambient_color = [0.4, 0.4, 0.4, 1.0]
+        glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_color)
+        diffuse_color = [1.2, 1.2, 1.2, 1.0]
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_color)
+        light_position = [1.0, 1.0, 1.0, 1.0]
+        glLightfv(GL_LIGHT0, GL_POSITION, light_position)
+
+    def convertColorBlendAttachment_colorWriteMask(self, mask: str):
+        mapping = {
+            "R": [GL_TRUE, GL_FALSE, GL_FALSE, GL_FALSE],
+            "G": [GL_FALSE, GL_TRUE, GL_FALSE, GL_FALSE],
+            "B": [GL_FALSE, GL_FALSE, GL_TRUE, GL_FALSE],
+            "A": [GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE],
+            "RG": [GL_TRUE, GL_TRUE, GL_FALSE, GL_FALSE],
+            "RB": [GL_TRUE, GL_FALSE, GL_TRUE, GL_FALSE],
+            "RA": [GL_TRUE, GL_FALSE, GL_FALSE, GL_TRUE],
+            "GB": [GL_FALSE, GL_TRUE, GL_TRUE, GL_FALSE],
+            "GA": [GL_FALSE, GL_TRUE, GL_FALSE, GL_TRUE],
+            "BA": [GL_FALSE, GL_FALSE, GL_TRUE, GL_TRUE],
+            "RGB": [GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE],
+            "RGA": [GL_TRUE, GL_TRUE, GL_FALSE, GL_TRUE],
+            "RBA": [GL_TRUE, GL_FALSE, GL_TRUE, GL_TRUE],
+            "GBA": [GL_FALSE, GL_TRUE, GL_TRUE, GL_TRUE],
+            "RGBA": [GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE]
+        }
+        return mapping.get(mask, [GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE])
+
+    def mapTopology(self, topology):
+        if topology == "VK_PRIMITIVE_TOPOLOGY_POINT_LIST":
+            return GL_POINTS
+        elif topology == "VK_PRIMITIVE_TOPOLOGY_LINE_LIST":
+            return GL_LINES
+        elif topology == "VK_PRIMITIVE_TOPOLOGY_LINE_STRIP":
+            return GL_LINE_STRIP
+        elif topology == "VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST":
+            return GL_TRIANGLES
+        elif topology == "VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP":
+            return GL_TRIANGLE_STRIP
+        elif topology == "VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN":
+            return GL_TRIANGLE_FAN
+        elif topology == "VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY":
+            return GL_LINES_ADJACENCY
+        elif topology == "VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY":
+            return GL_LINE_STRIP_ADJACENCY
+        elif topology == "VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY":
+            return GL_TRIANGLES_ADJACENCY
+        elif topology == "VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY":
+            return GL_TRIANGLE_STRIP_ADJACENCY
+        elif topology == "VK_PRIMITIVE_TOPOLOGY_PATCH_LIST":
+            return GL_PATCHES
+        else:
+            return GL_INVALID_ENUM  # Handle unknown topology values
+
+    def mapPolygonMode(self, polygonMode):
+        if polygonMode == "VK_POLYGON_MODE_FILL":
+            return GL_FILL
+        elif polygonMode == "VK_POLYGON_MODE_POINT":
+            return GL_POINT
+        elif polygonMode == "VK_POLYGON_MODE_LINE":
+            return GL_LINE
+        else:
+            return GL_INVALID_ENUM  # Handle unknown polygon mode values
+
+    def mapCullMode(self, cullMode):
+        if cullMode == "VK_CULL_MODE_NONE":
+            return GL_NONE
+        elif cullMode == "VK_CULL_MODE_FRONT_BIT":
+            return GL_FRONT
+        elif cullMode == "VK_CULL_MODE_BACK_BIT":
+            return GL_BACK
+        elif cullMode == "VK_CULL_MODE_FRONT_AND_BACK":
+            return GL_FRONT_AND_BACK
+        else:
+            return GL_INVALID_ENUM  # Handle unknown cull mode values
+
+    def mapFrontFace(self, frontFace):
+        if frontFace == "VK_FRONT_FACE_COUNTER_CLOCKWISE":
+            return GL_CCW
+        elif frontFace == "VK_FRONT_FACE_CLOCKWISE":
+            return GL_CW
+        else:
+            return GL_INVALID_ENUM  # Handle unknown front face values
+
+    def mapCompareOp(self, compareOp):
+        if compareOp == "VK_COMPARE_OP_LESS":
+            return GL_LESS
+        elif compareOp == "VK_COMPARE_OP_GREATER":
+            return GL_GREATER
+        elif compareOp == "VK_COMPARE_OP_EQUAL":
+            return GL_EQUAL
+        elif compareOp == "VK_COMPARE_OP_NOT_EQUAL":
+            return GL_NOTEQUAL
+        elif compareOp == "VK_COMPARE_OP_LESS_OR_EQUAL":
+            return GL_LEQUAL
+        elif compareOp == "VK_COMPARE_OP_GREATER_OR_EQUAL":
+            return GL_GEQUAL
+        elif compareOp == "VK_COMPARE_OP_ALWAYS":
+            return GL_ALWAYS
+        elif compareOp == "VK_COMPARE_OP_NEVER":
+            return GL_NEVER
+        else:
+            return GL_INVALID_ENUM  # Handle unknown compare operation values
+
+    def mapBlendFactor(self, blendFactor):
+        if blendFactor == "VK_BLEND_FACTOR_ZERO":
+            return GL_ZERO
+        elif blendFactor == "VK_BLEND_FACTOR_ONE":
+            return GL_ONE
+        elif blendFactor == "VK_BLEND_FACTOR_SRC_COLOR":
+            return GL_SRC_COLOR
+        elif blendFactor == "VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR":
+            return GL_ONE_MINUS_SRC_COLOR
+        elif blendFactor == "VK_BLEND_FACTOR_DST_COLOR":
+            return GL_DST_COLOR
+        elif blendFactor == "VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR":
+            return GL_ONE_MINUS_DST_COLOR
+        elif blendFactor == "VK_BLEND_FACTOR_SRC_ALPHA":
+            return GL_SRC_ALPHA
+        elif blendFactor == "VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA":
+            return GL_ONE_MINUS_SRC_ALPHA
+        elif blendFactor == "VK_BLEND_FACTOR_DST_ALPHA":
+            return GL_DST_ALPHA
+        elif blendFactor == "VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA":
+            return GL_ONE_MINUS_DST_ALPHA
+        elif blendFactor == "VK_BLEND_FACTOR_CONSTANT_COLOR":
+            return GL_CONSTANT_COLOR
+        elif blendFactor == "VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR":
+            return GL_ONE_MINUS_CONSTANT_COLOR
+        elif blendFactor == "VK_BLEND_FACTOR_CONSTANT_ALPHA":
+            return GL_CONSTANT_ALPHA
+        elif blendFactor == "VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA":
+            return GL_ONE_MINUS_CONSTANT_ALPHA
+        elif blendFactor == "VK_BLEND_FACTOR_SRC_ALPHA_SATURATE":
+            return GL_SRC_ALPHA_SATURATE
+        else:
+            return GL_INVALID_ENUM  # Handle unknown blend factor values
+
+    def mapBlendOp(self, blendOp):
+        if blendOp == "VK_BLEND_OP_ADD":
+            return GL_FUNC_ADD
+        elif blendOp == "VK_BLEND_OP_SUBTRACT":
+            return GL_FUNC_SUBTRACT
+        elif blendOp == "VK_BLEND_OP_REVERSE_SUBTRACT":
+            return GL_FUNC_REVERSE_SUBTRACT
+        elif blendOp == "VK_BLEND_OP_MIN":
+            return GL_MIN
+        elif blendOp == "VK_BLEND_OP_MAX":
+            return GL_MAX
+        else:
+            return GL_INVALID_ENUM  # Handle unknown blend operation values
+
+    def mapLogicOp(self, logicOp):
+        if logicOp == "VK_LOGIC_OP_CLEAR":
+            return GL_CLEAR
+        elif logicOp == "VK_LOGIC_OP_AND":
+            return GL_AND
+        elif logicOp == "VK_LOGIC_OP_AND_REVERSE":
+            return GL_AND_REVERSE
+        elif logicOp == "VK_LOGIC_OP_COPY":
+            return GL_COPY
+        elif logicOp == "VK_LOGIC_OP_AND_INVERTED":
+            return GL_AND_INVERTED
+        elif logicOp == "VK_LOGIC_OP_NO_OP":
+            return GL_NOOP
+        elif logicOp == "VK_LOGIC_OP_XOR":
+            return GL_XOR
+        elif logicOp == "VK_LOGIC_OP_OR":
+            return GL_OR
+        elif logicOp == "VK_LOGIC_OP_NOR":
+            return GL_NOR
+        elif logicOp == "VK_LOGIC_OP_EQUIVALENT":
+            return GL_EQUIV
+        elif logicOp == "VK_LOGIC_OP_INVERT":
+            return GL_INVERT
+        elif logicOp == "VK_LOGIC_OP_OR_REVERSE":
+            return GL_OR_REVERSE
+        elif logicOp == "VK_LOGIC_OP_COPY_INVERTED":
+            return GL_COPY_INVERTED
+        elif logicOp == "VK_LOGIC_OP_OR_INVERTED":
+            return GL_OR_INVERTED
+        elif logicOp == "VK_LOGIC_OP_NAND":
+            return GL_NAND
+        elif logicOp == "VK_LOGIC_OP_SET":
+            return GL_SET
+        else:
+            return GL_INVALID_ENUM  # Handle unknown logic operation values
+
+    def mapSampleCount(self, sampleCount):
+        if sampleCount == "VK_SAMPLE_COUNT_1_BIT":
+            return 1
+        elif sampleCount == "VK_SAMPLE_COUNT_2_BIT":
+            return 2
+        elif sampleCount == "VK_SAMPLE_COUNT_4_BIT":
+            return 4
+        elif sampleCount == "VK_SAMPLE_COUNT_8_BIT":
+            return 8
+        elif sampleCount == "VK_SAMPLE_COUNT_16_BIT":
+            return 16
+        elif sampleCount == "VK_SAMPLE_COUNT_32_BIT":
+            return 32
+        elif sampleCount == "VK_SAMPLE_COUNT_64_BIT":
+            return 64
+        else:
+            return -1  # Handle unknown sample count values
+
+    def convertFromVulkanNaming(self, input):
+        if input == "VK_TRUE":
+            return True
+        elif input == "VK_FALSE":
+            return False
+        else:
+            return input
+
 
 class GraphicsPipelineView(QDialog):
     def __init__(self):
@@ -145,6 +505,68 @@ class VulkanSetupGUI(QMainWindow):
         # Add the model preview widget to the vertical layout
         self.verticalLayoutModelPreview.addWidget(modelPreviewWidget)
 
+    def loadPipelinePreview(self):
+        # Check if the model file path is empty
+        if not self.modelFileInput.text():
+            return
+
+        # Get the number of widgets in the vertical layout
+        widgetCount = self.verticalLayoutPipelinePreview.count()
+
+        # Remove the existing placeholder widget if there is more than one widget
+        if widgetCount > 4:
+            # Retrieve the placeholder widget
+            placeholderWidget = self.verticalLayoutPipelinePreview.itemAt(4).widget()
+
+            # Remove the placeholder widget from the layout
+            self.verticalLayoutPipelinePreview.removeWidget(placeholderWidget)
+
+            # Delete the placeholder widget to free up memory
+            placeholderWidget.deleteLater()
+
+        # Retrieve the model file path from the line edit
+        modelFilePath = self.modelFileInput.text()
+
+        # Get the selected item from the graphics pipelines list
+        selectedItems = self.graphicsPipelinesList.selectedItems()
+        if not selectedItems:
+            return
+
+        # Retrieve the selected item data
+        selectedPipelineData = selectedItems[0].data(Qt.UserRole)
+
+        # Create a new OpenGLWidget for model preview using the selected pipeline parameters
+        parameters = {
+            "rasterizerInfo_depthClampEnable": selectedPipelineData[2],
+            "rasterizerInfo_polygonMode": selectedPipelineData[4],
+            "rasterizerInfo_lineWidth": float(selectedPipelineData[5].replace(',', '.')),
+            "rasterizerInfo_cullMode": selectedPipelineData[6],
+            "rasterizerInfo_frontFace": selectedPipelineData[7],
+            "depthStencilInfo_depthTestEnable": selectedPipelineData[12],
+            "depthStencilInfo_depthWriteEnable": selectedPipelineData[13],
+            "depthStencilInfo_depthCompareOp": selectedPipelineData[14],
+            "multisamplingInfo_sampleShadingEnable": selectedPipelineData[19],
+            "multisamplingInfo_rasterizationSamples": selectedPipelineData[20],
+            "colorBlendAttachment_colorWriteMask": selectedPipelineData[24],
+            "colorBlendAttachment_blendEnable": selectedPipelineData[25],
+            "colorBlendAttachment_srcColorBlendFactor": selectedPipelineData[26],
+            "colorBlendAttachment_dstColorBlendFactor": selectedPipelineData[27],
+            "colorBlendAttachment_colorBlendOp": selectedPipelineData[28],
+            "colorBlendingInfo_logicOpEnable": selectedPipelineData[32],
+            "colorBlendingInfo_logicOp": selectedPipelineData[33],
+            "colorBlendingInfo_blendConstants_0": float(selectedPipelineData[35].replace(',', '.')),
+            "colorBlendingInfo_blendConstants_1": float(selectedPipelineData[36].replace(',', '.')),
+            "colorBlendingInfo_blendConstants_2": float(selectedPipelineData[37].replace(',', '.')),
+            "colorBlendingInfo_blendConstants_3": float(selectedPipelineData[38].replace(',', '.')),
+        }
+
+        pipelinePreviewWidget = OpenGLPreviewWidget(modelFilePath, **parameters)
+        pipelinePreviewWidget.setMinimumSize(255, 255)
+        pipelinePreviewWidget.setMaximumSize(255, 255)
+
+        # Add the model preview widget to the vertical layout
+        self.verticalLayoutPipelinePreview.addWidget(pipelinePreviewWidget)
+
     #################################
     ##### Connection Section ########
     #################################
@@ -157,6 +579,7 @@ class VulkanSetupGUI(QMainWindow):
         self.actionLoadFromFile.triggered.connect(self.loadFromXMLFile)
         self.actionLoadFromFile.triggered.connect(self.loadTexturePreview)
         self.actionLoadFromFile.triggered.connect(self.loadModelPreview)
+
 
         # Instance
 
@@ -179,7 +602,7 @@ class VulkanSetupGUI(QMainWindow):
         self.editPipelineButton.clicked.connect(self.showEditPipelineInput)
         self.deletePipelineButton.clicked.connect(self.showRemovePipeline)
         self.graphicsPipelinesList.itemDoubleClicked.connect(self.showEditPipelineInput)
-        # self.pipelinePreviewButton.clicked.connect(self.showPreview)
+        self.pipelinePreviewButton.clicked.connect(self.loadPipelinePreview)
 
     #################################
     ######## Print section ##########
