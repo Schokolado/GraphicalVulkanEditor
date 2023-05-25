@@ -1,4 +1,26 @@
-﻿#pragma once
+﻿/*********************************************************************************
+ * This project utilizes code, concepts and comments from the Vulkan tutorial by *
+ * Alexander Overvoorde available at https://vulkan-tutorial.com/.               *
+ *                                                                               *
+ * Tutorial Author: Alexander Overvoorde                                         *
+ * Tutorial Website: https://vulkan-tutorial.com/                                *
+ * Tutorial License: Creative Commons Attribution-ShareAlike 4.0 International   *
+ * License (CC BY-SA 4.0)                                                        *
+ *                                                                               *
+ * Acknowledgments:                                                              *
+ * - I would like to express my gratitude to Alexander Overvoorde for providing  *
+ *   such a comprehensive and well-explained Vulkan tutorial. The tutorial       *
+ *   greatly contributed to my understanding and implementation of Vulkan in     *
+ *   this project.                                                               *
+ *                                                                               *
+ * The code from the Vulkan tutorial is available under the Creative Commons     *
+ * Zero v1.0 Universal license (CC0 1.0), which allows unrestricted use,         *
+ * modification, and distribution without requiring attribution.                 *
+ * License details: https://creativecommons.org/publicdomain/zero/1.0/           *
+ *                                                                               *
+ *********************************************************************************/
+
+#pragma once
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
