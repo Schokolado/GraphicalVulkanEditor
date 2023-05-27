@@ -965,6 +965,18 @@
           <layout class="QGridLayout" name="gridLayout_2">
            <item row="0" column="0">
             <widget class="QLabel" name="rasterizerLabel">
+             <property name="minimumSize">
+              <size>
+               <width>256</width>
+               <height>13</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>256</width>
+               <height>13</height>
+              </size>
+             </property>
              <property name="toolTip">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Rasterizer creates fragments out of vertices and also performs depth testing, face culling and scissor test.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
@@ -974,7 +986,20 @@
             </widget>
            </item>
            <item row="1" column="0" rowspan="2">
-            <widget class="QListWidget" name="graphicsPipelinesList"/>
+            <widget class="QListWidget" name="graphicsPipelinesList">
+             <property name="minimumSize">
+              <size>
+               <width>256</width>
+               <height>447</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>256</width>
+               <height>447</height>
+              </size>
+             </property>
+            </widget>
            </item>
            <item row="1" column="1">
             <layout class="QVBoxLayout" name="verticalLayoutPipelineActionButtons">

@@ -33,7 +33,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-645</y>
+        <y>0</y>
         <width>593</width>
         <height>1188</height>
        </rect>
@@ -357,11 +357,17 @@
              </item>
              <item>
               <widget class="QDoubleSpinBox" name="lineWidthInput">
+               <property name="minimum">
+                <double>0.010000000000000</double>
+               </property>
                <property name="maximum">
-                <double>1.000000000000000</double>
+                <double>999.000000000000000</double>
                </property>
                <property name="singleStep">
                 <double>0.010000000000000</double>
+               </property>
+               <property name="value">
+                <double>1.000000000000000</double>
                </property>
               </widget>
              </item>

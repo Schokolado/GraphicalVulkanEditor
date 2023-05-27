@@ -510,6 +510,11 @@ class VulkanSetupGUI(QMainWindow):
         if not self.modelFileInput.text():
             return
 
+        # Get the selected item from the graphics pipelines list
+        selectedItems = self.graphicsPipelinesList.selectedItems()
+        if not selectedItems:
+            return
+
         # Get the number of widgets in the vertical layout
         widgetCount = self.verticalLayoutPipelinePreview.count()
 
@@ -527,10 +532,7 @@ class VulkanSetupGUI(QMainWindow):
         # Retrieve the model file path from the line edit
         modelFilePath = self.modelFileInput.text()
 
-        # Get the selected item from the graphics pipelines list
-        selectedItems = self.graphicsPipelinesList.selectedItems()
-        if not selectedItems:
-            return
+
 
         # Retrieve the selected item data
         selectedPipelineData = selectedItems[0].data(Qt.UserRole)
@@ -832,12 +834,20 @@ class VulkanSetupGUI(QMainWindow):
         d.show()
 
     def showAddPipelineInput(self):
-        def showPipelineAlreadyPresent(extension: str):
+        def showPipelineAlreadyPresent(pipeline: str):
             d = QDialog(self)
             d.setWindowTitle("")
             d.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
             layout = QVBoxLayout()
-            label = QLabel(f"Pipeline already present:\n{extension}")
+
+            labelText = "Pipeline already present:\n"
+            for element in pipeline:
+                if element:
+                    labelText += element + "\n"
+                else:
+                    labelText += "[No input provided]\n"
+            label = QLabel(labelText)
+
             layout.addWidget(label)
             OKButton = QPushButton("OK")
             OKButton.clicked.connect(d.accept)
