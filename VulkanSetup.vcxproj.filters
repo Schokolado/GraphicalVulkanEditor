@@ -18,15 +18,12 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="28_model_loading.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VulkanProject.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="VulkanProjectVariables.h">
+    <ClInclude Include="GraphicalVulkanEditorProjectVariables.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -104,13 +104,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>%VULKAN_SDK%\Include;%userprofile%\source\repos\VulkanSetup\libraries\glm;%userprofile%\source\repos\VulkanSetup\libraries\glfw\glfw-3.2.1.bin.WIN64\include;%userprofile%\source\repos\VulkanSetup\libraries\stb;%userprofile%\source\repos\VulkanSetup\libraries\tinyobjloader</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%VULKAN_SDK%\Include;%userprofile%\Documents\GitHub\GraphicalVulkanEditor\libraries\glm;%userprofile%\Documents\GitHub\GraphicalVulkanEditor\libraries\glfw\glfw-3.2.1.bin.WIN64\include;%userprofile%\Documents\GitHub\GraphicalVulkanEditor\libraries\stb;%userprofile%\Documents\GitHub\GraphicalVulkanEditor\libraries\tinyobjloader</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>%VULKAN_SDK%\Lib;%userprofile%\source\repos\VulkanSetup\libraries\glfw\glfw-3.2.1.bin.WIN64\lib-vc2015</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%VULKAN_SDK%\Lib;%userprofile%\\Documents\GitHub\GraphicalVulkanEditor\libraries\glfw\glfw-3.2.1.bin.WIN64\lib-vc2015</AdditionalLibraryDirectories>
       <AdditionalDependencies>vulkan-1.lib;glfw3.lib;shaderc_combinedd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -135,15 +135,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="28_model_loading.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GraphicalVulkanEditorProjectVariables.h" />
     <ClInclude Include="VulkanProject.h" />
-    <ClInclude Include="VulkanProjectVariables.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\raw_shaders\shader-debug.frag" />

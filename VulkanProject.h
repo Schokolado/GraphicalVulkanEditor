@@ -54,7 +54,7 @@
 #include <array>
 #include <chrono>
 
-#include "VulkanProjectVariables.h"
+#include "GraphicalVulkanEditorProjectVariables.h"
 
 
 #ifdef NDEBUG
@@ -67,7 +67,7 @@ const std::vector<const char*> validationLayers = {
     "VK_LAYER_KHRONOS_validation"
 };
 
-const std::vector<const char*> deviceExtensions = VulkanProject::DEVICE_EXTENSIONS;
+const std::vector<const char*> deviceExtensions = GVEProject::DEVICE_EXTENSIONS;
 
 // Uniform object to pass to shaders
 struct UniformBufferObject {
@@ -198,7 +198,7 @@ private:
         std::vector<tinyobj::material_t> materials;
         std::string warn, err;
 
-        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, VulkanProject::MODEL_FILE.c_str())) {
+        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, GVEProject::MODEL_FILE.c_str())) {
             throw std::runtime_error(warn + err);
         }
 
@@ -307,9 +307,9 @@ private:
         samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
         // anisotropic filtering, use maximum available anisotropic value (= amount of texel samples that can be used to calculate the final color) for best results (at cost of performace)
-        samplerInfo.anisotropyEnable = VulkanProject::ENABLE_ANISOTRIPIC_FILTER;
+        samplerInfo.anisotropyEnable = GVEProject::ENABLE_ANISOTRIPIC_FILTER;
         samplerInfo.maxAnisotropy = 1.0f;
-        if (VulkanProject::ENABLE_ANISOTRIPIC_FILTER) {
+        if (GVEProject::ENABLE_ANISOTRIPIC_FILTER) {
             VkPhysicalDeviceProperties properties{};
             vkGetPhysicalDeviceProperties(*physicalDevice, &properties);
             samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
@@ -354,7 +354,7 @@ private:
 
         // subresource describes what the image's purpose is and which part of the image should be accessed.
         viewInfo.subresourceRange.aspectMask = aspectFlags; // Use color or depth information
-        viewInfo.subresourceRange.baseMipLevel = VulkanProject::MIPMAP_LEVEL; // choose mipmap level for image views
+        viewInfo.subresourceRange.baseMipLevel = GVEProject::MIPMAP_LEVEL; // choose mipmap level for image views
         viewInfo.subresourceRange.levelCount = 1; // no multilayered images
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount = 1; // for stereoscopic 3D applications, use multiple layers to access views for left and right eye
@@ -444,7 +444,7 @@ private:
     void createTextureImage(VkDeviceMemory* textureImageMemory, VkImage* textureImage, VkCommandPool* commandPool, VkQueue* graphicsQueue, VkDevice* device, VkPhysicalDevice* physicalDevice) {
         int texWidth, texHeight, texChannels;
         //stbi_uc* pixels = stbi_load("textures/texture.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-        stbi_uc* pixels = stbi_load(VulkanProject::TEXTURE_FILE.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha); // load pixels from texture file
+        stbi_uc* pixels = stbi_load(GVEProject::TEXTURE_FILE.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha); // load pixels from texture file
         VkDeviceSize imageSize = texWidth * texHeight * 4; // STBI rgb alpha uses 4 bytes per pixel, increase in case of larger datatype
 
         if (!pixels) {
@@ -525,15 +525,15 @@ private:
         // create one poolsize for each descriptor, here we use one for uniform buffer and one for combined image sampler (for textures)
         std::array<VkDescriptorPoolSize, 2> poolSizes{};
         poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        poolSizes[0].descriptorCount = static_cast<uint32_t>(VulkanProject::MAX_FRAMES_IN_FLIGHT);  // create descriptor set for each frame in flight with the same layout, not explicity necesary but recommended for best practice
+        poolSizes[0].descriptorCount = static_cast<uint32_t>(GVEProject::MAX_FRAMES_IN_FLIGHT);  // create descriptor set for each frame in flight with the same layout, not explicity necesary but recommended for best practice
         poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        poolSizes[1].descriptorCount = static_cast<uint32_t>(VulkanProject::MAX_FRAMES_IN_FLIGHT);  // create descriptor set for each frame in flight with the same layout, not explicity necesary but recommended for best practice
+        poolSizes[1].descriptorCount = static_cast<uint32_t>(GVEProject::MAX_FRAMES_IN_FLIGHT);  // create descriptor set for each frame in flight with the same layout, not explicity necesary but recommended for best practice
 
         VkDescriptorPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
         poolInfo.pPoolSizes = poolSizes.data();
-        poolInfo.maxSets = static_cast<uint32_t>(VulkanProject::MAX_FRAMES_IN_FLIGHT);
+        poolInfo.maxSets = static_cast<uint32_t>(GVEProject::MAX_FRAMES_IN_FLIGHT);
 
         if (vkCreateDescriptorPool(*device, &poolInfo, nullptr, descriptorPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor pool!");
@@ -541,19 +541,19 @@ private:
     }
 
     void createDescriptorSets(VkSampler* textureSampler, VkImageView* textureImageView, std::vector<VkDescriptorSet>* descriptorSets, VkDescriptorPool* descriptorPool, VkDescriptorSetLayout* descriptorSetLayout, std::vector<VkBuffer>* uniformBuffers, VkDevice* device) {
-        std::vector<VkDescriptorSetLayout> layouts(VulkanProject::MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout);
+        std::vector<VkDescriptorSetLayout> layouts(GVEProject::MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout);
         VkDescriptorSetAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         allocInfo.descriptorPool = *descriptorPool;
-        allocInfo.descriptorSetCount = static_cast<uint32_t>(VulkanProject::MAX_FRAMES_IN_FLIGHT);
+        allocInfo.descriptorSetCount = static_cast<uint32_t>(GVEProject::MAX_FRAMES_IN_FLIGHT);
         allocInfo.pSetLayouts = layouts.data();
 
-        descriptorSets->resize(VulkanProject::MAX_FRAMES_IN_FLIGHT);
+        descriptorSets->resize(GVEProject::MAX_FRAMES_IN_FLIGHT);
         if (vkAllocateDescriptorSets(*device, &allocInfo, descriptorSets->data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate descriptor sets!");
         }
 
-        for (size_t i = 0; i < VulkanProject::MAX_FRAMES_IN_FLIGHT; i++) {
+        for (size_t i = 0; i < GVEProject::MAX_FRAMES_IN_FLIGHT; i++) {
             // setup descriptor resources for uniform buffer
             VkDescriptorBufferInfo bufferInfo{};
             bufferInfo.buffer = uniformBuffers->at(i);
@@ -724,11 +724,11 @@ private:
     void createUniformBuffers(std::vector<void*>* uniformBuffersMapped, std::vector<VkDeviceMemory>* uniformBuffersMemory, std::vector<VkBuffer>* uniformBuffers, VkDevice* device, VkPhysicalDevice* physicalDevice) {
         VkDeviceSize bufferSize = sizeof(UniformBufferObject);
         // create uniform buffers for as many frames in flight to prevent writing into a buffer that is currently being read
-        uniformBuffers->resize(VulkanProject::MAX_FRAMES_IN_FLIGHT);
-        uniformBuffersMemory->resize(VulkanProject::MAX_FRAMES_IN_FLIGHT);
-        uniformBuffersMapped->resize(VulkanProject::MAX_FRAMES_IN_FLIGHT);
+        uniformBuffers->resize(GVEProject::MAX_FRAMES_IN_FLIGHT);
+        uniformBuffersMemory->resize(GVEProject::MAX_FRAMES_IN_FLIGHT);
+        uniformBuffersMapped->resize(GVEProject::MAX_FRAMES_IN_FLIGHT);
 
-        for (size_t i = 0; i < VulkanProject::MAX_FRAMES_IN_FLIGHT; i++) {
+        for (size_t i = 0; i < GVEProject::MAX_FRAMES_IN_FLIGHT; i++) {
             createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &uniformBuffers->at(i), &uniformBuffersMemory->at(i), device, physicalDevice);
             // persist mapping for the lifetime of the application to increase performance
             vkMapMemory(*device, uniformBuffersMemory->at(i), 0, bufferSize, 0, &uniformBuffersMapped->at(i));
@@ -836,9 +836,9 @@ private:
     }
 
     void createSyncObjects(std::vector<VkSemaphore>* imageAvailableSemaphores, std::vector<VkSemaphore>* renderFinishedSemaphores, std::vector<VkFence>* inFlightFences, VkDevice* device) {
-        imageAvailableSemaphores->resize(VulkanProject::MAX_FRAMES_IN_FLIGHT);
-        renderFinishedSemaphores->resize(VulkanProject::MAX_FRAMES_IN_FLIGHT);
-        inFlightFences->resize(VulkanProject::MAX_FRAMES_IN_FLIGHT);
+        imageAvailableSemaphores->resize(GVEProject::MAX_FRAMES_IN_FLIGHT);
+        renderFinishedSemaphores->resize(GVEProject::MAX_FRAMES_IN_FLIGHT);
+        inFlightFences->resize(GVEProject::MAX_FRAMES_IN_FLIGHT);
 
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -847,7 +847,7 @@ private:
         fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; // set signaled to prevent infinite waiting loop on first frame
 
-        for (size_t i = 0; i < VulkanProject::MAX_FRAMES_IN_FLIGHT; i++) {
+        for (size_t i = 0; i < GVEProject::MAX_FRAMES_IN_FLIGHT; i++) {
             if (vkCreateSemaphore(*device, &semaphoreInfo, nullptr, &imageAvailableSemaphores->at(i)) != VK_SUCCESS ||
                 vkCreateSemaphore(*device, &semaphoreInfo, nullptr, &renderFinishedSemaphores->at(i)) != VK_SUCCESS ||
                 vkCreateFence(*device, &fenceInfo, nullptr, &inFlightFences->at(i)) != VK_SUCCESS) {
@@ -858,7 +858,7 @@ private:
     }
 
     void createCommandBuffers(std::vector<VkCommandBuffer>* commandBuffers, VkCommandPool* commandPool, VkDevice* device) {
-        commandBuffers->resize(VulkanProject::MAX_FRAMES_IN_FLIGHT);
+        commandBuffers->resize(GVEProject::MAX_FRAMES_IN_FLIGHT);
 
         // The level parameter specifies if the allocated command buffers are primary or secondary command buffers.
         // VK_COMMAND_BUFFER_LEVEL_PRIMARY: Can be submitted to a queue for execution, but cannot be called from other command buffers.
@@ -898,7 +898,7 @@ private:
         
         // the order of clearValues should be identical to the order of the attachments.
         std::array<VkClearValue, 2> clearValues{}; // clear image to that color before writing to it. If an area is not drawn, this can also refer to "background color" 
-        clearValues[0].color = VulkanProject::CLEAR_COLOR;
+        clearValues[0].color = GVEProject::CLEAR_COLOR;
         clearValues[1].depthStencil = { 1.0f, 0 }; // The range of depths in the depth buffer is 0.0 to 1.0 in Vulkan, where 1.0 lies at the far view plane and 0.0 at the near view plane.The initial value at each point in the depth buffer should be the furthest possible depth, which is 1.0.
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();
@@ -937,7 +937,7 @@ private:
         // firstInstance : Used as an offset for instanced rendering, defines the lowest value of gl_InstanceIndex.
         // 
        
-        if (VulkanProject::USE_INDEXED_VERTICES) {
+        if (GVEProject::USE_INDEXED_VERTICES) {
             // reuse vertices by using their indices and place them in order specified by "indices" array
             // saves about 50% of memory for vertices
             // std::cout << "Using indexed vertices in draw command. Please make sure to specify the order of vertices." << std::endl;
@@ -1104,7 +1104,7 @@ private:
         }
     }
     // Fixed-function stage : all of the structures that define the fixed - function stages of the pipeline, like input assembly, rasterizer, viewport and color blending
-    void setupFixedFunctionStage(VulkanProject::FixedFunctionStageParameters pipelineParameters,
+    void setupFixedFunctionStage(GVEProject::FixedFunctionStageParameters pipelineParameters,
         std::vector<VkDynamicState>& dynamicStates,
         VkPipelineInputAssemblyStateCreateInfo& inputAssemblyInfo,
         VkPipelineDynamicStateCreateInfo& dynamicStateInfo,
@@ -1251,7 +1251,7 @@ private:
     }
 
     // Shader stages : the shader modules that define the functionality of the programmable stages of the graphics pipeline
-    std::vector<VkShaderModule> setupShaderStageAndReturnModules(VulkanProject::ShaderStageParameters shaderParameters, std::array<VkVertexInputAttributeDescription, Vertex::attributeCount> attributeDescriptions, VkVertexInputBindingDescription bindingDescription, VkPipelineVertexInputStateCreateInfo& vertexInputInfo, VkPipelineShaderStageCreateInfo& fragmentShaderStageInfo, VkPipelineShaderStageCreateInfo& vertexShaderStageInfo, VkDevice* device) {
+    std::vector<VkShaderModule> setupShaderStageAndReturnModules(GVEProject::ShaderStageParameters shaderParameters, std::array<VkVertexInputAttributeDescription, Vertex::attributeCount> attributeDescriptions, VkVertexInputBindingDescription bindingDescription, VkPipelineVertexInputStateCreateInfo& vertexInputInfo, VkPipelineShaderStageCreateInfo& fragmentShaderStageInfo, VkPipelineShaderStageCreateInfo& vertexShaderStageInfo, VkDevice* device) {
         std::string vertexShaderText = readShaderFile(shaderParameters.vertexShaderText);
         std::string fragmentShaderText = readShaderFile(shaderParameters.fragmentShaderText);
 
@@ -1326,7 +1326,7 @@ private:
 
         shaderc::Compiler compiler;
         shaderc::CompileOptions options;
-        if (VulkanProject::REDUCE_SPIRV_CODE_SIZE) {
+        if (GVEProject::REDUCE_SPIRV_CODE_SIZE) {
             options.SetOptimizationLevel(shaderc_optimization_level_size);
         }
 
@@ -1361,34 +1361,34 @@ private:
 
         //////////////////////// PIPELINE CREATION
 
-        std::vector<VkGraphicsPipelineCreateInfo> pipelineInfos(VulkanProject::PIPELINE_COUNT);
-        graphicsPipelines->resize(VulkanProject::PIPELINE_COUNT);
+        std::vector<VkGraphicsPipelineCreateInfo> pipelineInfos(GVEProject::PIPELINE_COUNT);
+        graphicsPipelines->resize(GVEProject::PIPELINE_COUNT);
 
         //////////////////////// SHADER STAGE INFOS
-        std::vector <VkPipelineShaderStageCreateInfo> vertexShaderStageInfos(VulkanProject::PIPELINE_COUNT);
-        std::vector <VkPipelineShaderStageCreateInfo> fragmentShaderStageInfos(VulkanProject::PIPELINE_COUNT);
-        std::vector <VkPipelineVertexInputStateCreateInfo> vertexInputInfos(VulkanProject::PIPELINE_COUNT);
-        std::vector<VulkanProject::ShaderStageParameters> shaders = VulkanProject::PIPELINE_SHADERS;
-        std::vector<std::vector<VkPipelineShaderStageCreateInfo>> shaderStages(VulkanProject::PIPELINE_COUNT);
-        std::vector< std::vector<VkShaderModule>> shaderModules(VulkanProject::PIPELINE_COUNT);
+        std::vector <VkPipelineShaderStageCreateInfo> vertexShaderStageInfos(GVEProject::PIPELINE_COUNT);
+        std::vector <VkPipelineShaderStageCreateInfo> fragmentShaderStageInfos(GVEProject::PIPELINE_COUNT);
+        std::vector <VkPipelineVertexInputStateCreateInfo> vertexInputInfos(GVEProject::PIPELINE_COUNT);
+        std::vector<GVEProject::ShaderStageParameters> shaders = GVEProject::PIPELINE_SHADERS;
+        std::vector<std::vector<VkPipelineShaderStageCreateInfo>> shaderStages(GVEProject::PIPELINE_COUNT);
+        std::vector< std::vector<VkShaderModule>> shaderModules(GVEProject::PIPELINE_COUNT);
         auto bindingDescription = Vertex::getBindingDescription();
         auto attributeDescriptions = Vertex::getAttributeDescriptions();
 
         //////////////////////// FIXED FUNCTION STAGE INFOS
-        std::vector<VkPipelineInputAssemblyStateCreateInfo> inputAssemblyInfos(VulkanProject::PIPELINE_COUNT);
-        std::vector<VkPipelineDynamicStateCreateInfo> dynamicStateInfos(VulkanProject::PIPELINE_COUNT);
-        std::vector<std::vector<VkDynamicState>> dynamicStates(VulkanProject::PIPELINE_COUNT);
-        std::vector<VkPipelineViewportStateCreateInfo> viewportStates(VulkanProject::PIPELINE_COUNT);
-        std::vector<VkPipelineRasterizationStateCreateInfo> rasterizerInfos(VulkanProject::PIPELINE_COUNT);
-        std::vector<VkPipelineMultisampleStateCreateInfo> multisamplingInfos(VulkanProject::PIPELINE_COUNT);
-        std::vector<VkPipelineDepthStencilStateCreateInfo> depthStencilInfos(VulkanProject::PIPELINE_COUNT);
-        std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments(VulkanProject::PIPELINE_COUNT);
-        std::vector<VkPipelineColorBlendStateCreateInfo> colorBlendingInfos(VulkanProject::PIPELINE_COUNT);
+        std::vector<VkPipelineInputAssemblyStateCreateInfo> inputAssemblyInfos(GVEProject::PIPELINE_COUNT);
+        std::vector<VkPipelineDynamicStateCreateInfo> dynamicStateInfos(GVEProject::PIPELINE_COUNT);
+        std::vector<std::vector<VkDynamicState>> dynamicStates(GVEProject::PIPELINE_COUNT);
+        std::vector<VkPipelineViewportStateCreateInfo> viewportStates(GVEProject::PIPELINE_COUNT);
+        std::vector<VkPipelineRasterizationStateCreateInfo> rasterizerInfos(GVEProject::PIPELINE_COUNT);
+        std::vector<VkPipelineMultisampleStateCreateInfo> multisamplingInfos(GVEProject::PIPELINE_COUNT);
+        std::vector<VkPipelineDepthStencilStateCreateInfo> depthStencilInfos(GVEProject::PIPELINE_COUNT);
+        std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments(GVEProject::PIPELINE_COUNT);
+        std::vector<VkPipelineColorBlendStateCreateInfo> colorBlendingInfos(GVEProject::PIPELINE_COUNT);
 
-        std::vector<VulkanProject::FixedFunctionStageParameters> parameters = VulkanProject::PIPELINE_PARAMETERS;
+        std::vector<GVEProject::FixedFunctionStageParameters> parameters = GVEProject::PIPELINE_PARAMETERS;
 
 
-        for (int i = 0; i < VulkanProject::PIPELINE_COUNT; i++) {
+        for (int i = 0; i < GVEProject::PIPELINE_COUNT; i++) {
             //////////////////////// SHADER STAGE
             shaderModules[i] = setupShaderStageAndReturnModules(shaders[i], attributeDescriptions, bindingDescription, vertexInputInfos[i], fragmentShaderStageInfos[i], vertexShaderStageInfos[i], device);
             shaderStages[i] = { vertexShaderStageInfos[i], fragmentShaderStageInfos[i] };
@@ -1420,7 +1420,7 @@ private:
             pipelineInfos[i] = pipelineInfo;
         }
 
-        if (vkCreateGraphicsPipelines(*device, VK_NULL_HANDLE, VulkanProject::PIPELINE_COUNT, pipelineInfos.data(), nullptr, graphicsPipelines->data()) != VK_SUCCESS) {
+        if (vkCreateGraphicsPipelines(*device, VK_NULL_HANDLE, GVEProject::PIPELINE_COUNT, pipelineInfos.data(), nullptr, graphicsPipelines->data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to create graphics pipeline!");
         }
 
@@ -1498,7 +1498,7 @@ private:
 
         // subresource describes what the image's purpose is and which part of the image should be accessed.
         viewInfo.subresourceRange.aspectMask = aspectFlags; // Use color or depth information
-        viewInfo.subresourceRange.baseMipLevel = VulkanProject::MIPMAP_LEVEL; // choose mipmap level for image views
+        viewInfo.subresourceRange.baseMipLevel = GVEProject::MIPMAP_LEVEL; // choose mipmap level for image views
         viewInfo.subresourceRange.levelCount = 1; // no multilayered images
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount = 1; // for stereoscopic 3D applications, use multiple layers to access views for left and right eye
@@ -1539,7 +1539,7 @@ private:
         createInfo.imageColorSpace = surfaceFormat.colorSpace;
         createInfo.imageExtent = extent;
         createInfo.imageArrayLayers = 1; // specifies the amount of layers each image consists of, always 1 for 2D Applications. Increase if using 3D stereoscopic images.
-        createInfo.imageUsage = VulkanProject::IMAGE_USAGE; // specifies what kind of operations we'll use the images in the swap chain for.
+        createInfo.imageUsage = GVEProject::IMAGE_USAGE; // specifies what kind of operations we'll use the images in the swap chain for.
                                                                     // VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT specifies to render directly into images
                                                                     // VK_IMAGE_USAGE_TRANSFER_DST_BIT may be used to render into separate image and perform post processing. Perform memory operation then to transport image to swap chain.
         QueueFamilyIndices indices = findQueueFamilies(*surface, *physicalDevice);
@@ -1607,8 +1607,8 @@ private:
     // VK_PRESENT_MODE_MAILBOX_KHR: new created images replace already present images in the queue if its full, instead of stopping the program to create frames. Reduces latency issues but consumes a lot of energy - don't use on mobile devices.
     VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentationModes) {
         for (const auto& availablePresentationMode : availablePresentationModes) {
-            if (!VulkanProject::SAVE_ENERGY_FOR_MOBILE) {
-                if (availablePresentationMode == VulkanProject::PRESENTATION_MODE) {
+            if (!GVEProject::SAVE_ENERGY_FOR_MOBILE) {
+                if (availablePresentationMode == GVEProject::PRESENTATION_MODE) {
                     return availablePresentationMode;
                 }
             }
@@ -1620,7 +1620,7 @@ private:
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
         for (const auto& availableFormat : availableFormats) {
             // prefer 32 Bit srgb color cormat (8 bit per channel) and srgb color space for more accurate colors
-            if (availableFormat.format == VulkanProject::IMAGE_FORMAT && availableFormat.colorSpace == VulkanProject::IMAGE_COLOR_SPACE) {
+            if (availableFormat.format == GVEProject::IMAGE_FORMAT && availableFormat.colorSpace == GVEProject::IMAGE_COLOR_SPACE) {
                 return availableFormat;
             }
         }
@@ -1709,10 +1709,10 @@ private:
         populateQueueCreateInfo(queueCreateInfos, *surface, physicalDevice);
 
         VkPhysicalDeviceFeatures deviceFeatures{};
-        deviceFeatures.samplerAnisotropy = VulkanProject::ENABLE_ANISOTRIPIC_FILTER;
+        deviceFeatures.samplerAnisotropy = GVEProject::ENABLE_ANISOTRIPIC_FILTER;
 
         // enable feature for fillModeNonSolid if polygons are not filled in any pipeline
-        for (auto &pipelineParams : VulkanProject::PIPELINE_PARAMETERS) {
+        for (auto &pipelineParams : GVEProject::PIPELINE_PARAMETERS) {
             if (pipelineParams.rasterizerInfo_polygonMode == VK_POLYGON_MODE_LINE || pipelineParams.rasterizerInfo_polygonMode == VK_POLYGON_MODE_POINT) {
                 deviceFeatures.fillModeNonSolid = VK_TRUE;
             }
@@ -1865,7 +1865,7 @@ private:
             swapChainAdequate = checkSwapChainSupport(surface, device);
         }
 
-        if (VulkanProject::ENABLE_ANISOTRIPIC_FILTER && !deviceFeatures.samplerAnisotropy) {
+        if (GVEProject::ENABLE_ANISOTRIPIC_FILTER && !deviceFeatures.samplerAnisotropy) {
 
             return false;
         }
@@ -1925,7 +1925,7 @@ private:
         }
 
         // check for anisotropic filtering option and availablity
-        if (VulkanProject::ENABLE_ANISOTRIPIC_FILTER && !deviceFeatures.samplerAnisotropy) {
+        if (GVEProject::ENABLE_ANISOTRIPIC_FILTER && !deviceFeatures.samplerAnisotropy) {
 
             return 0;
         }
@@ -1945,7 +1945,7 @@ private:
         std::vector<VkPhysicalDevice> devices(deviceCount);
         vkEnumeratePhysicalDevices(*instance, &deviceCount, devices.data());
 
-        if (VulkanProject::CHOOSE_GPU_ON_STARTUP) {
+        if (GVEProject::CHOOSE_GPU_ON_STARTUP) {
             if (!chooseStartUpGPU(*surface, physicalDevice, devices)) {
                 findBestCandidate(surface, physicalDevice, devices);
                 return;
@@ -2027,7 +2027,7 @@ private:
         }
         */
         
-        if (VulkanProject::SHOW_VALIDATION_LAYER_DEBUG_INFO) {
+        if (GVEProject::SHOW_VALIDATION_LAYER_DEBUG_INFO) {
             std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
         }
 
@@ -2052,7 +2052,7 @@ private:
         if (enableValidationLayers) {
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         }
-        if (VulkanProject::RUN_ON_MACOS) {
+        if (GVEProject::RUN_ON_MACOS) {
             extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
         }
 
@@ -2119,7 +2119,7 @@ private:
 
         VkApplicationInfo appInfo{};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        appInfo.pApplicationName = VulkanProject::APPLICATION_NAME;
+        appInfo.pApplicationName = GVEProject::APPLICATION_NAME;
         appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.pEngineName = "No Engine";
         appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -2133,7 +2133,7 @@ private:
         createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
         createInfo.ppEnabledExtensionNames = extensions.data();
 
-        if(VulkanProject::RUN_ON_MACOS) createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+        if(GVEProject::RUN_ON_MACOS) createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
         
         // this debug messenger will be used only for creation and desctruction of Instance and cleaned up afterwards
         VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
@@ -2231,10 +2231,10 @@ private:
         glfwInit();
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // dont create opengl context
-        if (VulkanProject::LOCK_WINDOW_SIZE) glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // disable resizable windows
+        if (GVEProject::LOCK_WINDOW_SIZE) glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // disable resizable windows
 
 
-        window = glfwCreateWindow(VulkanProject::WIDTH, VulkanProject::HEIGHT, VulkanProject::APPLICATION_NAME, nullptr, nullptr);
+        window = glfwCreateWindow(GVEProject::WIDTH, GVEProject::HEIGHT, GVEProject::APPLICATION_NAME, nullptr, nullptr);
         glfwSetWindowUserPointer(window, this);
         glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
     }
@@ -2378,7 +2378,7 @@ private:
         else if (result != VK_SUCCESS) {
             throw std::runtime_error("failed to present swap chain image!");
         }
-        currentFrame = (currentFrame + 1) % VulkanProject::MAX_FRAMES_IN_FLIGHT; // use modulo to  ensure that the frame index loops around after every MAX_FRAMES_IN_FLIGHT enqueued frames.
+        currentFrame = (currentFrame + 1) % GVEProject::MAX_FRAMES_IN_FLIGHT; // use modulo to  ensure that the frame index loops around after every MAX_FRAMES_IN_FLIGHT enqueued frames.
     }
 
     void cleanupGlfw() {
@@ -2445,7 +2445,7 @@ private:
     }
 
     void cleanupSyncObjects() {
-        for (size_t i = 0; i < VulkanProject::MAX_FRAMES_IN_FLIGHT; i++) {
+        for (size_t i = 0; i < GVEProject::MAX_FRAMES_IN_FLIGHT; i++) {
             vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
             vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
             vkDestroyFence(device, inFlightFences[i], nullptr);
@@ -2460,7 +2460,7 @@ private:
         vkFreeMemory(device, vertexBufferMemory, nullptr);
         vkFreeMemory(device, indexBufferMemory, nullptr);
 
-        for (size_t i = 0; i < VulkanProject::MAX_FRAMES_IN_FLIGHT; i++) {
+        for (size_t i = 0; i < GVEProject::MAX_FRAMES_IN_FLIGHT; i++) {
             vkDestroyBuffer(device, uniformBuffers[i], nullptr);
             vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
         }
