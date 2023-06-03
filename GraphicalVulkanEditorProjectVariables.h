@@ -38,8 +38,8 @@ namespace GVEProject {
 	// Shader
 
 	// Model
-	const std::string MODEL_FILE = "C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/models/viking_room.obj";
-	const std::string TEXTURE_FILE = "C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/textures/texture.jpg";
+	const std::string MODEL_FILE = "C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/resources/models/viking_room.obj";
+	const std::string TEXTURE_FILE = "C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/resources/textures/viking_room.png";
 
 	// Graphics Pipeline
     const bool USE_INDEXED_VERTICES = VK_TRUE;
@@ -108,14 +108,14 @@ namespace GVEProject {
 		// Functional Parameters 
 		FixedFunctionStageParameters graphics_pipeline_1{
 			//////////////////////// INPUT ASSEMBLY
-			VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, // inputAssemblyInfo_topology
+			VK_PRIMITIVE_TOPOLOGY_POINT_LIST, // inputAssemblyInfo_topology
 			VK_FALSE, // inputAssemblyInfo_primitiveRestartEnable
 
 			//////////////////////// RASTERIZER
 			VK_FALSE, // rasterizerInfo_depthClampEnable
 			VK_FALSE, // rasterizerInfo_rasterizerDiscardEnable
-			VK_POLYGON_MODE_LINE, // rasterizerInfo_polygonMode 
-			1.00f, // rasterizerInfo_lineWidth
+			VK_POLYGON_MODE_FILL, // rasterizerInfo_polygonMode 
+			3.00f, // rasterizerInfo_lineWidth
 			VK_CULL_MODE_NONE, // rasterizerInfo_cullMode
 			VK_FRONT_FACE_COUNTER_CLOCKWISE, // rasterizerInfo_frontFace
 			VK_FALSE, // rasterizerInfodepthBiasEnable
@@ -213,14 +213,14 @@ namespace GVEProject {
         
 		// Shader Parameters
 		ShaderStageParameters graphics_pipeline_1_shaders{
-			 "C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/shaders/raw_shaders/shader.vert", // vertexShaderText
-			 "C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/shaders/raw_shaders/shader.frag", // fragmentShaderText
+			 "C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/resources/shaders/raw_shaders/shader.vert", // vertexShaderText
+			 "C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/resources/shaders/raw_shaders/shader.frag", // fragmentShaderText
 			 "main", // vertexShaderEntryFunctionName
 			 "main" // fragmentShaderEntryFunctionName
 		};
         ShaderStageParameters graphics_pipeline_2_shaders{
-			 "C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/shaders/raw_shaders/shader.vert", // vertexShaderText
-			 "C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/shaders/raw_shaders/shader.frag", // fragmentShaderText
+			 "C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/resources/shaders/raw_shaders/shader.vert", // vertexShaderText
+			 "C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/resources/shaders/raw_shaders/shader-debug.frag", // fragmentShaderText
 			 "main", // vertexShaderEntryFunctionName
 			 "main" // fragmentShaderEntryFunctionName
 		};

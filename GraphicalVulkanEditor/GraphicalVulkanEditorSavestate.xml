@@ -33,9 +33,9 @@
         <imageColorSpaceInput name="imageColorSpaceInput">VK_COLORSPACE_SRGB_NONLINEAR_KHR</imageColorSpaceInput>
     </swapchain>
     <model>
-        <modelFileInput name="modelFileInput">C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/models/viking_room.obj
+        <modelFileInput name="modelFileInput">C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/resources/models/viking_room.obj
         </modelFileInput>
-        <textureFileInput name="textureFileInput">C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/textures/viking_room.png
+        <textureFileInput name="textureFileInput">C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/resources/textures/viking_room.png
         </textureFileInput>
     </model>
     <graphicsPipeline>
@@ -90,12 +90,12 @@
                 <blendConstant2Input name="blendConstant2Input">0,00</blendConstant2Input>
                 <blendConstant3Input name="blendConstant3Input">0,00</blendConstant3Input>
                 <vertexShaderFileInput name="vertexShaderFileInput">
-                    C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/shaders/raw_shaders/shader.vert
+                    C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/resources/shaders/raw_shaders/shader.vert
                 </vertexShaderFileInput>
                 <vertexShaderEntryFunctionNameInput name="vertexShaderEntryFunctionNameInput">main
                 </vertexShaderEntryFunctionNameInput>
                 <fragmentShaderFileInput name="fragmentShaderFileInput">
-                    C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/shaders/raw_shaders/shader.frag
+                    C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/resources/shaders/raw_shaders/shader.frag
                 </fragmentShaderFileInput>
                 <fragmentShaderEntryFunctionNameInput name="fragmentShaderEntryFunctionNameInput">main
                 </fragmentShaderEntryFunctionNameInput>
@@ -148,12 +148,12 @@
                 <blendConstant2Input name="blendConstant2Input">0,00</blendConstant2Input>
                 <blendConstant3Input name="blendConstant3Input">0,00</blendConstant3Input>
                 <vertexShaderFileInput name="vertexShaderFileInput">
-                    C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/shaders/raw_shaders/shader.vert
+                    C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/resources/shaders/raw_shaders/shader.vert
                 </vertexShaderFileInput>
                 <vertexShaderEntryFunctionNameInput name="vertexShaderEntryFunctionNameInput">main
                 </vertexShaderEntryFunctionNameInput>
                 <fragmentShaderFileInput name="fragmentShaderFileInput">
-                    C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/shaders/raw_shaders/shader-debug.frag
+                    C:/Users/Avoccardo/Documents/GitHub/GraphicalVulkanEditor/resources/shaders/raw_shaders/shader-debug.frag
                 </fragmentShaderFileInput>
                 <fragmentShaderEntryFunctionNameInput name="fragmentShaderEntryFunctionNameInput">main
                 </fragmentShaderEntryFunctionNameInput>

@@ -429,13 +429,13 @@ class OpenGLPreviewWidget(QOpenGLWidget):
 class GraphicsPipelineView(QDialog):
     def __init__(self):
         super(GraphicsPipelineView, self).__init__()
-        uic.loadUi("GraphicsPipelineView.ui", self)
+        uic.loadUi("ui_views/GraphicsPipelineView.ui", self)
 
 
 class GraphicalVulkanEditor(QMainWindow):
     def __init__(self):
         super(GraphicalVulkanEditor, self).__init__()
-        uic.loadUi("GraphicalVulkanEditor.ui", self)
+        uic.loadUi("ui_views/GraphicalVulkanEditor.ui", self)
         self.loadFile = ""
         self.saveFile = ""
 
