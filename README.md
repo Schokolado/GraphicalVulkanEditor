@@ -1,6 +1,9 @@
 # Graphical Vulkan Editor
 
-This project showcases an implementation of a graphical user interface named `Graphical Vulkan Editor` short `GVE`.
+The repository presents the development of a scientific project, namely the `Graphical Vulkan Editor (GVE)`, which focuses on implementing a graphical user interface to create Vulkan-based applications.
+
+This project is a result of the collaborative efforts between the Research Group Education, Didactics, and Entertainment Computing (EDEN) at the University of Vienna, led by [Univ.-Prof. Dr. Helmut Hlavacs](http://entertain.univie.ac.at/~hlavacs/).
+
 The general purpose is to facilitate configuration management and parameter adjustments for Vulkan-based applications. The GUI provides a user-friendly interface for modifying Vulkan configurations and exporting the settings to be used by the included VulkanProject application.
 The included ``Vulkan Project`` application incorporates code and concepts from the Vulkan tutorial by Alexander Overvoorde.
 
@@ -39,12 +42,6 @@ Please note that the code and concepts used from the Vulkan tutorial are appropr
 - `VulkanProject.sln/`: Contains the VulkanProject source code.
 - `GraphicalVulkanEditor/`: Contains the Graphical Vulkan Editor files and executable/script.
 
-## License
-
-- The code from the Vulkan tutorial is available under the Creative Commons Zero v1.0 Universal license (CC0 1.0), which allows unrestricted use, modification, and distribution without requiring attribution. License details can be found [here](https://creativecommons.org/publicdomain/zero/1.0/).
-- The materials in this repository are generally licensed under [CC BY-SA 4.0 License](https://creativecommons.org/licenses/by-sa/4.0/), unless indicated otherwise. By contributing to this repository, you agree to license your contributions under the same license.
-- Specifically, the resources found in the resources directory and the VulkanProject.h file are licensed under [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/). By contributing to that directory and files, you agree to license your contributions under the same public domain-like license.
-
 ## Usage of the VulkanProject.h C++ project
 
 1. Clone the repository: `git clone https://github.com/Schokolado/GraphicalVulkanEditor.git`
@@ -56,4 +53,14 @@ Please note that the code and concepts used from the Vulkan tutorial are appropr
 5. Run the GVE-GUI and export the configuration
 6. Build and run the project using your preferred Vulkan development environment.
 7. To quickly modify configuration parameters and instantly observe the updated outcome, repeat steps 5 and 6.
+
+## License
+
+- The code from the Vulkan tutorial is available under the Creative Commons Zero v1.0 Universal license (CC0 1.0), which allows unrestricted use, modification, and distribution without requiring attribution. License details can be found [here](https://creativecommons.org/publicdomain/zero/1.0/).
+- The materials in this repository are generally licensed under [CC BY-SA 4.0 License](https://creativecommons.org/licenses/by-sa/4.0/), unless indicated otherwise. By contributing to this repository, you agree to license your contributions under the same license.
+- Specifically, the resources found in the resources directory and the VulkanProject.h file are licensed under [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/). By contributing to that directory and files, you agree to license your contributions under the same public domain-like license.
+
+
+## Links
+- http://entertain.univie.ac.at/~hlavacs/
 
