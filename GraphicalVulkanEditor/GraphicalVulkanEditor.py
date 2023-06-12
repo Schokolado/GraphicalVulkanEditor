@@ -1,4 +1,5 @@
 import ast
+import os
 
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
@@ -477,7 +478,7 @@ class GraphicalVulkanEditor(QMainWindow):
 
     def loadModelPreview(self):
         # Check if the model file path is empty
-        if not self.modelFileInput.text():
+        if not self.modelFileInput.text() or not os.path.isfile(self.modelFileInput.text()):
             return
 
         # Get the number of widgets in the vertical layout
@@ -507,7 +508,7 @@ class GraphicalVulkanEditor(QMainWindow):
 
     def loadPipelinePreview(self):
         # Check if the model file path is empty
-        if not self.modelFileInput.text():
+        if not self.modelFileInput.text() or not os.path.isfile(self.modelFileInput.text()):
             return
 
         # Get the selected item from the graphics pipelines list
