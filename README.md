@@ -10,37 +10,14 @@ The Graphical Vulkan Editor aims to facilitate configuration management and para
 
 Here are some screenshots of the Graphical Vulkan Editor interface:
 
-<div style="display: flex; flex-wrap: wrap; justify-content: space-between;">
+|  Section to change swapchain details<br>such as width and height.  |  Section to load model and texture.  |
+|:---:|:---:|
+| ![Screenshot 1](GraphicalVulkanEditor/screenshots/gve_swapchain.png) | ![Screenshot 2](GraphicalVulkanEditor/screenshots/gve_model_texture.png) |
 
-<div style="flex-basis: 48%;">
+|  Section to add edit and preview graphics pipelines.  |  Possible output when running the attached<br>Vulkan application with the exported header from the GVE.  |
+|:---:|:---:|
+| ![Screenshot 3](GraphicalVulkanEditor/screenshots/gve_pipelines.png) | ![Screenshot 4](GraphicalVulkanEditor/screenshots/gve_running_application.png) |
 
-![Screenshot 1](GraphicalVulkanEditor/screenshots/gve_swapchain.png)
-*Section to change swapchain details such as width and height.*
-
-</div>
-
-<div style="flex-basis: 48%;">
-
-![Screenshot 2](GraphicalVulkanEditor/screenshots/gve_model_texture.png)
-*Section to load model and texture.*
-
-</div>
-
-<div style="flex-basis: 48%;">
-
-![Screenshot 3](GraphicalVulkanEditor/screenshots/gve_pipelines.png)
-*Section to add edit and preview graphics pipelines.*
-
-</div>
-
-<div style="flex-basis: 48%;">
-
-![Screenshot 4](GraphicalVulkanEditor/screenshots/gve_running_application.png)
-*Possible output when running the attached Vulkan application with the exported header from the GVE.*
-
-</div>
-
-</div>
 
 ## Usage
 
@@ -96,4 +73,3 @@ Special thanks to Alexander Overvoorde for the comprehensive and well-explained 
 ## Links
 - http://entertain.univie.ac.at/~hlavacs/
 - https://vulkan-tutorial.com/
-

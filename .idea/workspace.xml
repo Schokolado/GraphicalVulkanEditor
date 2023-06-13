@@ -4,12 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="update README.md">
-      <changelist_data name="Riccardo Pfeiler" email="58225926+schokolado@users.noreply.github.com" />
+    <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="update README.md, added usage note on project file">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GraphicalVulkanEditorProjectVariables.h" beforeDir="false" afterPath="$PROJECT_DIR$/GraphicalVulkanEditorProjectVariables.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GraphicalVulkanEditor/screenshots/gve_running_application.png" beforeDir="false" afterPath="$PROJECT_DIR$/GraphicalVulkanEditor/screenshots/gve_running_application.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/VulkanProject.h" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanProject.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -209,7 +207,14 @@
       <option name="project" value="LOCAL" />
       <updated>1686605114601</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="update README.md, added usage note on project file">
+      <created>1686689235951</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1686689235951</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -240,7 +245,8 @@
     <MESSAGE value="working dynamically output for multiple pipelines" />
     <MESSAGE value="final code refactoring, comments and added success/failure view for generating vulkan header" />
     <MESSAGE value="update README.md" />
-    <option name="LAST_COMMIT_MESSAGE" value="update README.md" />
+    <MESSAGE value="update README.md, added usage note on project file" />
+    <option name="LAST_COMMIT_MESSAGE" value="update README.md, added usage note on project file" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
