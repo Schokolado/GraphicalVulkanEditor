@@ -7,9 +7,9 @@
     <list default="true" id="66b95f37-6374-48b6-ac3b-d85115d15e5a" name="Changes" comment="update README.md">
       <changelist_data name="Riccardo Pfeiler" email="58225926+schokolado@users.noreply.github.com" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GraphicalVulkanEditor/GraphicalVulkanEditor.exe" beforeDir="false" afterPath="$PROJECT_DIR$/GraphicalVulkanEditor/GraphicalVulkanEditor.exe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GraphicalVulkanEditor/GraphicalVulkanEditor.py" beforeDir="false" afterPath="$PROJECT_DIR$/GraphicalVulkanEditor/GraphicalVulkanEditor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GraphicalVulkanEditorProjectVariables.h" beforeDir="false" afterPath="$PROJECT_DIR$/GraphicalVulkanEditorProjectVariables.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/VulkanProject.h" beforeDir="false" afterPath="$PROJECT_DIR$/VulkanProject.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

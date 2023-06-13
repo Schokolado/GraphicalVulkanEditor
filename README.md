@@ -6,6 +6,42 @@ The repository presents the development of a scientific project called **Graphic
 
 The Graphical Vulkan Editor aims to facilitate configuration management and parameter adjustments for Vulkan-based applications. It provides a user-friendly interface for modifying Vulkan configurations and exporting the settings for the included VulkanProject application. The project incorporates code and concepts from the Vulkan tutorial by Alexander Overvoorde.
 
+## Screenshots
+
+Here are some screenshots of the Graphical Vulkan Editor interface:
+
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between;">
+
+<div style="flex-basis: 48%;">
+
+![Screenshot 1](GraphicalVulkanEditor/screenshots/gve_swapchain.png)
+*Section to change swapchain details such as width and height.*
+
+</div>
+
+<div style="flex-basis: 48%;">
+
+![Screenshot 2](GraphicalVulkanEditor/screenshots/gve_model_texture.png)
+*Section to load model and texture.*
+
+</div>
+
+<div style="flex-basis: 48%;">
+
+![Screenshot 3](GraphicalVulkanEditor/screenshots/gve_pipelines.png)
+*Section to add edit and preview graphics pipelines.*
+
+</div>
+
+<div style="flex-basis: 48%;">
+
+![Screenshot 4](GraphicalVulkanEditor/screenshots/gve_running_application.png)
+*Possible output when running the attached Vulkan application with the exported header from the GVE.*
+
+</div>
+
+</div>
+
 ## Usage
 
 1. Start the Graphical Vulkan Editor GUI by navigating to the `GraphicalVulkanEditor` folder and running the corresponding executable or script.

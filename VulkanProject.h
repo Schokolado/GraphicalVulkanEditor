@@ -20,6 +20,14 @@
  *                                                                               *
  *********************************************************************************/
 
+
+ /****************************************************************************************************************************************************************
+ * IMPORTANT:                                                                                                                                                    * 
+ * This file contains an application developed using the Vulkan API. It utilizes parameters from the generated header file by the GVE (Graphical Vulkan Editor): *
+ * GraphicalVulkanEditorProjectVariables.h.                                                                                                                      *
+ * Make changes to this file to modify your application. The GVE will not modify this file, even if exporting the parameter header again.                        *
+ *****************************************************************************************************************************************************************/
+
 #pragma once
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
