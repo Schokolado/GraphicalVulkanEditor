@@ -16,12 +16,6 @@
     <height>563</height>
    </size>
   </property>
-  <property name="maximumSize">
-   <size>
-    <width>571</width>
-    <height>563</height>
-   </size>
-  </property>
   <property name="windowTitle">
    <string>Graphical Vulkan Editor</string>
   </property>
@@ -35,12 +29,6 @@
       <item>
        <widget class="QTabWidget" name="tabWidget">
         <property name="minimumSize">
-         <size>
-          <width>545</width>
-          <height>470</height>
-         </size>
-        </property>
-        <property name="maximumSize">
          <size>
           <width>545</width>
           <height>470</height>
