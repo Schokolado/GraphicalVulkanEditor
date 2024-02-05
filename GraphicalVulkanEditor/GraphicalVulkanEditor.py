@@ -1754,6 +1754,17 @@ namespace GVEProject {{
 def main():
     app = QApplication([])
     window = GraphicalVulkanEditor()
+
+    original_width = 571
+    original_height = 563
+    aspect_ratio = original_width / original_height
+
+    min_width = app.primaryScreen().availableSize().width() / 2.5
+    min_height = min_width / aspect_ratio
+
+    window.setMinimumWidth(min_width)
+    window.setMinimumHeight(min_height)
+
     window.show()
     app.exec_()
 
